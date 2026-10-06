@@ -5,6 +5,7 @@ import BenefitCard from '@/components/BenefitCard';
 import { isBirthdayMonth, israelToday } from '@/lib/core/dates';
 import { searchStores } from '@/lib/core/normalize';
 import { birthdayBenefits, rankForStore, type Row } from '@/lib/core/rank';
+import { parseAmount } from '@/lib/core/savings';
 import type { Store } from '@/lib/core/types';
 import { useSnap } from '@/lib/useSnapshot';
 
@@ -17,8 +18,7 @@ export default function WhereAmIPage() {
   if (!snapshot) return <p className="p-4 text-gray-500">טוען…</p>;
 
   const today = israelToday();
-  const parsed = Number(amountText.replace(',', '.'));
-  const amount = parsed > 0 ? parsed : null;
+  const amount = parseAmount(amountText);
   const birthMonth = snapshot.profile?.birth_month ?? null;
   const matches = store ? [] : searchStores(snapshot.stores, query);
   const result = store ? rankForStore(snapshot, store, amount, today) : null;

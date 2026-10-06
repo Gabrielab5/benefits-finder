@@ -56,6 +56,18 @@ describe('mergeImport', () => {
     expect(second.inserts).toEqual([]);
     expect(second.updates).toHaveLength(2);
   });
+  it('keeps two different gifts of the same program apart', () => {
+    const gift = (title: string) => incoming({ store_id: null, type: 'gift', value: null, title });
+    expect(mergeImport([], [gift('כוס קפה'), gift('מטריה')], { isRefresh: false, nowIso: NOW }).inserts).toHaveLength(2);
+  });
+  it('keeps the same percent with a different requirement or channel apart', () => {
+    const plan = mergeImport([], [incoming(), incoming({ requires: 'coupon_code', coupon_code: 'X' }), incoming({ channel: 'online' })], { isRefresh: false, nowIso: NOW });
+    expect(plan.inserts).toHaveLength(3);
+  });
+  it('still updates a retitled percent benefit instead of duplicating it', () => {
+    const plan = mergeImport([existing('e1')], [incoming({ title: 'עכשיו 10% על הכל' })], { isRefresh: false, nowIso: NOW });
+    expect(plan.updates.map((u) => u.id)).toEqual(['e1']);
+  });
   it('keeps category and general benefits apart', () => {
     const plan = mergeImport([], [incoming({ store_id: null, category: 'food' }), incoming({ store_id: null })], { isRefresh: false, nowIso: NOW });
     expect(plan.inserts).toHaveLength(2);

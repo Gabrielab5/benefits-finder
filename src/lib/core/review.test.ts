@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { blankRow, rowProblems, scopePatch, scopeValue, toIncoming, type ReviewRow } from './review';
+import { blankRow, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type NewStoreDraft, type ReviewRow } from './review';
+import type { Store } from './types';
 
 const row = (o: Partial<ReviewRow> = {}): ReviewRow => ({
   approved: true, title: '10% הנחה', description: null, store_id: 'mango', new_store_index: null, category: null,
@@ -32,6 +33,10 @@ describe('rowProblems', () => {
     expect(rowProblems(row({ type: 'fixed_off', value: null }), ctx)).toContain('חסר סכום ההנחה');
     expect(rowProblems(row({ type: 'bogo', value: null }), ctx)).toEqual([]);
   });
+  it('rejects values that are not numbers (e.g. "10%" typed into the value box)', () => {
+    expect(rowProblems(row({ value: NaN }), ctx)).toContain('ערך לא תקין');
+    expect(rowProblems(row({ type: 'bogo', value: null, min_spend: NaN }), ctx)).toContain('ערך לא תקין');
+  });
   it('checks dates', () => {
     expect(rowProblems(row({ valid_until: '31.12.2026' }), ctx)).toContain('תאריך לא תקין');
     expect(rowProblems(row({ valid_from: '2026-12-01', valid_until: '2026-11-01' }), ctx)).toContain('תאריך הסיום לפני תאריך ההתחלה');
@@ -56,6 +61,23 @@ describe('toIncoming', () => {
     expect(inc.source_url).toBe('https://x');
     expect(inc).not.toHaveProperty('approved');
     expect(inc).not.toHaveProperty('new_store_index');
+  });
+});
+
+describe('planNewStores', () => {
+  const draft = (name_he: string, name_en: string): NewStoreDraft => ({ name_he, name_en, aliases: [], category: 'fashion', channel: 'both' });
+  const existing: Store[] = [{ id: 's-mango', name_he: 'מנגו', name_en: 'Mango', aliases: [], category: 'fashion', channel: 'both' }];
+  const drafts = [draft('קסטרו', 'Castro'), draft('מנגו', 'Mango'), draft('קסטרו ', 'castro'), draft('גולף', 'Golf')];
+
+  it('reuses existing stores and creates each new store only once per save', () => {
+    expect(planNewStores([0, 1, 2], drafts, existing)).toEqual([
+      { indexes: [0, 2], existingId: null, draft: drafts[0] },
+      { indexes: [1], existingId: 's-mango', draft: drafts[1] },
+    ]);
+  });
+  it('on a retry reuses the store the failed attempt already created', () => {
+    const created: Store = { id: 's-castro', name_he: 'קסטרו', name_en: 'Castro', aliases: [], category: 'fashion', channel: 'both' };
+    expect(planNewStores([0], drafts, [...existing, created])[0].existingId).toBe('s-castro');
   });
 });
 

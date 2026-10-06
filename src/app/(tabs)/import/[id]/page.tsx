@@ -4,11 +4,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, REQUIRES_LABELS, TIMING_LABELS, TYPE_LABELS } from '@/lib/core/labels';
 import { mergeImport } from '@/lib/core/merge';
-import { findStoreByName } from '@/lib/core/normalize';
 import {
-  blankRow, rowProblems, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
+  blankRow, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
 } from '@/lib/core/review';
-import { BENEFIT_TYPES, CATEGORIES, REQUIRES, TIMINGS, type BenefitType, type Category, type Requires, type Timing } from '@/lib/core/types';
+import {
+  BENEFIT_TYPES, CATEGORIES, REQUIRES, TIMINGS,
+  type Benefit, type BenefitType, type Category, type Requires, type Store, type Timing,
+} from '@/lib/core/types';
+import { selectAll } from '@/lib/selectAll';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSnap } from '@/lib/useSnapshot';
 
@@ -59,25 +62,30 @@ export default function ReviewImportPage() {
       const nowIso = new Date().toISOString();
       const approved = rows.filter((r) => r.approved);
 
+      // Read straight from the database (not the possibly stale snapshot) so a retry after a
+      // half-finished save, or a save from a second tab, sees what was already written.
+      const [stores, existing] = await Promise.all([
+        selectAll<Store>((a, b) => sb.from('stores').select('*').order('id').range(a, b)),
+        selectAll<Benefit>((a, b) => sb.from('benefits').select('*').eq('program_id', imp.program_id)
+          .neq('status', 'archived').order('id').range(a, b)),
+      ]);
+
       const newStoreIds: (string | undefined)[] = [];
-      const usedIndexes = new Set(approved.map((r) => r.new_store_index).filter((i): i is number => i != null));
-      for (const i of usedIndexes) {
-        const draft = newStores[i];
-        const existing = findStoreByName(snapshot.stores, draft.name_he) ?? findStoreByName(snapshot.stores, draft.name_en);
-        if (existing) {
-          newStoreIds[i] = existing.id;
-          continue;
+      const usedIndexes = [...new Set(approved.map((r) => r.new_store_index).filter((i): i is number => i != null))];
+      for (const group of planNewStores(usedIndexes, newStores, stores)) {
+        let id = group.existingId;
+        if (!id) {
+          const { data, error } = await sb.from('stores').insert({
+            name_he: group.draft.name_he.trim(), name_en: group.draft.name_en.trim(), aliases: group.draft.aliases,
+            category: group.draft.category, channel: group.draft.channel,
+          }).select('id').single();
+          if (error) throw error;
+          id = data.id as string;
         }
-        const { data, error } = await sb.from('stores').insert({
-          name_he: draft.name_he.trim(), name_en: draft.name_en.trim(), aliases: draft.aliases,
-          category: draft.category, channel: draft.channel,
-        }).select('id').single();
-        if (error) throw error;
-        newStoreIds[i] = data.id;
+        for (const i of group.indexes) newStoreIds[i] = id;
       }
 
       const incoming = approved.map((r) => toIncoming(r, newStoreIds, imp.raw_input.url));
-      const existing = snapshot.benefits.filter((b) => b.program_id === imp.program_id);
       const plan = mergeImport(existing, incoming, { isRefresh: imp.is_refresh, nowIso });
 
       if (plan.inserts.length > 0) {

@@ -16,6 +16,12 @@ function rawSaving(b: Priced, amount: number): number {
   return Math.min(raw, b.max_discount ?? Infinity, amount);
 }
 
+/** Purchase amount as typed. Commas are thousands separators in Israel ("1,200" = 1200). */
+export function parseAmount(text: string): number | null {
+  const n = Number(text.replace(/[,\s₪]/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 export function computeSavings(b: Priced, amount: number): Savings {
   const min = b.min_spend ?? 0;
   if (amount < min) {

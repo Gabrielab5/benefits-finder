@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { monthNameHe } from '@/lib/core/dates';
 import { KIND_LABELS } from '@/lib/core/labels';
 import { PROGRAM_KINDS, type ProgramKind } from '@/lib/core/types';
-import { SEED_PROGRAMS, type SeedProgram } from '@/lib/seedPrograms';
+import { buildWalletItems, SEED_PROGRAMS, type SeedProgram } from '@/lib/seedPrograms';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -25,7 +25,7 @@ export default function OnboardingPage() {
     setPicked((ps) => (ps.some((x) => x.key === p.key) ? ps.filter((x) => x.key !== p.key) : [...ps, p]));
   const options = [...SEED_PROGRAMS, ...picked.filter((p) => p.key.startsWith('other-'))];
   const cards = picked.filter((p) => p.kind === 'card_issuer');
-  const clubs = picked.filter((p) => p.kind === 'club');
+  const clubs = picked.filter((p) => p.kind !== 'card_issuer'); // clubs and store clubs a card can belong to
 
   function addOther() {
     const name = otherName.trim();
@@ -63,14 +63,7 @@ export default function OnboardingPage() {
       const { count, error: e2 } = await sb.from('wallet_items').select('id', { count: 'exact', head: true });
       if (e2) throw e2;
       if (!count) {
-        const items = picked.map((p) => ({
-          name: p.name,
-          type: p.kind === 'card_issuer' ? 'card' : 'membership',
-          program_ids: [
-            idOf(p),
-            ...(links[p.key] ?? []).flatMap((k) => picked.filter((c) => c.key === k)).map(idOf),
-          ],
-        }));
+        const items = buildWalletItems(picked, links, idOf);
         if (items.length > 0) {
           const { error } = await sb.from('wallet_items').insert(items);
           if (error) throw error;
@@ -134,7 +127,10 @@ export default function OnboardingPage() {
       {step === 3 && (
         <section className="space-y-4">
           <h2 className="font-semibold">אילו מועדונים כל כרטיס פותח?</h2>
-          <p className="text-sm text-gray-600">לדוגמה: כרטיס כאל של מועדון חבר פותח גם את הטבות חבר.</p>
+          <p className="text-sm text-gray-600">
+            לדוגמה: כרטיס כאל של מועדון חבר פותח גם את הטבות חבר, וכרטיס אשראי של דרים קארד פותח את הטבות דרים קארד
+            שדורשות תשלום בכרטיס. סמנו כדי שהטבות כאלה יופיעו.
+          </p>
           {cards.map((card) => (
             <fieldset key={card.key} className="space-y-2 rounded-xl bg-white p-3">
               <legend className="font-semibold">{card.name}</legend>

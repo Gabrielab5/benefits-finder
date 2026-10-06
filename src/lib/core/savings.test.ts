@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { computeSavings } from './savings';
+import { computeSavings, parseAmount } from './savings';
+
+describe('parseAmount', () => {
+  it('treats commas as thousands separators (Israeli format)', () => {
+    expect(parseAmount('1,200')).toBe(1200);
+  });
+  it('accepts shekel signs, spaces and decimals', () => {
+    expect(parseAmount(' ₪ 99.90 ')).toBe(99.9);
+  });
+  it('returns null for empty, zero or non-numeric input', () => {
+    expect(parseAmount('')).toBeNull();
+    expect(parseAmount('0')).toBeNull();
+    expect(parseAmount('abc')).toBeNull();
+  });
+});
 
 const b = (type: 'percent_off' | 'fixed_off' | 'cashback_percent', value: number | null, min_spend: number | null = null, max_discount: number | null = null) =>
   ({ type, value, min_spend, max_discount });

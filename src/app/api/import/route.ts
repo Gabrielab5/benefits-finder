@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
 import { extractBenefits, ExtractError, type ContentBlock } from '@/lib/ai/extract';
+import { chunkText, mergeExtractions } from '@/lib/ai/chunks';
 import { buildContext } from '@/lib/ai/prompt';
 import { israelToday } from '@/lib/core/dates';
 import type { Store } from '@/lib/core/types';
@@ -11,7 +12,8 @@ import { supabaseServer } from '@/lib/supabase/server';
 
 export const maxDuration = 300; // seconds; long pages take minutes to extract
 
-const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+const CHUNK_CHARS = 20_000; // ~30-40 benefits per request: fits max_tokens and finishes well inside maxDuration
+const IMAGE_TYPES =['image/png', 'image/jpeg', 'image/webp'] as const;
 type ImageType = (typeof IMAGE_TYPES)[number];
 const fail = (error: string, status = 422) => NextResponse.json({ error }, { status });
 
@@ -32,22 +34,30 @@ export async function POST(req: Request) {
     }
   };
 
-  const content: ContentBlock[] = [];
+  // One Claude request per entry; long pages are split so each answer stays well within limits.
+  let requests: ContentBlock[][];
   let source: 'ai_link' | 'ai_text' | 'ai_screenshot';
-  if (body.mode === 'link') {
-    source = 'ai_link';
-    const text = body.url ? await fetchPageText(body.url).catch(() => null) : null;
+  if (body.mode === 'link' || body.mode === 'text') {
+    source = body.mode === 'link' ? 'ai_link' : 'ai_text';
+    const text = body.mode === 'link'
+      ? (body.url ? await fetchPageText(body.url).catch(() => null) : null)
+      : typeof body.text === 'string' ? body.text.trim() : '';
     if (!text) {
       await markRefreshFailed();
-      return fail('unreadable');
+      return fail(body.mode === 'link' ? 'unreadable' : 'empty');
     }
-    content.push({ type: 'text', text: `Benefits page ${body.url}:\n\n${text}` });
-  } else if (body.mode === 'text') {
-    source = 'ai_text';
-    const text = body.text?.trim() ?? '';
-    if (!text) return fail('empty');
-    content.push({ type: 'text', text });
+    if (text.length > MAX_TEXT) {
+      await markRefreshFailed();
+      return fail('too_long');
+    }
+    const chunks = chunkText(text, CHUNK_CHARS);
+    const label = body.mode === 'link' ? `Benefits page ${body.url}` : 'Pasted benefits text';
+    requests = chunks.map((c, i) => [
+      { type: 'text', text: `${label}${chunks.length > 1 ? ` (part ${i + 1} of ${chunks.length})` : ''}:\n\n${c}` },
+    ]);
   } else {
+    const content: ContentBlock[] = [];
+    requests = [content];
     source = 'ai_screenshot';
     const paths = body.paths ?? [];
     if (paths.length < 1 || paths.length > 5) return fail('bad_screenshots');
@@ -61,15 +71,13 @@ export async function POST(req: Request) {
       });
     }
   }
-  const textLength = content.reduce((n, c) => n + (c.type === 'text' ? c.text.length : 0), 0);
-  if (textLength > MAX_TEXT) return fail('too_long');
-
   const stores = await selectAll<Store>((a, b) => supabase.from('stores').select('*').order('id').range(a, b));
   const raw_input = { url: body.url ?? null, text: body.mode === 'text' ? body.text ?? null : null, paths: body.paths ?? null };
   const base = { program_id: program.id, source, raw_input, is_refresh: !!body.refresh };
 
   try {
-    const extracted = await extractBenefits(content, buildContext(program.name, stores, israelToday().iso));
+    const context = buildContext(program.name, stores, israelToday().iso);
+    const extracted = mergeExtractions(await Promise.all(requests.map((content) => extractBenefits(content, context))));
     const { data: row, error } = await supabase.from('imports')
       .insert({ ...base, extracted, status: 'pending_review' }).select('id').single();
     if (error) throw error;

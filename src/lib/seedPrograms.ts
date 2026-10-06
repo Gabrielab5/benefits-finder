@@ -6,6 +6,22 @@ export interface SeedProgram {
   kind: ProgramKind;
 }
 
+/**
+ * Wallet items for the picked programs: card issuers become cards, clubs and store clubs memberships.
+ * `links[cardKey]` lists the club / store-club keys that card also unlocks (e.g. a Cal card of Dream Card).
+ */
+export function buildWalletItems(
+  picked: SeedProgram[],
+  links: Record<string, string[]>,
+  idOf: (p: SeedProgram) => string,
+): { name: string; type: 'card' | 'membership'; program_ids: string[] }[] {
+  return picked.map((p) => ({
+    name: p.name,
+    type: p.kind === 'card_issuer' ? 'card' : 'membership',
+    program_ids: [idOf(p), ...(links[p.key] ?? []).flatMap((k) => picked.filter((c) => c.key === k)).map(idOf)],
+  }));
+}
+
 /** Onboarding checklist. Anything missing is added with "add other" or later in Sources. */
 export const SEED_PROGRAMS: SeedProgram[] = [
   { key: 'isracard', name: 'ישראכרט', kind: 'card_issuer' },

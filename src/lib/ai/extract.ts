@@ -25,7 +25,7 @@ export async function extractBenefits(content: ContentBlock[], context: string):
       fallbacks: 'default',
       output_config: { effort: 'low', format: betaZodOutputFormat(ExtractionSchema) },
       messages: [{ role: 'user', content: [...content, { type: 'text', text: context }] }],
-    });
+    }, { timeout: 240_000, maxRetries: 0 }); // finish (or fail cleanly) before the route's 300 s limit
   } catch (e) {
     if (e instanceof Anthropic.APIError) throw e;
     throw new ExtractError('invalid_output'); // output did not parse (e.g. cut off mid-JSON)

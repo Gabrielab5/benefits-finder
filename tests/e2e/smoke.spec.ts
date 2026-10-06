@@ -15,6 +15,8 @@ async function check<T>(op: PromiseLike<{ data: T | null; error: unknown }>): Pr
 
 /** Signs the test user in without sending email and returns the auth cookies @supabase/ssr would set. */
 async function signIn() {
+  // seed() deletes all of this user's data, so never let it point at a real account.
+  if (!/e2e/i.test(EMAIL ?? '')) throw new Error('E2E_EMAIL must contain "e2e" (the test wipes that user\'s data)');
   const admin = createClient(URL, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
   await admin.auth.admin.createUser({ email: EMAIL, email_confirm: true }); // fails harmlessly if it exists
   const { data: link, error } = await admin.auth.admin.generateLink({ type: 'magiclink', email: EMAIL });

@@ -1,5 +1,6 @@
 import type { IncomingBenefit } from './merge';
-import type { Category, Channel } from './types';
+import { findStoreByName, normalize } from './normalize';
+import type { Category, Channel, Store } from './types';
 
 export interface NewStoreDraft {
   name_he: string;
@@ -48,6 +49,7 @@ export function rowProblems(
     if (!s) p.push('חנות לא מוכרת');
     else if (!s.name_he.trim() || !s.name_en.trim()) p.push('לחנות חדשה חסר שם בעברית או באנגלית');
   }
+  if ([row.value, row.min_spend, row.max_discount].some((n) => n != null && !Number.isFinite(n))) p.push('ערך לא תקין');
   const scopes = [row.store_id != null, row.new_store_index != null, row.category != null].filter(Boolean).length;
   if (scopes > 1) p.push('יש לבחור חנות או קטגוריה, לא את שתיהן');
   if (row.type === 'percent_off' || row.type === 'cashback_percent') {
@@ -61,6 +63,34 @@ export function rowProblems(
     if (row.valid_until && row.valid_until < ctx.todayIso) p.push('ההטבה כבר פגה');
   }
   return p;
+}
+
+export interface StoreGroup {
+  indexes: number[]; // new_store_index values that are this one store
+  existingId: string | null; // reuse this store instead of creating one
+  draft: NewStoreDraft;
+}
+
+/**
+ * One entry per distinct store among the used new-store drafts: drafts with the same Hebrew or English
+ * name collapse into one, and a draft matching a store that already exists reuses it. `stores` must be
+ * fresh from the database so a retry after a half-failed save reuses what that attempt created.
+ */
+export function planNewStores(usedIndexes: number[], drafts: NewStoreDraft[], stores: Store[]): StoreGroup[] {
+  const groups: StoreGroup[] = [];
+  for (const i of usedIndexes) {
+    const draft = drafts[i];
+    if (!draft) continue;
+    const keys = [normalize(draft.name_he), normalize(draft.name_en)].filter(Boolean);
+    const same = groups.find((g) => [g.draft.name_he, g.draft.name_en].map(normalize).some((k) => keys.includes(k)));
+    if (same) {
+      same.indexes.push(i);
+      continue;
+    }
+    const existing = findStoreByName(stores, draft.name_he) ?? findStoreByName(stores, draft.name_en);
+    groups.push({ indexes: [i], existingId: existing?.id ?? null, draft });
+  }
+  return groups;
 }
 
 /** An empty row for typing a benefit by hand (manual entry, no AI). */
