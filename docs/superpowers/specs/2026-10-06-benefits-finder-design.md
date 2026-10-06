@@ -38,8 +38,7 @@ All tables have `id`, `user_id` (except shared reference rows noted), `created_a
 
 ### profile
 - `user_id` (PK)
-- `birth_month` (1–12, required)
-- `birth_day` (1–31, optional)
+- `birth_month` (1–12, required). Only the month is stored: birthday benefits are valid for the whole birth month.
 - `email_reminders` (bool, default true)
 - `last_reminder_year` (int, optional — prevents duplicate birthday emails)
 
@@ -58,11 +57,13 @@ What I actually hold.
 - `wallet_item_programs` (join table) — which programs this item unlocks (a Cal-issued Hever card → Cal + Hever)
 
 ### stores
-- `name` (canonical, Hebrew)
-- `aliases` text[] — spellings in Hebrew and English (שופרסל, Shufersal, שופרסל דיל)
+- `name_he` (required) — e.g. מנגו, מקדונלדס
+- `name_en` (required) — e.g. Mango, McDonald's
+- `aliases` text[] — extra spellings in either language (שופרסל דיל, מקדונלד'ס, Mcdonalds)
+- Every store must have both a Hebrew and an English name, so it is findable in either language. AI import and seed data always fill both; the review table blocks saving a new store without both.
 - `category` — fixed list: food, fuel, fashion, electronics, home, pharmacy & beauty, restaurants, entertainment, travel, online, other
 - `channel` — `in_store` | `online` | `both`
-- `search_key` — normalized text for search (see §5.3)
+- `search_key` — normalized text of `name_he`, `name_en` and all aliases (see §5.4)
 
 ### benefits
 - `program_id`
@@ -74,7 +75,7 @@ What I actually hold.
 - `requires` — `pay_with_card` | `membership` | `coupon_code`
 - `coupon_code` (optional)
 - `channel` — `in_store` | `online` | `both`
-- `when` — `always` | `birthday_month` | `birthday_week`
+- `when` — `always` | `birthday_month`
 - `valid_from`, `valid_until` (optional dates)
 - `conditions` (free text, shown as-is)
 - `source_url`, `last_verified_at`
@@ -102,7 +103,7 @@ Bottom tab bar, RTL, phone-first. Login screen precedes everything.
 5. **⚙️ Sources** — programs list: last refreshed, benefit count, status (⚠️ on failure), **Refresh** button (re-imports from `benefits_url`).
 
 **Onboarding (first login):**
-1. Birthday month (required) + day (optional).
+1. Birthday month (required).
 2. "What do you have?" — checklist of seeded common Israeli programs grouped by kind (card issuers / clubs / store clubs), plus "add other". Ticked items become wallet items.
 3. For each card: which programs it unlocks (pre-filled where the name makes it obvious, editable).
 
@@ -138,12 +139,13 @@ Result groups, in order:
 3. **Show / enter** (membership and coupon benefits).
 
 ### 5.3 Birthday rules
-- `birthday_month`: active when the current month = `birth_month`.
-- `birthday_week`: if `birth_day` is set, active from 7 days before to 7 days after the birthday (lenient; the benefit's `conditions` text is shown); if `birth_day` is not set, treated as `birthday_month`.
+- `birthday_month`: active for the whole birth month, when the current month = `birth_month` (birthday on 21.9 → active 1.9–30.9). Any benefit described as "birthday week" or "birthday" is stored as `birthday_month`.
 - Outside their window, birthday benefits still appear in store results, greyed out with "Available in your birthday month (<month name>)".
 
 ### 5.4 Store search normalization
-`normalize(text)`: lowercase, strip Hebrew niqqud, final letters → regular letters (ך→כ, ם→מ, ן→נ, ף→פ, ץ→צ), remove punctuation and spaces. The match is a substring or trigram similarity against the normalized `name` and `aliases`. The same function runs in Postgres (`search_key`, `pg_trgm` index) and on the client (offline).
+`normalize(text)`: lowercase, strip Hebrew niqqud, final letters → regular letters (ך→כ, ם→מ, ן→נ, ף→פ, ץ→צ), remove punctuation (including `'`, `’`, geresh `׳` and gershayim `״`) and spaces. The match is a substring or trigram similarity against the normalized `name_he`, `name_en` and `aliases`.
+
+Required matches (also unit tests): `Mango`, `mango`, `MANGO`, `מנגו`, `מנג` → Mango; `מקדונלדס`, `מקדונלד'ס`, `מק דונלדס`, `McDonald's`, `mcdonalds`, `McDonalds` → McDonald's. The same function runs in Postgres (`search_key`, `pg_trgm` index) and on the client (offline).
 
 ### 5.5 Import merge rule
 An extracted benefit **updates** an existing one when program, scope (store or category), `type`, `value` and `when` are equal: it refreshes `last_verified_at` and overwrites text fields. Otherwise it is **new**. On a refresh, active benefits of that program not present in the new extraction become `not_seen` until I confirm (archive) or restore them.
@@ -152,7 +154,7 @@ An extracted benefit **updates** an existing one when program, scope (store or c
 
 1. Input: URL, text, or 1–5 screenshots, plus the chosen program.
 2. For a URL, the server fetches the page and extracts its readable text. If the result is under ~500 characters (JS-rendered sites), it returns "Couldn't read this page — paste the text or a screenshot."
-3. Server calls Claude with: the content, the store list (name + aliases + category), the category list, and a strict output schema matching `benefits` + proposed new stores (with Hebrew name, English alias, category).
+3. Server calls Claude with: the content, the store list (Hebrew name + English name + aliases + category), the category list, and a strict output schema matching `benefits` + proposed new stores (with Hebrew name, English name, category — both names required).
 4. The response is validated against the schema (zod). Invalid rows are kept and flagged in the review table, not dropped.
 5. Saved to `imports` as `pending_review`. Nothing reaches `benefits` until I approve in the review table.
 6. Failures (`failed` status + error) show a retry button.
@@ -185,7 +187,7 @@ The service worker caches the app shell. On every online open, the client downlo
 
 ## 11. Testing
 
-- **Unit (Vitest):** savings calculation (min spend, cap, percent vs fixed vs cashback), grouping/ranking (pay-with vs show), birthday windows (month, week with/without day, year boundary Dec/Jan), store-search normalization (final letters, niqqud, Hebrew/English aliases), import merge rule.
+- **Unit (Vitest):** savings calculation (min spend, cap, percent vs fixed vs cashback), grouping/ranking (pay-with vs show), birthday window (whole birth month, adjacent months inactive, December/January boundary), store search (every required match in §5.4), import merge rule.
 - **AI extraction regression:** 3–5 saved real benefit pages with expected extracted output, run on demand when the prompt changes.
 - **End-to-end (Playwright):** log in → search a store → the expected card is ranked first.
 
@@ -195,4 +197,4 @@ The service worker caches the app shell. On every online open, the client downlo
 
 **Phase 2 — scrapers:** one Playwright script per chosen program, run nightly by GitHub Actions. Each writes into `imports` with `source = scraper`. Unchanged benefits are auto-approved; new or changed ones wait for review, with optional per-program auto-approve. Failure handling per §10.
 
-**Out of scope (later, if needed):** family/shared accounts, converting points/miles to ₪, push notifications, day-of-week benefits.
+**Out of scope (later, if needed):** family/shared accounts, converting points/miles to ₪, push notifications, day-of-week benefits, automatic Hebrew↔English transliteration (both names are stored instead).
