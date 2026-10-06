@@ -38,6 +38,11 @@ export default function SourcesPage() {
 
   async function refreshProgram(p: Program) {
     if (!p.benefits_url) return;
+    if (process.env.NEXT_PUBLIC_AI_API !== 'on') {
+      // Free mode: refresh through a chatbot on the import page, with the link and refresh flag filled in.
+      router.push(`/import?program=${p.id}&refresh=1&url=${encodeURIComponent(p.benefits_url)}`);
+      return;
+    }
     setBusyId(p.id);
     const result = await startImport({ programId: p.id, mode: 'link', url: p.benefits_url, refresh: true });
     setBusyId(null);

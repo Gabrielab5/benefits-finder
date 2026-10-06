@@ -78,7 +78,7 @@ create table imports (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users on delete cascade,
   program_id uuid not null references programs on delete cascade,
-  source text not null check (source in ('ai_link', 'ai_text', 'ai_screenshot', 'scraper', 'manual')),
+  source text not null check (source in ('ai_link', 'ai_text', 'ai_screenshot', 'scraper', 'manual', 'chat')),
   raw_input jsonb not null,
   is_refresh boolean not null default false,
   extracted jsonb,

@@ -26,7 +26,7 @@ export interface Extraction {
 export interface ImportRow {
   id: string;
   program_id: string;
-  source: 'ai_link' | 'ai_text' | 'ai_screenshot' | 'scraper' | 'manual';
+  source: 'ai_link' | 'ai_text' | 'ai_screenshot' | 'scraper' | 'manual' | 'chat';
   raw_input: { url: string | null; text: string | null; paths: string[] | null };
   is_refresh: boolean;
   extracted: Extraction | null;

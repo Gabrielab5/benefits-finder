@@ -21,6 +21,7 @@ export async function POST(req: Request) {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return fail('unauthorized', 401);
+  if (!process.env.ANTHROPIC_API_KEY) return fail('ai_off', 503); // free mode: import through a chatbot instead
   const body = (await req.json()) as ImportRequest;
 
   const { data: program } = await supabase.from('programs').select('id,name').eq('id', body.programId).maybeSingle();

@@ -28,6 +28,7 @@ export const IMPORT_ERRORS: Record<string, string> = {
   empty: 'אין תוכן לייבוא.',
   bad_screenshots: 'בחרו 1–5 צילומי מסך (PNG, JPG או WEBP).',
   program_not_found: 'התוכנית לא נמצאה.',
+  ai_off: 'הייבוא האוטומטי כבוי. השתמשו ב"בעזרת צ׳אט" (חינם) או "ידני".',
   default: 'הייבוא נכשל. נסו שוב.' + OR_MANUAL,
 };
 
