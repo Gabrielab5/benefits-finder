@@ -1,0 +1,92 @@
+export const PROGRAM_KINDS = ['card_issuer', 'club', 'store_club'] as const;
+export const BENEFIT_TYPES = [
+  'percent_off', 'fixed_off', 'cashback_percent', 'points', 'bogo', 'gift', 'installments', 'other',
+] as const;
+export const REQUIRES = ['pay_with_card', 'membership', 'coupon_code'] as const;
+export const CHANNELS = ['in_store', 'online', 'both'] as const;
+export const TIMINGS = ['always', 'birthday_month'] as const;
+export const CATEGORIES = [
+  'food', 'fuel', 'fashion', 'electronics', 'home', 'pharmacy_beauty',
+  'restaurants', 'entertainment', 'travel', 'online', 'other',
+] as const;
+
+export type ProgramKind = (typeof PROGRAM_KINDS)[number];
+export type BenefitType = (typeof BENEFIT_TYPES)[number];
+export type Requires = (typeof REQUIRES)[number];
+export type Channel = (typeof CHANNELS)[number];
+export type Timing = (typeof TIMINGS)[number];
+export type Category = (typeof CATEGORIES)[number];
+export type BenefitStatus = 'active' | 'not_seen' | 'archived';
+
+/** Types whose ₪ saving can be calculated from a purchase amount. */
+export const COMPUTABLE_TYPES: readonly BenefitType[] = ['percent_off', 'fixed_off', 'cashback_percent'];
+
+export interface Profile {
+  user_id: string;
+  birth_month: number; // 1-12
+  email_reminders: boolean;
+  last_reminder_year: number | null;
+}
+
+export interface Program {
+  id: string;
+  name: string;
+  kind: ProgramKind;
+  logo_url: string | null;
+  benefits_url: string | null;
+  last_refreshed_at: string | null;
+  last_refresh_status: 'ok' | 'failed' | 'never';
+}
+
+export interface WalletItem {
+  id: string;
+  name: string;
+  type: 'card' | 'membership';
+  last4: string | null;
+  nickname: string | null;
+  color: string | null;
+  program_ids: string[];
+  created_at: string;
+}
+
+export interface Store {
+  id: string;
+  name_he: string;
+  name_en: string;
+  aliases: string[];
+  category: Category;
+  channel: Channel;
+}
+
+export interface Benefit {
+  id: string;
+  program_id: string;
+  store_id: string | null; // at most one of store_id / category is set; neither = applies everywhere
+  category: Category | null;
+  title: string;
+  description: string | null;
+  type: BenefitType;
+  value: number | null; // percent for percent_off/cashback_percent, ₪ for fixed_off
+  min_spend: number | null;
+  max_discount: number | null;
+  requires: Requires;
+  coupon_code: string | null;
+  channel: Channel;
+  timing: Timing;
+  valid_from: string | null; // YYYY-MM-DD
+  valid_until: string | null; // YYYY-MM-DD, inclusive
+  conditions: string | null;
+  source_url: string | null;
+  last_verified_at: string; // ISO timestamp
+  status: BenefitStatus;
+  created_at: string;
+}
+
+export interface Snapshot {
+  profile: Profile | null;
+  programs: Program[];
+  wallet: WalletItem[];
+  stores: Store[];
+  benefits: Benefit[]; // never includes archived
+  fetchedAt: string;
+}
