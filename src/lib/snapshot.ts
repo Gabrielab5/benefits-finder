@@ -1,19 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Benefit, Profile, Program, Snapshot, Store, WalletItem } from './core/types';
+import type { Benefit, CardProduct, Profile, Program, Snapshot, Store, WalletItem } from './core/types';
 import { selectAll } from './selectAll';
 
 export async function fetchSnapshot(sb: SupabaseClient): Promise<Snapshot> {
-  const [profile, programs, wallet, stores, benefits] = await Promise.all([
+  const [profile, programs, wallet, stores, benefits, products] = await Promise.all([
     sb.from('profile').select('*').maybeSingle(),
     selectAll<Program>((a, b) => sb.from('programs').select('*').order('name').order('id').range(a, b)),
     selectAll<WalletItem>((a, b) => sb.from('wallet_items').select('*').order('created_at').order('id').range(a, b)),
     selectAll<Store>((a, b) => sb.from('stores').select('*').order('id').range(a, b)),
     selectAll<Benefit>((a, b) => sb.from('benefits').select('*').neq('status', 'archived').order('id').range(a, b)),
+    selectAll<CardProduct>((a, b) => sb.from('card_products').select('*').order('name').order('id').range(a, b)),
   ]);
   if (profile.error) throw profile.error;
   return {
     profile: (profile.data as Profile | null) ?? null,
-    programs, wallet, stores, benefits,
+    programs, wallet, stores, benefits, products,
     fetchedAt: new Date().toISOString(),
   };
 }

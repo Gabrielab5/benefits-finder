@@ -38,11 +38,11 @@ function normalize(raw) {
 }
 
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
-const { data: { users } } = await sb.auth.admin.listUsers();
-const owner = users.filter((u) => !/e2e/i.test(u.email ?? ''));
-if (owner.length !== 1) throw new Error(`expected exactly one real user, found ${owner.length}`);
-const uid = owner[0].id;
-const { data: programs } = await sb.from('programs').select('id,name,benefits_url').eq('user_id', uid);
+// Imports go to an admin's "waiting for approval" list, as shared-catalog imports.
+const { data: admins } = await sb.from('profile').select('user_id').eq('is_admin', true);
+if (!admins?.length) throw new Error('no admin user');
+const uid = admins[0].user_id;
+const { data: programs } = await sb.from('programs').select('id,name,benefits_url').is('user_id', null);
 
 for (const [key, programName] of Object.entries(files)) {
   const file = path.join(dir, `${key}.json`);
@@ -53,7 +53,7 @@ for (const [key, programName] of Object.entries(files)) {
   const { dropped, extraction } = normalize(raw);
   if (extraction.benefits.length === 0) { console.log(`${programName}: 0 benefits, skipped`); continue; }
   const { error } = await sb.from('imports').insert({
-    user_id: uid, program_id: program.id, source: 'chat', is_refresh: false, status: 'pending_review',
+    user_id: uid, program_id: program.id, source: 'chat', is_refresh: false, status: 'pending_review', shared: true,
     raw_input: { url: raw.source_url ?? null, text: null, paths: null }, extracted: extraction,
   });
   if (error) { console.log(`${programName}: FAILED ${error.message}`); continue; }
