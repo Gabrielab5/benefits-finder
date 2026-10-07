@@ -1,10 +1,14 @@
 'use client';
 import { useState } from 'react';
-import { CreditCard, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { CreditCard, Pencil, Plus, RefreshCw, Search, Trash2, Wallet } from 'lucide-react';
+import { MONTHS } from '@/components/DatesForm';
 import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import { needsCatalogUpdate, walletItemFromProduct } from '@/lib/core/catalog';
 import { cardArtFor } from '@/lib/core/cardArt';
+import { monthNameHe } from '@/lib/core/dates';
 import { KIND_LABELS } from '@/lib/core/labels';
-import type { WalletItem } from '@/lib/core/types';
+import { normalize } from '@/lib/core/normalize';
+import type { CardProduct, WalletItem } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSnap } from '@/lib/useSnapshot';
 
@@ -16,44 +20,65 @@ interface Draft {
   nickname: string;
   color: string;
   program_ids: string[];
+  birthday_month: number | null;
 }
-const EMPTY: Draft = { name: '', type: 'card', last4: '', nickname: '', color: '#3b5bdb', program_ids: [] };
+const EMPTY: Draft = { name: '', type: 'card', last4: '', nickname: '', color: '#3b5bdb', program_ids: [], birthday_month: null };
 
 export default function WalletPage() {
   const { snapshot, online, refresh } = useSnap();
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [picking, setPicking] = useState(false);
+  const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   if (!snapshot) return <Loading />;
+
   const programs = new Map(snapshot.programs.map((p) => [p.id, p]));
+  const products = snapshot.products ?? [];
+  const productById = new Map(products.map((p) => [p.id, p]));
+  const q = normalize(query);
+
+  async function run(op: PromiseLike<{ error: unknown }>, fail: string): Promise<boolean> {
+    const { error } = await op;
+    if (error) {
+      setError(fail);
+      return false;
+    }
+    setError(null);
+    await refresh();
+    return true;
+  }
 
   async function save(d: Draft) {
     if (!d.name.trim()) return setError('חסר שם.');
     if (d.last4 && !/^\d{4}$/.test(d.last4)) return setError('אפשר לשמור רק 4 ספרות אחרונות.');
     const row = {
       name: d.name.trim(), type: d.type, last4: d.last4 || null, nickname: d.nickname.trim() || null,
-      color: d.color, program_ids: d.program_ids,
+      color: d.color, program_ids: d.program_ids, birthday_month: d.birthday_month,
     };
     const sb = supabaseBrowser();
-    const { error } = d.id
-      ? await sb.from('wallet_items').update(row).eq('id', d.id)
-      : await sb.from('wallet_items').insert(row);
-    if (error) return setError('השמירה נכשלה.');
-    setDraft(null);
-    setError(null);
-    await refresh();
+    const ok = await run(d.id ? sb.from('wallet_items').update(row).eq('id', d.id) : sb.from('wallet_items').insert(row), 'השמירה נכשלה.');
+    if (ok) setDraft(null);
+  }
+
+  async function addProduct(p: CardProduct) {
+    if (await run(supabaseBrowser().from('wallet_items').insert(walletItemFromProduct(p)), 'ההוספה נכשלה.')) {
+      setPicking(false);
+      setQuery('');
+    }
   }
 
   async function remove(item: WalletItem) {
     if (!confirm(`למחוק את "${item.name}" מהארנק?`)) return;
-    const { error } = await supabaseBrowser().from('wallet_items').delete().eq('id', item.id);
-    if (error) return setError('המחיקה נכשלה.');
-    await refresh();
+    await run(supabaseBrowser().from('wallet_items').delete().eq('id', item.id), 'המחיקה נכשלה.');
   }
+
+  const syncFromCatalog = (item: WalletItem, product: CardProduct) =>
+    run(supabaseBrowser().from('wallet_items').update({ program_ids: product.program_ids }).eq('id', item.id), 'העדכון נכשל.');
 
   const edit = (w: WalletItem) =>
     setDraft({
       id: w.id, name: w.name, type: w.type, last4: w.last4 ?? '', nickname: w.nickname ?? '',
-      color: w.color ?? EMPTY.color, program_ids: w.program_ids,
+      color: w.color ?? EMPTY.color, program_ids: w.program_ids, birthday_month: w.birthday_month ?? null,
     });
   const toggleProgram = (id: string) =>
     setDraft((d) => d && {
@@ -79,34 +104,43 @@ export default function WalletPage() {
                 const background = art
                   ? `linear-gradient(140deg, ${art.from}, ${art.to})`
                   : `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)`;
+                const product = w.product_id ? productById.get(w.product_id) : undefined;
                 return (
-                  <li key={w.id} className="aspect-[1.6] overflow-hidden rounded-2xl p-3 text-white shadow-lg shadow-black/30"
-                    style={{ background }}>
-                    <div className="flex h-full flex-col">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          {art && <p className="whitespace-nowrap text-[10px] font-black tracking-[0.08em] opacity-90" dir="auto">{art.mark}</p>}
-                          <p className="line-clamp-2 text-sm font-bold drop-shadow">{w.nickname || w.name}</p>
+                  <li key={w.id} className="space-y-1.5">
+                    <div className="aspect-[1.6] overflow-hidden rounded-2xl p-3 text-white shadow-lg shadow-black/30" style={{ background }}>
+                      <div className="flex h-full flex-col">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            {art && <p className="whitespace-nowrap text-[10px] font-black tracking-[0.08em] opacity-90" dir="auto">{art.mark}</p>}
+                            <p className="line-clamp-2 text-sm font-bold drop-shadow">{w.nickname || w.name}</p>
+                          </div>
+                          <div className="flex shrink-0 gap-1">
+                            <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
+                              className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
+                              <Pencil size={13} aria-hidden />
+                            </button>
+                            <button disabled={!online} onClick={() => remove(w)} aria-label={`מחיקת ${w.name}`}
+                              className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
+                              <Trash2 size={13} aria-hidden />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex shrink-0 gap-1">
-                          <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
-                            className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
-                            <Pencil size={13} aria-hidden />
-                          </button>
-                          <button disabled={!online} onClick={() => remove(w)} aria-label={`מחיקת ${w.name}`}
-                            className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
-                            <Trash2 size={13} aria-hidden />
-                          </button>
+                        <p className="mt-auto line-clamp-1 text-[11px] opacity-80">
+                          {w.birthday_month ? `🎂 ${monthNameHe(w.birthday_month)} · ` : ''}
+                          {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          {type === 'card' ? <CreditCard size={16} className="opacity-70" aria-hidden /> : <span />}
+                          <p className="font-mono text-xs tracking-widest opacity-90" dir="ltr">{w.last4 ? `•••• ${w.last4}` : ''}</p>
                         </div>
-                      </div>
-                      <p className="mt-auto line-clamp-1 text-[11px] opacity-80">
-                        {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        {type === 'card' ? <CreditCard size={16} className="opacity-70" aria-hidden /> : <span />}
-                        <p className="font-mono text-xs tracking-widest opacity-90" dir="ltr">{w.last4 ? `•••• ${w.last4}` : ''}</p>
                       </div>
                     </div>
+                    {product && needsCatalogUpdate(w, product) && (
+                      <button disabled={!online} onClick={() => syncFromCatalog(w, product)}
+                        className="flex w-full items-center justify-center gap-1 rounded-xl border border-mint/40 py-1.5 text-xs text-mint">
+                        <RefreshCw size={12} aria-hidden /> עדכון מהקטלוג
+                      </button>
+                    )}
                   </li>
                 );
               })}
@@ -115,10 +149,39 @@ export default function WalletPage() {
         );
       })}
 
-      {!draft && (
-        <Button disabled={!online} onClick={() => setDraft(EMPTY)} className="w-full py-3">
+      {!draft && !picking && (
+        <Button disabled={!online} onClick={() => setPicking(true)} className="w-full py-3">
           <Plus size={18} aria-hidden /> הוספה לארנק
         </Button>
+      )}
+
+      {picking && (
+        <Card className="space-y-3">
+          <h2 className="font-semibold">מה להוסיף?</h2>
+          <div className="relative">
+            <Search size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="חיפוש כרטיס או מועדון"
+              aria-label="חיפוש כרטיס או מועדון" className={`${field} ps-10`} />
+          </div>
+          <ul className="max-h-80 space-y-1.5 overflow-y-auto">
+            {products.filter((p) => !q || normalize(p.name).includes(q)).map((p) => {
+              const art = cardArtFor([p.name]);
+              return (
+                <li key={p.id}>
+                  <button onClick={() => addProduct(p)} className="flex w-full items-center gap-3 rounded-xl border border-line bg-panel-2 p-2.5 text-start hover:border-mint">
+                    <span aria-hidden className="h-6 w-10 shrink-0 rounded" style={{ background: art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : '#2a3550' }} />
+                    <span className="flex-1">{p.name}</span>
+                    <span className="text-xs text-dim">{p.type === 'card' ? 'כרטיס' : 'מועדון'}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => { setPicking(false); setDraft(EMPTY); }} className="flex-1">משהו אחר (פרטי)</Button>
+            <Button variant="ghost" onClick={() => { setPicking(false); setQuery(''); }}>ביטול</Button>
+          </div>
+        </Card>
       )}
 
       {draft && (
@@ -152,6 +215,14 @@ export default function WalletPage() {
                 className="mt-1 h-[46px] w-full cursor-pointer rounded-xl border border-line bg-panel-2 p-1" />
             </label>
           </div>
+          <label className="block">
+            <span className="text-sm text-muted">🎂 חודש יום הולדת במועדון הזה</span>
+            <select value={draft.birthday_month ?? ''} onChange={(e) => setDraft({ ...draft, birthday_month: e.target.value ? Number(e.target.value) : null })}
+              aria-label="חודש יום הולדת במועדון הזה" className={`${field} mt-1`}>
+              <option value="">כמו יום ההולדת שלי</option>
+              {MONTHS.map((m) => <option key={m} value={m}>{monthNameHe(m)}</option>)}
+            </select>
+          </label>
           <fieldset className="space-y-2">
             <legend className="mb-2 text-sm text-muted">אילו הטבות זה פותח?</legend>
             {snapshot.programs.length === 0 && <p className="text-sm text-dim">הוסיפו תוכנית בלשונית &quot;מקורות&quot;.</p>}
