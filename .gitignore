@@ -41,3 +41,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 !.env.example
+
+# local tooling
+/test-results/
+/playwright-report/
+/.claude/
+.vercel
