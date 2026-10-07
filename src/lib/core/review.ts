@@ -1,6 +1,6 @@
 import type { IncomingBenefit } from './merge';
 import { findStoreByName, normalize } from './normalize';
-import type { Category, Channel, Store } from './types';
+import type { Benefit, Category, Channel, Store } from './types';
 
 export interface NewStoreDraft {
   name_he: string;
@@ -33,6 +33,7 @@ export interface ImportRow {
   status: 'pending_review' | 'saved' | 'rejected' | 'failed';
   error: string | null;
   created_at: string;
+  shared?: boolean; // admin import into the shared catalog
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -134,4 +135,10 @@ export function scopePatch(value: string): Scope {
     new_store_index: kind === 'n' ? Number(rest) : null,
     category: kind === 'c' ? (rest as Category) : null,
   };
+}
+
+/** Benefits an import may update: same program and same ownership (shared ↔ shared, private ↔ your own). */
+export function existingForImport(benefits: Benefit[], programId: string, shared: boolean, userId: string): Benefit[] {
+  return benefits.filter((b) =>
+    b.program_id === programId && b.status !== 'archived' && (shared ? b.user_id == null : b.user_id === userId));
 }

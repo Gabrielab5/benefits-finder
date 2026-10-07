@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { blankRow, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type NewStoreDraft, type ReviewRow } from './review';
-import type { Store } from './types';
+import { blankRow, existingForImport, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type NewStoreDraft, type ReviewRow } from './review';
+import type { Benefit, Store } from './types';
 
 const row = (o: Partial<ReviewRow> = {}): ReviewRow => ({
   approved: true, title: '10% הנחה', description: null, store_id: 'mango', new_store_index: null, category: null,
@@ -84,5 +84,17 @@ describe('planNewStores', () => {
 describe('scope select encoding', () => {
   it('round-trips', () => {
     for (const v of ['', 's:mango', 'n:2', 'c:food']) expect(scopeValue(scopePatch(v))).toBe(v);
+  });
+});
+
+describe('existingForImport', () => {
+  const b = (id: string, program_id: string, user_id: string | null, status: Benefit['status'] = 'active') =>
+    ({ id, program_id, user_id, status }) as Benefit;
+  const all = [b('shared1', 'max', null), b('mine1', 'max', 'me'), b('theirs', 'max', 'other'), b('old', 'max', null, 'archived'), b('cal1', 'cal', null)];
+  it('a shared import merges only with shared benefits of that program', () => {
+    expect(existingForImport(all, 'max', true, 'me').map((x) => x.id)).toEqual(['shared1']);
+  });
+  it('a private import never touches shared benefits', () => {
+    expect(existingForImport(all, 'max', false, 'me').map((x) => x.id)).toEqual(['mine1']);
   });
 });
