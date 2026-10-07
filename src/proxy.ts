@@ -1,9 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { authCodeRedirect } from '@/lib/authRedirect';
 
 const PUBLIC_PREFIXES = ['/login', '/auth/', '/api/cron/'];
 
 export async function proxy(request: NextRequest) {
+  const codeTarget = authCodeRedirect(request.nextUrl);
+  if (codeTarget) return NextResponse.redirect(codeTarget);
+
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
