@@ -13,7 +13,7 @@ const files = Object.fromEntries(pairs.map((p) => p.split('=')));
 const TYPES = ['percent_off', 'fixed_off', 'cashback_percent', 'points', 'bogo', 'gift', 'installments', 'other'];
 const REQUIRES = ['pay_with_card', 'membership', 'coupon_code'];
 const CHANNELS = ['in_store', 'online', 'both'];
-const TIMINGS = ['always', 'birthday_month'];
+const TIMINGS = ['always', 'birthday_month', 'anniversary_month', 'child_birthday_month'];
 const CATEGORIES = ['food', 'fuel', 'fashion', 'electronics', 'home', 'pharmacy_beauty', 'restaurants', 'entertainment', 'travel', 'online', 'other'];
 
 const pick = (v, allowed, fallback) => (allowed.includes(v) ? v : fallback);

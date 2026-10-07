@@ -142,3 +142,10 @@ export function existingForImport(benefits: Benefit[], programId: string, shared
   return benefits.filter((b) =>
     b.program_id === programId && b.status !== 'archived' && (shared ? b.user_id == null : b.user_id === userId));
 }
+
+/** Stores an import may reuse: shared imports only shared stores (a private store would hide or cascade-delete
+ * shared benefits); private imports prefer shared stores, then the user's own. */
+export function storesForImport(stores: Store[], shared: boolean): Store[] {
+  const sharedStores = stores.filter((s) => s.user_id == null);
+  return shared ? sharedStores : [...sharedStores, ...stores.filter((s) => s.user_id != null)];
+}

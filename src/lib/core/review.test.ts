@@ -98,3 +98,16 @@ describe('existingForImport', () => {
     expect(existingForImport(all, 'max', false, 'me').map((x) => x.id)).toEqual(['mine1']);
   });
 });
+
+import { storesForImport } from './review';
+
+describe('storesForImport', () => {
+  const st = (id: string, user_id: string | null) => ({ id, user_id, name_he: id, name_en: id, aliases: [], category: 'other', channel: 'both' }) as Store;
+  const all = [st('mine', 'me'), st('shared', null)];
+  it('a shared import may only reuse shared stores', () => {
+    expect(storesForImport(all, true).map((s) => s.id)).toEqual(['shared']);
+  });
+  it('a private import prefers shared stores, then your own', () => {
+    expect(storesForImport(all, false).map((s) => s.id)).toEqual(['shared', 'mine']);
+  });
+});

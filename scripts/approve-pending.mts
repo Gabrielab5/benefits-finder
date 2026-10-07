@@ -5,7 +5,7 @@ import nextEnv from '@next/env';
 import { createClient } from '@supabase/supabase-js';
 import { israelToday } from '../src/lib/core/dates';
 import { mergeImport } from '../src/lib/core/merge';
-import { existingForImport, planNewStores, rowProblems, toIncoming, type ImportRow, type ReviewRow } from '../src/lib/core/review';
+import { existingForImport, planNewStores, rowProblems, storesForImport, toIncoming, type ImportRow, type ReviewRow } from '../src/lib/core/review';
 import type { Benefit, Store } from '../src/lib/core/types';
 import { selectAll } from '../src/lib/selectAll';
 
@@ -49,7 +49,7 @@ for (const imp of imports as (ImportRow & { programs: { name: string } })[]) {
   const newStoreIds: (string | undefined)[] = [];
   const used = [...new Set(approved.map((r) => r.new_store_index).filter((i): i is number => i != null))];
   let created = 0;
-  for (const group of planNewStores(used, imp.extracted.new_stores, stores)) {
+  for (const group of planNewStores(used, imp.extracted.new_stores, storesForImport(stores, shared))) {
     let id = group.existingId;
     if (!id) {
       const { data, error: e } = await sb.from('stores').insert({

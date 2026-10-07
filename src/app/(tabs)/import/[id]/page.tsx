@@ -7,7 +7,7 @@ import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, REQUIRES_LABELS, TIMING_LABELS, TYPE_LABELS } from '@/lib/core/labels';
 import { mergeImport } from '@/lib/core/merge';
 import {
-  blankRow, existingForImport, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
+  blankRow, existingForImport, planNewStores, storesForImport, rowProblems, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
 } from '@/lib/core/review';
 import {
   BENEFIT_TYPES, CATEGORIES, REQUIRES, TIMINGS,
@@ -49,7 +49,7 @@ export default function ReviewImportPage() {
   const problems = rows.map((r) => (r.approved ? rowProblems(r, ctx) : []));
   const approvedCount = rows.filter((r) => r.approved).length;
   const canSave = imp.status === 'pending_review' && approvedCount > 0 && problems.every((p) => p.length === 0) && !busy;
-  const stores = [...snapshot.stores].sort((a, b) => a.name_he.localeCompare(b.name_he, 'he'));
+  const stores = storesForImport(snapshot.stores, Boolean(imp.shared)).sort((a, b) => a.name_he.localeCompare(b.name_he, 'he'));
   const update = (i: number, patch: Partial<ReviewRow>) =>
     setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const updateStore = (i: number, patch: Partial<NewStoreDraft>) =>
@@ -78,7 +78,7 @@ export default function ReviewImportPage() {
 
       const newStoreIds: (string | undefined)[] = [];
       const usedIndexes = [...new Set(approved.map((r) => r.new_store_index).filter((i): i is number => i != null))];
-      for (const group of planNewStores(usedIndexes, newStores, stores)) {
+      for (const group of planNewStores(usedIndexes, newStores, storesForImport(stores, shared))) {
         let id = group.existingId;
         if (!id) {
           const { data, error } = await sb.from('stores').insert({

@@ -55,3 +55,7 @@ next-env.d.ts
 
 # local data backups
 /backups/
+
+# never commit OAuth / service credentials
+client_secret_*.json
+*credentials*.json
