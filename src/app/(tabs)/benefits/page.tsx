@@ -13,7 +13,7 @@ const PAGE = 100;
 type BoolKey = 'birthday' | 'expiringThisWeek' | 'recent' | 'onlyMine';
 const CHECKS: [BoolKey, string][] = [
   ['onlyMine', 'רק שלי'],
-  ['birthday', '🎂 יום הולדת'],
+  ['birthday', '🎉 תאריכים מיוחדים'],
   ['expiringThisWeek', 'פגות השבוע'],
   ['recent', 'חדשות'],
 ];
@@ -35,7 +35,6 @@ export default function BenefitsPage() {
     setLimit(PAGE);
   };
   const rows = browseBenefits(snapshot, f, israelToday(), new Date());
-  const birthMonth = snapshot.profile?.birth_month ?? null;
   const extraFilters = [f.programId, f.walletItemId, f.category, f.type, f.channel].filter(Boolean).length;
 
   return (
@@ -88,7 +87,7 @@ export default function BenefitsPage() {
       <ul className="space-y-2">
         {rows.slice(0, limit).map((r) => (
           <BenefitCard key={r.benefit.id} benefit={r.benefit} program={r.program} items={r.items} store={r.store}
-            savings={null} birthdayLocked={r.birthdayLocked} birthMonth={birthMonth} />
+            savings={null} dateLocked={r.dateLocked} lockedMonths={r.lockedMonths} />
         ))}
       </ul>
       {rows.length === 0 && <p className="py-8 text-center text-sm text-dim">לא נמצאו הטבות בסינון הזה.</p>}

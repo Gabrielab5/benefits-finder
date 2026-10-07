@@ -106,16 +106,6 @@ export function rankForStore(
   return result;
 }
 
-/** Kept until Task 2 replaces its callers with `activeDateBenefits`. */
-export function birthdayBenefits(snapshot: Snapshot, today: IsraelDay): Benefit[] {
-  const dates = datesOf(snapshot.profile);
-  return snapshot.benefits.filter((b) => {
-    if (b.timing !== 'birthday_month') return false;
-    const items = eligibleItems(b, snapshot.wallet);
-    return items.length > 0 && itemAvailability(b, items, dates, today).state === 'available';
-  });
-}
-
 /** The single best ₪ saving for the entered amount, across "pay with" and "show" benefits; null without an amount. */
 export function bestRowId(result: RankResult): string | null {
   let best: Row | null = null;

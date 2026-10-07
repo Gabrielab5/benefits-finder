@@ -11,7 +11,7 @@ Field rules:
 - value: the number only - percent for percent_off and cashback_percent, shekels for fixed_off, otherwise null.
 - min_spend / max_discount: shekel amounts when stated ("בקנייה מעל 300 ₪" -> min_spend 300; "עד 100 ₪ הנחה" -> max_discount 100).
 - requires: pay_with_card when paying with the program's card is required ("בתשלום בכרטיס"); membership when showing or identifying as a member is enough ("בהצגת כרטיס חבר", "לחברי המועדון"); coupon_code when a code must be entered - put the code in coupon_code.
-- timing: birthday_month for any birthday benefit (birthday month, birthday week or birthday day); otherwise always.
+- timing: birthday_month for any birthday benefit (birthday month, birthday week or birthday day); anniversary_month for wedding-anniversary benefits ("יום נישואין"); child_birthday_month for benefits for a child's birthday ("יום הולדת לילד"); otherwise always.
 - channel: in_store, online, or both when not stated.
 - valid_from / valid_until: YYYY-MM-DD when stated. A date without a year means its next occurrence on or after today.
 - conditions: the remaining fine print in Hebrew, concise. description: one short Hebrew sentence or null.`;

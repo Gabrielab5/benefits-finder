@@ -1,9 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { Cake, Check, ChevronDown, Copy, ExternalLink, Sparkles } from 'lucide-react';
+import { Check, ChevronDown, Copy, ExternalLink, Sparkles } from 'lucide-react';
 import { cardArtFor } from '@/lib/core/cardArt';
 import { isOutdated, monthNameHe } from '@/lib/core/dates';
-import { CHANNEL_LABELS, REQUIRES_LABELS, formatDate, headlineText, shekel } from '@/lib/core/labels';
+import {
+  CHANNEL_LABELS, REQUIRES_LABELS, TIMING_ICON, TIMING_LABELS, formatDate, headlineText, shekel,
+} from '@/lib/core/labels';
 import type { Savings } from '@/lib/core/savings';
 import type { Benefit, Program, Store, WalletItem } from '@/lib/core/types';
 
@@ -13,12 +15,12 @@ interface Props {
   items: WalletItem[];
   store: Store | null;
   savings: Savings | null;
-  birthdayLocked: boolean;
-  birthMonth: number | null;
+  dateLocked: boolean;
+  lockedMonths: number[];
   best?: boolean;
 }
 
-export default function BenefitCard({ benefit, program, items, store, savings, birthdayLocked, birthMonth, best = false }: Props) {
+export default function BenefitCard({ benefit, program, items, store, savings, dateLocked, lockedMonths, best = false }: Props) {
   const [copied, setCopied] = useState(false);
   const who = items.map((i) => i.nickname || i.name).join(' / ');
   const action = benefit.requires === 'pay_with_card' ? 'שלמו עם' : 'הציגו';
@@ -26,6 +28,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, b
   const swatch = items[0]?.color ?? '#5d6782';
   const swatchBg = art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : `linear-gradient(135deg, ${swatch}, ${swatch}99)`;
   const met = savings !== null && savings.spendMore === 0 && savings.saved > 0;
+  const outdated = isOutdated(benefit.last_verified_at, new Date());
+  const isPrivate = Boolean(benefit.user_id);
 
   async function copyCode() {
     if (!benefit.coupon_code) return;
@@ -34,7 +38,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, b
   }
 
   return (
-    <li className={`rounded-2xl border bg-panel p-3.5 transition ${best ? 'border-mint' : 'border-line'} ${birthdayLocked ? 'opacity-50' : ''}`}>
+    <li className={`rounded-2xl border bg-panel p-3.5 transition ${best ? 'border-mint' : 'border-line'} ${dateLocked ? 'opacity-50' : ''}`}>
       {best && (
         <p className="mb-2 flex items-center gap-1 text-xs font-semibold text-mint">
           <Sparkles size={14} aria-hidden /> הכי משתלם
@@ -45,7 +49,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, b
           style={{ background: swatchBg }}>{art?.mark}</span>
         <div className="min-w-0 flex-1">
           <p className="font-semibold leading-snug text-fg">
-            {benefit.timing === 'birthday_month' && <Cake size={15} className="me-1 inline text-party" aria-label="יום הולדת" />}
+            {benefit.timing !== 'always' && <span aria-label={TIMING_LABELS[benefit.timing]}>{TIMING_ICON[benefit.timing]} </span>}
             {benefit.title}
           </p>
           <p className="mt-0.5 text-sm text-muted">
@@ -65,11 +69,11 @@ export default function BenefitCard({ benefit, program, items, store, savings, b
         </div>
       </div>
 
-      {(birthdayLocked || (savings && savings.spendMore > 0) || benefit.coupon_code || isOutdated(benefit.last_verified_at, new Date())) && (
+      {(dateLocked || (savings && savings.spendMore > 0) || benefit.coupon_code || outdated || isPrivate) && (
         <div className="mt-2.5 flex flex-wrap gap-1.5 text-xs">
-          {birthdayLocked && (
+          {dateLocked && (
             <span className="rounded-full bg-party/10 px-2 py-1 text-party">
-              זמין בחודש יום ההולדת{birthMonth ? ` (${monthNameHe(birthMonth)})` : ''}
+              {lockedMonths.length ? `זמין ב${lockedMonths.map(monthNameHe).join(' / ')}` : 'הוסיפו את התאריך בהגדרות'}
             </span>
           )}
           {savings && savings.spendMore > 0 && (
@@ -83,9 +87,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, b
               {benefit.coupon_code} {copied ? <Check size={12} aria-label="הועתק" /> : <Copy size={12} aria-label="העתקה" />}
             </button>
           )}
-          {isOutdated(benefit.last_verified_at, new Date()) && (
-            <span className="rounded-full bg-panel-2 px-2 py-1 text-dim">ייתכן שלא מעודכן</span>
-          )}
+          {isPrivate && <span className="rounded-full border border-line px-2 py-1 text-dim">פרטי</span>}
+          {outdated && <span className="rounded-full bg-panel-2 px-2 py-1 text-dim">ייתכן שלא מעודכן</span>}
         </div>
       )}
 

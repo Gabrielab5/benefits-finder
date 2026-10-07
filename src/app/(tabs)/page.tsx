@@ -1,14 +1,15 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Cake, ChevronLeft, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
+import { ChevronLeft, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
 import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
-import { isBirthdayMonth, israelToday } from '@/lib/core/dates';
-import { CATEGORY_LABELS } from '@/lib/core/labels';
+import { israelToday } from '@/lib/core/dates';
+import { CATEGORY_LABELS, WINDOW_ICON } from '@/lib/core/labels';
 import { searchStores } from '@/lib/core/normalize';
-import { bestRowId, birthdayBenefits, rankForStore, type Row } from '@/lib/core/rank';
+import { bestRowId, rankForStore, type Row } from '@/lib/core/rank';
 import { parseAmount } from '@/lib/core/savings';
+import { activeDateBenefits } from '@/lib/core/specialDates';
 import type { Store } from '@/lib/core/types';
 import { useSnap } from '@/lib/useSnapshot';
 
@@ -24,11 +25,10 @@ export default function WhereAmIPage() {
 
   const today = israelToday();
   const amount = parseAmount(amountText);
-  const birthMonth = snapshot.profile?.birth_month ?? null;
   const matches = store ? [] : searchStores(snapshot.stores, query);
   const result = store ? rankForStore(snapshot, store, amount, today) : null;
   const best = result ? bestRowId(result) : null;
-  const birthdayCount = isBirthdayMonth(birthMonth, today) ? birthdayBenefits(snapshot, today).length : 0;
+  const windows = activeDateBenefits(snapshot, today);
 
   const section = (title: string, rows: Row[], testId: string) =>
     rows.length > 0 && (
@@ -36,7 +36,7 @@ export default function WhereAmIPage() {
         <SectionTitle>{title}</SectionTitle>
         <ul data-testid={testId} className="space-y-2">
           {rows.map((r) => (
-            <BenefitCard key={r.benefit.id} {...r} store={store} birthMonth={birthMonth} best={r.benefit.id === best} />
+            <BenefitCard key={r.benefit.id} {...r} store={store} best={r.benefit.id === best} />
           ))}
         </ul>
       </section>
@@ -53,11 +53,16 @@ export default function WhereAmIPage() {
         <Notice tone="warn"><WifiOff size={14} className="me-1 inline" aria-hidden />אין חיבור — מוצגים הנתונים האחרונים שנשמרו.</Notice>
       )}
       {online && error && <Notice tone="error">{error}</Notice>}
-      {birthdayCount > 0 && (
+      {windows.length > 0 && (
         <Link href="/benefits?birthday=1"
           className="flex items-center gap-3 rounded-2xl border border-party/30 bg-party/10 p-3.5 text-party">
-          <Cake size={22} aria-hidden />
-          <span className="flex-1 font-semibold">חודש יום ההולדת — {birthdayCount} הטבות מחכות לכם</span>
+          <span className="flex-1 space-y-1">
+            {windows.map(({ window, benefits }) => (
+              <span key={window.key} className="flex items-center gap-2 font-semibold">
+                <span aria-hidden>{WINDOW_ICON[window.kind]}</span> {window.label} — {benefits.length} הטבות פעילות החודש
+              </span>
+            ))}
+          </span>
           <ChevronLeft size={18} aria-hidden />
         </Link>
       )}
