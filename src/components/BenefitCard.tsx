@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Cake, Check, ChevronDown, Copy, ExternalLink, Sparkles } from 'lucide-react';
+import { cardArtFor } from '@/lib/core/cardArt';
 import { isOutdated, monthNameHe } from '@/lib/core/dates';
 import { CHANNEL_LABELS, REQUIRES_LABELS, formatDate, headlineText, shekel } from '@/lib/core/labels';
 import type { Savings } from '@/lib/core/savings';
@@ -21,7 +22,9 @@ export default function BenefitCard({ benefit, program, items, store, savings, b
   const [copied, setCopied] = useState(false);
   const who = items.map((i) => i.nickname || i.name).join(' / ');
   const action = benefit.requires === 'pay_with_card' ? 'שלמו עם' : 'הציגו';
+  const art = cardArtFor([items[0]?.name ?? '', program.name]);
   const swatch = items[0]?.color ?? '#5d6782';
+  const swatchBg = art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : `linear-gradient(135deg, ${swatch}, ${swatch}99)`;
   const met = savings !== null && savings.spendMore === 0 && savings.saved > 0;
 
   async function copyCode() {
@@ -38,8 +41,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, b
         </p>
       )}
       <div className="flex items-start gap-3">
-        <span aria-hidden className="mt-0.5 h-7 w-11 shrink-0 rounded-md"
-          style={{ background: `linear-gradient(135deg, ${swatch}, ${swatch}99)` }} />
+        <span aria-hidden className="mt-0.5 grid h-7 w-11 shrink-0 place-items-center overflow-hidden rounded-md px-0.5 text-[6px] font-black leading-none tracking-wider text-white/90"
+          style={{ background: swatchBg }}>{art?.mark}</span>
         <div className="min-w-0 flex-1">
           <p className="font-semibold leading-snug text-fg">
             {benefit.timing === 'birthday_month' && <Cake size={15} className="me-1 inline text-party" aria-label="יום הולדת" />}

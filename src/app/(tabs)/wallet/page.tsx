@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { CreditCard, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
 import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import { cardArtFor } from '@/lib/core/cardArt';
 import { KIND_LABELS } from '@/lib/core/labels';
 import type { WalletItem } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -74,12 +75,19 @@ export default function WalletPage() {
             <ul className="grid grid-cols-2 gap-3">
               {list.map((w) => {
                 const color = w.color ?? '#3b5bdb';
+                const art = cardArtFor([w.name, ...w.program_ids.map((id) => programs.get(id)?.name ?? '')]);
+                const background = art
+                  ? `linear-gradient(140deg, ${art.from}, ${art.to})`
+                  : `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)`;
                 return (
                   <li key={w.id} className="aspect-[1.6] overflow-hidden rounded-2xl p-3 text-white shadow-lg shadow-black/30"
-                    style={{ background: `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)` }}>
+                    style={{ background }}>
                     <div className="flex h-full flex-col">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="line-clamp-2 text-sm font-bold drop-shadow">{w.nickname || w.name}</p>
+                        <div className="min-w-0">
+                          {art && <p className="whitespace-nowrap text-[10px] font-black tracking-[0.08em] opacity-90" dir="auto">{art.mark}</p>}
+                          <p className="line-clamp-2 text-sm font-bold drop-shadow">{w.nickname || w.name}</p>
+                        </div>
                         <div className="flex shrink-0 gap-1">
                           <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
                             className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
