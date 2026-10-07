@@ -4,7 +4,7 @@ export const BENEFIT_TYPES = [
 ] as const;
 export const REQUIRES = ['pay_with_card', 'membership', 'coupon_code'] as const;
 export const CHANNELS = ['in_store', 'online', 'both'] as const;
-export const TIMINGS = ['always', 'birthday_month'] as const;
+export const TIMINGS = ['always', 'birthday_month', 'anniversary_month', 'child_birthday_month'] as const;
 export const CATEGORIES = [
   'food', 'fuel', 'fashion', 'electronics', 'home', 'pharmacy_beauty',
   'restaurants', 'entertainment', 'travel', 'online', 'other',
@@ -21,15 +21,27 @@ export type BenefitStatus = 'active' | 'not_seen' | 'archived';
 /** Types whose ₪ saving can be calculated from a purchase amount. */
 export const COMPUTABLE_TYPES: readonly BenefitType[] = ['percent_off', 'fixed_off', 'cashback_percent'];
 
+export interface Child {
+  name: string;
+  birth_month: number; // 1-12
+}
+
 export interface Profile {
   user_id: string;
   birth_month: number; // 1-12
   email_reminders: boolean;
-  last_reminder_year: number | null;
+  last_reminder_year: number | null; // no longer used; see `reminded`
+  is_admin?: boolean;
+  anniversary_month?: number | null;
+  anniversary_day?: number | null;
+  children?: Child[];
+  reminded?: string[]; // "<window key>:<year>" already e-mailed
 }
 
+/** `user_id`: null = shared catalog row, otherwise private to that user (optional in test fixtures). */
 export interface Program {
   id: string;
+  user_id?: string | null;
   name: string;
   kind: ProgramKind;
   logo_url: string | null;
@@ -47,10 +59,13 @@ export interface WalletItem {
   color: string | null;
   program_ids: string[];
   created_at: string;
+  product_id?: string | null; // card product it was created from
+  birthday_month?: number | null; // the birthday month this club has on file ("fake" birthday)
 }
 
 export interface Store {
   id: string;
+  user_id?: string | null;
   name_he: string;
   name_en: string;
   aliases: string[];
@@ -60,6 +75,7 @@ export interface Store {
 
 export interface Benefit {
   id: string;
+  user_id?: string | null;
   program_id: string;
   store_id: string | null; // at most one of store_id / category is set; neither = applies everywhere
   category: Category | null;
@@ -82,11 +98,21 @@ export interface Benefit {
   created_at: string;
 }
 
+/** A ready-made card or membership that knows which programs it unlocks. */
+export interface CardProduct {
+  id: string;
+  user_id?: string | null;
+  name: string;
+  type: 'card' | 'membership';
+  program_ids: string[];
+}
+
 export interface Snapshot {
   profile: Profile | null;
   programs: Program[];
   wallet: WalletItem[];
   stores: Store[];
   benefits: Benefit[]; // never includes archived
+  products?: CardProduct[];
   fetchedAt: string;
 }

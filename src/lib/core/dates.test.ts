@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addDays, availability, isBirthdayMonth, isOutdated, isWithinValidity, israelToday, monthNameHe,
+  addDays, availability, datesOf, isBirthdayMonth, isOutdated, isWithinValidity, israelToday, monthNameHe, openMonths,
 } from './dates';
 
 const day = (iso: string) => ({ iso, year: Number(iso.slice(0, 4)), month: Number(iso.slice(5, 7)) });
@@ -51,15 +51,15 @@ describe('birthday month', () => {
 
 describe('availability', () => {
   it('available for an active, valid, non-birthday benefit', () => {
-    expect(availability(active, 9, day('2026-10-06'))).toBe('available');
+    expect(availability(active, datesOf({ birth_month: 9 }), day('2026-10-06'))).toBe('available');
   });
   it('birthday_locked outside the birth month', () => {
-    expect(availability({ ...active, timing: 'birthday_month' }, 9, day('2026-10-06'))).toBe('birthday_locked');
-    expect(availability({ ...active, timing: 'birthday_month' }, 10, day('2026-10-06'))).toBe('available');
+    expect(availability({ ...active, timing: 'birthday_month' }, datesOf({ birth_month: 9 }), day('2026-10-06'))).toBe('date_locked');
+    expect(availability({ ...active, timing: 'birthday_month' }, datesOf({ birth_month: 10 }), day('2026-10-06'))).toBe('available');
   });
   it('unavailable when expired or not active', () => {
-    expect(availability({ ...active, valid_until: '2026-10-05' }, 9, day('2026-10-06'))).toBe('unavailable');
-    expect(availability({ ...active, status: 'not_seen' }, 9, day('2026-10-06'))).toBe('unavailable');
+    expect(availability({ ...active, valid_until: '2026-10-05' }, datesOf({ birth_month: 9 }), day('2026-10-06'))).toBe('unavailable');
+    expect(availability({ ...active, status: 'not_seen' }, datesOf({ birth_month: 9 }), day('2026-10-06'))).toBe('unavailable');
   });
 });
 
@@ -75,5 +75,25 @@ describe('monthNameHe', () => {
   it('returns Hebrew month names', () => {
     expect(monthNameHe(3)).toBe('מרץ');
     expect(monthNameHe(9)).toBe('ספטמבר');
+  });
+});
+
+describe('openMonths', () => {
+  const dates = datesOf({ birth_month: 9, anniversary_month: 6, children: [{ name: 'a', birth_month: 3 }, { name: 'b', birth_month: 3 }] });
+  it('always has no restriction', () => {
+    expect(openMonths('always', dates)).toBeNull();
+  });
+  it('birthday uses the club-specific month when set', () => {
+    expect(openMonths('birthday_month', dates)).toEqual([9]);
+    expect(openMonths('birthday_month', dates, 2)).toEqual([2]);
+  });
+  it('anniversary, and children born in the same month listed once', () => {
+    expect(openMonths('anniversary_month', dates)).toEqual([6]);
+    expect(openMonths('child_birthday_month', dates)).toEqual([3]);
+  });
+  it('is never open when the date is not set', () => {
+    expect(openMonths('anniversary_month', datesOf({ birth_month: 9 }))).toEqual([]);
+    expect(availability({ status: 'active', timing: 'child_birthday_month', valid_from: null, valid_until: null },
+      datesOf(null), day('2026-03-10'))).toBe('date_locked');
   });
 });

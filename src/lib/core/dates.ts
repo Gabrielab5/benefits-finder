@@ -1,4 +1,4 @@
-import type { Benefit } from './types';
+import type { Benefit, Child, Timing } from './types';
 
 const TZ = 'Asia/Jerusalem';
 const DAY_MS = 86_400_000;
@@ -32,16 +32,50 @@ export function isBirthdayMonth(birthMonth: number | null | undefined, today: Is
   return birthMonth === today.month;
 }
 
-export type Availability = 'available' | 'birthday_locked' | 'unavailable';
+export interface PersonalDates {
+  birthMonth: number | null;
+  anniversaryMonth: number | null;
+  childMonths: number[];
+}
+
+export function datesOf(
+  profile: { birth_month?: number | null; anniversary_month?: number | null; children?: Child[] } | null | undefined,
+): PersonalDates {
+  return {
+    birthMonth: profile?.birth_month ?? null,
+    anniversaryMonth: profile?.anniversary_month ?? null,
+    childMonths: (profile?.children ?? []).map((c) => c.birth_month),
+  };
+}
+
+/** Months in which a dated benefit is open; null = no date restriction; [] = date not set, never open. */
+export function openMonths(timing: Timing, dates: PersonalDates, itemBirthMonth?: number | null): number[] | null {
+  switch (timing) {
+    case 'always':
+      return null;
+    case 'birthday_month': {
+      const m = itemBirthMonth ?? dates.birthMonth;
+      return m ? [m] : [];
+    }
+    case 'anniversary_month':
+      return dates.anniversaryMonth ? [dates.anniversaryMonth] : [];
+    case 'child_birthday_month':
+      return [...new Set(dates.childMonths)].sort((a, b) => a - b);
+  }
+}
+
+export type Availability = 'available' | 'date_locked' | 'unavailable';
 
 export function availability(
   b: Pick<Benefit, 'status' | 'timing' | 'valid_from' | 'valid_until'>,
-  birthMonth: number | null,
+  dates: PersonalDates,
   today: IsraelDay,
+  itemBirthMonth?: number | null,
 ): Availability {
   if (b.status !== 'active' || !isWithinValidity(b, today.iso)) return 'unavailable';
-  if (b.timing === 'birthday_month' && !isBirthdayMonth(birthMonth, today)) return 'birthday_locked';
-  return 'available';
+  const months = openMonths(b.timing, dates, itemBirthMonth);
+  if (months === null || months.includes(today.month)) return 'available';
+  return 'date_locked';
 }
 
 export function isOutdated(lastVerifiedAt: string, now: Date): boolean {

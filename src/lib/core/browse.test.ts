@@ -59,6 +59,6 @@ describe('browseBenefits', () => {
   });
   it('marks birthday benefits outside the birth month as locked', () => {
     const row = browseBenefits(snapshot, EMPTY_FILTERS, today, now).find((r) => r.benefit.id === 'bday');
-    expect(row?.birthdayLocked).toBe(true);
+    expect(row?.dateLocked).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import { availability, type IsraelDay } from './dates';
+import { availability, datesOf, openMonths, type Availability, type IsraelDay, type PersonalDates } from './dates';
 import { computeSavings, type Savings } from './savings';
 import { COMPUTABLE_TYPES, type Benefit, type Program, type Snapshot, type Store, type WalletItem } from './types';
 
@@ -7,7 +7,8 @@ export interface Row {
   program: Program;
   items: WalletItem[]; // wallet items to pay with / show
   savings: Savings | null; // null when not computable or no amount entered
-  birthdayLocked: boolean;
+  dateLocked: boolean; // a dated benefit outside its month
+  lockedMonths: number[]; // when it opens (empty = date not set)
 }
 
 export interface RankResult {
@@ -28,6 +29,22 @@ export function eligibleItems(b: Benefit, wallet: WalletItem[]): WalletItem[] {
   );
 }
 
+/** A dated benefit can open in different months per wallet item (club-specific birthday). Open if any item is open. */
+export function itemAvailability(
+  b: Benefit,
+  items: WalletItem[],
+  dates: PersonalDates,
+  today: IsraelDay,
+): { state: Availability; lockedMonths: number[] } {
+  const targets = items.length ? items.map((i) => i.birthday_month ?? null) : [null];
+  const states = targets.map((m) => availability(b, dates, today, m));
+  if (states.includes('available')) return { state: 'available', lockedMonths: [] };
+  if (!states.includes('date_locked')) return { state: 'unavailable', lockedMonths: [] };
+  const months = new Set<number>();
+  for (const m of targets) for (const x of openMonths(b.timing, dates, m) ?? []) months.add(x);
+  return { state: 'date_locked', lockedMonths: [...months].sort((x, y) => x - y) };
+}
+
 const OTHER_ORDER = ['bogo', 'gift', 'installments', 'points', 'other'];
 
 /** [group, value]: percent types first by value, then fixed by value, then the rest grouped by type. */
@@ -38,7 +55,7 @@ function headline(b: Benefit): [number, number] {
 }
 
 function compareRows(a: Row, b: Row): number {
-  if (a.birthdayLocked !== b.birthdayLocked) return a.birthdayLocked ? 1 : -1;
+  if (a.dateLocked !== b.dateLocked) return a.dateLocked ? 1 : -1;
   if (a.savings && b.savings) {
     return b.savings.saved - a.savings.saved || (a.benefit.min_spend ?? 0) - (b.benefit.min_spend ?? 0);
   }
@@ -56,18 +73,18 @@ export function rankForStore(
   channel?: 'in_store' | 'online',
 ): RankResult {
   const programs = new Map(snapshot.programs.map((p) => [p.id, p]));
-  const birthMonth = snapshot.profile?.birth_month ?? null;
+  const dates = datesOf(snapshot.profile);
   const result: RankResult = { pay: [], other: [], show: [] };
 
   for (const benefit of snapshot.benefits) {
     if (!appliesToStore(benefit, store)) continue;
     if (channel && benefit.channel !== 'both' && benefit.channel !== channel) continue;
-    const avail = availability(benefit, birthMonth, today);
-    if (avail === 'unavailable') continue;
     const program = programs.get(benefit.program_id);
     if (!program) continue;
     const items = eligibleItems(benefit, snapshot.wallet);
     if (items.length === 0) continue;
+    const { state, lockedMonths } = itemAvailability(benefit, items, dates, today);
+    if (state === 'unavailable') continue;
 
     const computable = COMPUTABLE_TYPES.includes(benefit.type);
     const row: Row = {
@@ -75,7 +92,8 @@ export function rankForStore(
       program,
       items,
       savings: computable && amount != null && amount > 0 ? computeSavings(benefit, amount) : null,
-      birthdayLocked: avail === 'birthday_locked',
+      dateLocked: state === 'date_locked',
+      lockedMonths,
     };
     if (benefit.requires !== 'pay_with_card') result.show.push(row);
     else if (computable) result.pay.push(row);
@@ -88,21 +106,21 @@ export function rankForStore(
   return result;
 }
 
+/** Kept until Task 2 replaces its callers with `activeDateBenefits`. */
 export function birthdayBenefits(snapshot: Snapshot, today: IsraelDay): Benefit[] {
-  const birthMonth = snapshot.profile?.birth_month ?? null;
-  return snapshot.benefits.filter(
-    (b) =>
-      b.timing === 'birthday_month' &&
-      availability(b, birthMonth, today) === 'available' &&
-      eligibleItems(b, snapshot.wallet).length > 0,
-  );
+  const dates = datesOf(snapshot.profile);
+  return snapshot.benefits.filter((b) => {
+    if (b.timing !== 'birthday_month') return false;
+    const items = eligibleItems(b, snapshot.wallet);
+    return items.length > 0 && itemAvailability(b, items, dates, today).state === 'available';
+  });
 }
 
 /** The single best ₪ saving for the entered amount, across "pay with" and "show" benefits; null without an amount. */
 export function bestRowId(result: RankResult): string | null {
   let best: Row | null = null;
   for (const row of [...result.pay, ...result.show]) {
-    if (row.birthdayLocked || !row.savings || row.savings.spendMore > 0 || row.savings.saved <= 0) continue;
+    if (row.dateLocked || !row.savings || row.savings.spendMore > 0 || row.savings.saved <= 0) continue;
     if (!best || row.savings.saved > best.savings!.saved) best = row;
   }
   return best?.benefit.id ?? null;

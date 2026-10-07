@@ -16,7 +16,14 @@ export const REQUIRES_LABELS: Record<Requires, string> = {
   pay_with_card: 'תשלום בכרטיס', membership: 'הצגת חברות', coupon_code: 'קוד קופון',
 };
 export const CHANNEL_LABELS: Record<Channel, string> = { in_store: 'בחנות', online: 'אונליין', both: 'בחנות ואונליין' };
-export const TIMING_LABELS: Record<Timing, string> = { always: 'תמיד', birthday_month: 'חודש יום ההולדת' };
+export const TIMING_LABELS: Record<Timing, string> = {
+  always: 'תמיד', birthday_month: 'חודש יום ההולדת', anniversary_month: 'חודש יום הנישואין',
+  child_birthday_month: 'חודש יום הולדת של ילד',
+};
+export const TIMING_ICON: Record<Timing, string> = {
+  always: '', birthday_month: '🎂', anniversary_month: '💍', child_birthday_month: '🎈',
+};
+export const WINDOW_ICON: Record<'birthday' | 'anniversary' | 'child', string> = { birthday: '🎂', anniversary: '💍', child: '🎈' };
 
 const OR_MANUAL = ' אפשר גם להוסיף את ההטבות ידנית (לשונית "ידני").';
 

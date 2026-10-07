@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { birthdayBenefits, rankForStore } from './rank';
+import { rankForStore } from './rank';
 import type { Benefit, Program, Snapshot, Store, WalletItem } from './types';
 
 const day = (iso: string) => ({ iso, year: Number(iso.slice(0, 4)), month: Number(iso.slice(5, 7)) });
@@ -49,7 +49,7 @@ describe('rankForStore', () => {
     const r = rankForStore(snapshot, mango, 400, OCT);
     expect(ids(r.pay)).toEqual(['calFixed', 'hever10', 'heverGeneral', 'calBirthday']);
     expect(r.pay[0].savings?.saved).toBe(50);
-    expect(r.pay[3].birthdayLocked).toBe(true);
+    expect(r.pay[3].dateLocked).toBe(true);
   });
   it('puts non-computable benefits in other and membership/coupon benefits in show', () => {
     const r = rankForStore(snapshot, mango, 400, OCT);
@@ -77,7 +77,7 @@ describe('rankForStore', () => {
   it('in the birth month the birthday benefit competes normally', () => {
     const r = rankForStore(snapshot, mango, 400, SEP);
     expect(ids(r.pay)[0]).toBe('calBirthday'); // 15% of 400 = 60
-    expect(r.pay[0].birthdayLocked).toBe(false);
+    expect(r.pay[0].dateLocked).toBe(false);
   });
   it('filters by channel', () => {
     const online = benefit({ id: 'onlineOnly', value: 90, channel: 'online' });
@@ -92,10 +92,15 @@ describe('rankForStore', () => {
   });
 });
 
-describe('birthdayBenefits', () => {
-  it('returns usable birthday benefits only in the birth month', () => {
-    expect(birthdayBenefits(snapshot, SEP).map((b) => b.id)).toEqual(['calBirthday']);
-    expect(birthdayBenefits(snapshot, OCT)).toEqual([]);
+describe('special dates in ranking', () => {
+  it('reports the month a locked birthday benefit opens', () => {
+    const r = rankForStore(snapshot, mango, 400, OCT);
+    expect(r.pay.find((x) => x.benefit.id === 'calBirthday')?.lockedMonths).toEqual([9]);
+  });
+  it('uses a club-specific birthday month for that club', () => {
+    const s = { ...snapshot, wallet: [{ ...snapshot.wallet[0], birthday_month: 10 }, snapshot.wallet[1]] };
+    const row = rankForStore(s, mango, 400, OCT).pay.find((x) => x.benefit.id === 'calBirthday');
+    expect(row?.dateLocked).toBe(false);
   });
 });
 
