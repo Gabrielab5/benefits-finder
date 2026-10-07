@@ -51,7 +51,7 @@ async function seed(sb: SupabaseClient) {
     { name: 'כרטיס בדיקה ב', type: 'card', program_ids: [pid('חבר')] },
   ]));
   const store = (await check(
-    sb.from('stores').insert({ name_he: 'מנגו', name_en: 'Mango', category: 'fashion' }).select('id').single(),
+    sb.from('stores').insert({ name_he: 'מנגו בדיקה', name_en: 'Mango E2E', category: 'fashion' }).select('id').single(),
   )) as { id: string };
   await check(sb.from('benefits').insert([
     { program_id: pid('כאל'), store_id: store.id, title: '10% הנחה', type: 'percent_off', value: 10, requires: 'pay_with_card' },
@@ -65,8 +65,8 @@ test('search a store in English and see the best card first', async ({ page, con
   await context.addCookies(cookies);
 
   await page.goto('/');
-  await page.getByPlaceholder('איפה אתם קונים?').fill('mango');
-  await page.getByRole('button', { name: /מנגו/ }).click();
+  await page.getByPlaceholder('איפה אתם קונים?').fill('mango e2e');
+  await page.getByRole('button', { name: /מנגו בדיקה/ }).click();
   await page.getByLabel('כמה אתם מוציאים? (₪)').fill('400');
 
   const first = page.getByTestId('pay-results').getByRole('listitem').first();
