@@ -7,7 +7,7 @@ import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
 import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, WINDOW_ICON } from '@/lib/core/labels';
 import { searchStores } from '@/lib/core/normalize';
-import { bestRowId, rankForStore, type Row } from '@/lib/core/rank';
+import { bestRowId, eligibleItems, rankForStore, type Row } from '@/lib/core/rank';
 import { parseAmount } from '@/lib/core/savings';
 import { activeDateBenefits } from '@/lib/core/specialDates';
 import type { Store } from '@/lib/core/types';
@@ -102,7 +102,7 @@ export default function WhereAmIPage() {
             </ul>
           )}
           {!query.trim() && (
-            <p className="px-1 text-sm text-dim">{snapshot.stores.length} חנויות · {snapshot.benefits.length} הטבות בארנק שלכם</p>
+            <p className="px-1 text-sm text-dim">{snapshot.stores.length} חנויות · {snapshot.benefits.filter((b) => eligibleItems(b, snapshot.wallet).length > 0).length} הטבות שהארנק שלכם פותח</p>
           )}
         </div>
       )}
