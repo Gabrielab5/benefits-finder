@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import { CreditCard, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import { KIND_LABELS } from '@/lib/core/labels';
 import type { WalletItem } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -14,13 +16,13 @@ interface Draft {
   color: string;
   program_ids: string[];
 }
-const EMPTY: Draft = { name: '', type: 'card', last4: '', nickname: '', color: '#1d4ed8', program_ids: [] };
+const EMPTY: Draft = { name: '', type: 'card', last4: '', nickname: '', color: '#3b5bdb', program_ids: [] };
 
 export default function WalletPage() {
   const { snapshot, online, refresh } = useSnap();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
-  if (!snapshot) return <p className="p-4 text-gray-500">טוען…</p>;
+  if (!snapshot) return <Loading />;
   const programs = new Map(snapshot.programs.map((p) => [p.id, p]));
 
   async function save(d: Draft) {
@@ -59,86 +61,111 @@ export default function WalletPage() {
     });
 
   return (
-    <main className="space-y-4 p-4">
-      <h1 className="text-xl font-bold">הארנק שלי</h1>
-      {!online && <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-800">אין חיבור — אפשר רק לצפות.</p>}
+    <main className="space-y-6">
+      <PageHeader title="הארנק שלי" subtitle="הכרטיסים והחברויות שלכם" icon={Wallet} />
+      {!online && <Notice tone="warn">אין חיבור — אפשר רק לצפות.</Notice>}
 
-      {(['card', 'membership'] as const).map((type) => (
-        <section key={type} className="space-y-2">
-          <h2 className="text-sm font-semibold text-gray-500">{type === 'card' ? 'כרטיסי אשראי' : 'חברויות'}</h2>
-          <ul className="space-y-2">
-            {snapshot.wallet.filter((w) => w.type === type).map((w) => (
-              <li key={w.id} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm">
-                <span className="h-8 w-2 rounded" style={{ background: w.color ?? '#9ca3af' }} aria-hidden />
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold">{w.nickname || w.name}{w.last4 ? ` ••${w.last4}` : ''}</p>
-                  <p className="text-sm text-gray-600">
-                    {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
-                  </p>
-                </div>
-                <button disabled={!online} onClick={() => edit(w)} className="text-sm text-blue-700 disabled:opacity-40">עריכה</button>
-                <button disabled={!online} onClick={() => remove(w)} className="text-sm text-red-700 disabled:opacity-40">מחיקה</button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {(['card', 'membership'] as const).map((type) => {
+        const list = snapshot.wallet.filter((w) => w.type === type);
+        if (list.length === 0) return null;
+        return (
+          <section key={type} className="space-y-3">
+            <SectionTitle>{type === 'card' ? 'כרטיסי אשראי' : 'חברויות ומועדונים'}</SectionTitle>
+            <ul className="grid grid-cols-2 gap-3">
+              {list.map((w) => {
+                const color = w.color ?? '#3b5bdb';
+                return (
+                  <li key={w.id} className="aspect-[1.6] overflow-hidden rounded-2xl p-3 text-white shadow-lg shadow-black/30"
+                    style={{ background: `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)` }}>
+                    <div className="flex h-full flex-col">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="line-clamp-2 text-sm font-bold drop-shadow">{w.nickname || w.name}</p>
+                        <div className="flex shrink-0 gap-1">
+                          <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
+                            className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
+                            <Pencil size={13} aria-hidden />
+                          </button>
+                          <button disabled={!online} onClick={() => remove(w)} aria-label={`מחיקת ${w.name}`}
+                            className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
+                            <Trash2 size={13} aria-hidden />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="mt-auto line-clamp-1 text-[11px] opacity-80">
+                        {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        {type === 'card' ? <CreditCard size={16} className="opacity-70" aria-hidden /> : <span />}
+                        <p className="font-mono text-xs tracking-widest opacity-90" dir="ltr">{w.last4 ? `•••• ${w.last4}` : ''}</p>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
 
       {!draft && (
-        <button disabled={!online} onClick={() => setDraft(EMPTY)}
-          className="w-full rounded-xl bg-blue-700 p-3 font-semibold text-white disabled:opacity-50">הוספה לארנק</button>
+        <Button disabled={!online} onClick={() => setDraft(EMPTY)} className="w-full py-3">
+          <Plus size={18} aria-hidden /> הוספה לארנק
+        </Button>
       )}
 
       {draft && (
-        <section className="space-y-3 rounded-xl bg-white p-4 shadow">
+        <Card className="space-y-4">
+          <h2 className="font-semibold">{draft.id ? 'עריכה' : 'הוספה לארנק'}</h2>
           <label className="block">
-            <span className="text-sm text-gray-600">שם</span>
-            <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-gray-300 p-2" />
+            <span className="text-sm text-muted">שם</span>
+            <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={`${field} mt-1`} />
           </label>
-          <label className="block">
-            <span className="text-sm text-gray-600">סוג</span>
-            <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as WalletItem['type'] })}
-              className="mt-1 w-full rounded-lg border border-gray-300 p-2">
-              <option value="card">כרטיס אשראי</option>
-              <option value="membership">חברות במועדון</option>
-            </select>
-          </label>
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="סוג">
+            {(['card', 'membership'] as const).map((t) => (
+              <button key={t} type="button" role="radio" aria-checked={draft.type === t} onClick={() => setDraft({ ...draft, type: t })}
+                className={`rounded-xl border p-2.5 text-sm ${draft.type === t ? 'border-mint bg-mint/10 text-mint' : 'border-line text-muted'}`}>
+                {t === 'card' ? 'כרטיס אשראי' : 'חברות במועדון'}
+              </button>
+            ))}
+          </div>
           <div className="flex gap-2">
             <label className="flex-1">
-              <span className="text-sm text-gray-600">כינוי</span>
-              <input value={draft.nickname} onChange={(e) => setDraft({ ...draft, nickname: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-gray-300 p-2" />
+              <span className="text-sm text-muted">כינוי</span>
+              <input value={draft.nickname} onChange={(e) => setDraft({ ...draft, nickname: e.target.value })} className={`${field} mt-1`} />
             </label>
             <label className="w-28">
-              <span className="text-sm text-gray-600">4 ספרות אחרונות</span>
+              <span className="text-sm text-muted">4 ספרות</span>
               <input inputMode="numeric" maxLength={4} dir="ltr" value={draft.last4}
-                onChange={(e) => setDraft({ ...draft, last4: e.target.value.replace(/\D/g, '') })}
-                className="mt-1 w-full rounded-lg border border-gray-300 p-2" />
+                onChange={(e) => setDraft({ ...draft, last4: e.target.value.replace(/\D/g, '') })} className={`${field} mt-1`} />
             </label>
             <label className="w-16">
-              <span className="text-sm text-gray-600">צבע</span>
+              <span className="text-sm text-muted">צבע</span>
               <input type="color" value={draft.color} onChange={(e) => setDraft({ ...draft, color: e.target.value })}
-                className="mt-1 h-10 w-full" />
+                className="mt-1 h-[46px] w-full cursor-pointer rounded-xl border border-line bg-panel-2 p-1" />
             </label>
           </div>
-          <fieldset className="space-y-1">
-            <legend className="text-sm text-gray-600">אילו הטבות זה פותח?</legend>
-            {snapshot.programs.length === 0 && <p className="text-sm text-gray-500">הוסיפו תוכנית בלשונית &quot;מקורות&quot;.</p>}
-            {snapshot.programs.map((p) => (
-              <label key={p.id} className="flex items-center gap-2">
-                <input type="checkbox" checked={draft.program_ids.includes(p.id)} onChange={() => toggleProgram(p.id)} />
-                {p.name} <span className="text-xs text-gray-500">({KIND_LABELS[p.kind]})</span>
-              </label>
-            ))}
+          <fieldset className="space-y-2">
+            <legend className="mb-2 text-sm text-muted">אילו הטבות זה פותח?</legend>
+            {snapshot.programs.length === 0 && <p className="text-sm text-dim">הוסיפו תוכנית בלשונית &quot;מקורות&quot;.</p>}
+            <div className="flex flex-wrap gap-2">
+              {snapshot.programs.map((p) => {
+                const on = draft.program_ids.includes(p.id);
+                return (
+                  <button key={p.id} type="button" aria-pressed={on} onClick={() => toggleProgram(p.id)} title={KIND_LABELS[p.kind]}
+                    className={`rounded-full border px-3 py-1.5 text-sm ${on ? 'border-mint bg-mint/10 text-mint' : 'border-line text-muted'}`}>
+                    {p.name}
+                  </button>
+                );
+              })}
+            </div>
           </fieldset>
           <div className="flex gap-2">
-            <button onClick={() => save(draft)} className="flex-1 rounded-xl bg-blue-700 p-3 font-semibold text-white">שמירה</button>
-            <button onClick={() => { setDraft(null); setError(null); }} className="rounded-xl bg-gray-200 px-4">ביטול</button>
+            <Button onClick={() => save(draft)} className="flex-1">שמירה</Button>
+            <Button variant="secondary" onClick={() => { setDraft(null); setError(null); }}>ביטול</Button>
           </div>
-        </section>
+        </Card>
       )}
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <Notice tone="error">{error}</Notice>}
     </main>
   );
 }

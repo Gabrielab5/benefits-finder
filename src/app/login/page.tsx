@@ -1,6 +1,42 @@
 'use client';
 import { useState, type FormEvent } from 'react';
+import { ArrowRight, Mail } from 'lucide-react';
+import { Button, Notice, field } from '@/components/ui';
 import { supabaseBrowser } from '@/lib/supabase/browser';
+
+function GoogleLogo() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
+    </svg>
+  );
+}
+
+/** One real input (so paste and SMS/e-mail autofill work) drawn as separate digit boxes. */
+function CodeBoxes({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const boxes = Math.max(6, value.length);
+  return (
+    <label className="group relative block" dir="ltr">
+      <span className="sr-only">קוד</span>
+      <input inputMode="numeric" autoComplete="one-time-code" maxLength={8} required value={value} autoFocus
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, ''))}
+        className="absolute inset-0 z-10 h-full w-full opacity-0" />
+      <span className="flex justify-center gap-2" aria-hidden>
+        {Array.from({ length: boxes }, (_, i) => (
+          <span key={i}
+            className={`grid h-14 w-11 place-items-center rounded-xl border bg-panel-2 text-2xl font-semibold ${
+              i === value.length ? 'border-line group-focus-within:border-mint group-focus-within:ring-1 group-focus-within:ring-mint' : 'border-line'
+            }`}>
+            {value[i] ?? ''}
+          </span>
+        ))}
+      </span>
+    </label>
+  );
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -33,44 +69,61 @@ export default function LoginPage() {
   }
 
   async function google() {
-    await supabaseBrowser().auth.signInWithOAuth({
+    setError(null);
+    const { error } = await supabaseBrowser().auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${location.origin}/auth/callback` },
     });
+    if (error) setError('הכניסה עם Google עדיין לא הוגדרה.');
   }
 
   return (
-    <main className="mx-auto max-w-sm space-y-6 p-6">
-      <h1 className="text-2xl font-bold">ההטבות שלי</h1>
-      {!sent ? (
-        <form onSubmit={sendCode} className="space-y-3">
-          <label className="block">
-            <span className="text-sm text-gray-600">אימייל</span>
-            <input type="email" required dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-gray-300 p-3" autoComplete="email" />
-          </label>
-          <button disabled={busy} className="w-full rounded-xl bg-blue-700 p-3 font-semibold text-white disabled:opacity-50">
-            שלחו לי קוד כניסה
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={verify} className="space-y-3">
-          <p className="text-sm text-gray-600">שלחנו קוד ל-{email}. הקלידו אותו כאן (או לחצו על הקישור במייל במחשב).</p>
-          <label className="block">
-            <span className="text-sm text-gray-600">קוד</span>
-            <input inputMode="numeric" autoComplete="one-time-code" dir="ltr" required value={code}
-              onChange={(e) => setCode(e.target.value)} className="mt-1 w-full rounded-xl border border-gray-300 p-3 text-center text-2xl tracking-widest" />
-          </label>
-          <button disabled={busy} className="w-full rounded-xl bg-blue-700 p-3 font-semibold text-white disabled:opacity-50">
-            כניסה
-          </button>
-          <button type="button" onClick={() => setSent(false)} className="w-full text-sm text-blue-700">
-            לשלוח שוב / לשנות אימייל
-          </button>
-        </form>
-      )}
-      <button onClick={google} className="w-full rounded-xl border border-gray-300 bg-white p-3">כניסה עם Google</button>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 px-6 py-10">
+      <div className="text-center">
+        <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-line bg-panel text-3xl font-bold text-mint">₪</div>
+        <h1 className="text-3xl font-bold">ההטבות שלי</h1>
+        <p className="mt-2 text-muted">איזה כרטיס להוציא בקופה — בשנייה.</p>
+      </div>
+
+      <div className="space-y-4 rounded-3xl border border-line bg-panel p-5">
+        {!sent ? (
+          <form onSubmit={sendCode} className="space-y-3">
+            <label className="block">
+              <span className="text-sm text-muted">אימייל</span>
+              <div className="relative mt-1">
+                <Mail size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
+                <input type="email" required dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com" autoComplete="email" className={`${field} ps-10 text-start`} />
+              </div>
+            </label>
+            <Button disabled={busy} className="w-full py-3">שלחו לי קוד כניסה</Button>
+          </form>
+        ) : (
+          <form onSubmit={verify} className="space-y-4">
+            <p className="text-center text-sm text-muted">
+              שלחנו קוד ל-<span className="text-fg" dir="ltr">{email}</span>
+            </p>
+            <CodeBoxes value={code} onChange={setCode} />
+            <Button disabled={busy || code.length < 6} className="w-full py-3">כניסה</Button>
+            <button type="button" onClick={() => { setSent(false); setCode(''); }}
+              className="mx-auto flex items-center gap-1 text-sm text-mint">
+              <ArrowRight size={14} aria-hidden /> לשלוח שוב / לשנות אימייל
+            </button>
+          </form>
+        )}
+
+        <div className="flex items-center gap-3 text-xs text-dim">
+          <span className="h-px flex-1 bg-line" /> או <span className="h-px flex-1 bg-line" />
+        </div>
+
+        <button onClick={google}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 active:scale-[0.98]">
+          <GoogleLogo /> המשך עם Google
+        </button>
+        {error && <Notice tone="error">{error}</Notice>}
+      </div>
+
+      <p className="text-center text-xs text-dim">הכניסה פתוחה רק למשתמשים שהוזמנו.</p>
     </main>
   );
 }

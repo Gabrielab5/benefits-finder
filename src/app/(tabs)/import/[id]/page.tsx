@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { ClipboardCheck, Plus, TriangleAlert } from 'lucide-react';
+import { Button, Loading, Notice, PageHeader, SectionTitle, field as baseField } from '@/components/ui';
 import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, REQUIRES_LABELS, TIMING_LABELS, TYPE_LABELS } from '@/lib/core/labels';
 import { mergeImport } from '@/lib/core/merge';
@@ -15,7 +17,7 @@ import { selectAll } from '@/lib/selectAll';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSnap } from '@/lib/useSnapshot';
 
-const field = 'w-full rounded-lg border border-gray-300 bg-white p-2 text-sm';
+const field = `${baseField} px-2.5 py-2 text-sm`;
 const num = (v: string) => (v.trim() === '' ? null : Number(v));
 const EMPTY_STORE: NewStoreDraft = { name_he: '', name_en: '', aliases: [], category: 'other', channel: 'both' };
 
@@ -40,7 +42,7 @@ export default function ReviewImportPage() {
     });
   }, [id]);
 
-  if (!snapshot || !imp) return <p className="p-4 text-gray-500">טוען…</p>;
+  if (!snapshot || !imp) return <Loading />;
 
   const program = snapshot.programs.find((p) => p.id === imp.program_id);
   const ctx = { storeIds: new Set(snapshot.stores.map((s) => s.id)), newStores, todayIso: israelToday().iso };
@@ -125,23 +127,23 @@ export default function ReviewImportPage() {
 
   if (imp.status === 'failed' || !imp.extracted) {
     return (
-      <p className="p-4 text-red-700">
+      <p className="rounded-2xl border border-bad/30 bg-bad/10 p-4 text-bad">
         הייבוא הזה נכשל ({imp.error ?? 'ללא פירוט'}). חזרו ללשונית &quot;ייבוא&quot; ונסו שוב, או בחרו &quot;ידני&quot; כדי להקליד את ההטבות בעצמכם.
       </p>
     );
   }
 
   return (
-    <main className="space-y-4 p-4 pb-32">
-      <h1 className="text-xl font-bold">בדיקת ייבוא · {program?.name}</h1>
-      <p className="text-sm text-gray-600">
+    <main className="space-y-5 pb-40">
+      <PageHeader title={`בדיקת ייבוא · ${program?.name ?? ''}`} icon={ClipboardCheck} />
+      <p className="text-sm text-muted">
         {imp.source === 'manual' ? 'הוספה ידנית.' : `${rows.length} הטבות נמצאו${imp.is_refresh ? ' (רענון)' : ''}.`} בדקו, תקנו או בטלו סימון לפני שמירה.
       </p>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-gray-500">חנויות חדשות</h2>
+        <SectionTitle>חנויות חדשות</SectionTitle>
         {newStores.map((s, i) => (
-          <div key={i} className="grid grid-cols-3 gap-2 rounded-xl bg-white p-2 shadow-sm">
+          <div key={i} className="grid grid-cols-3 gap-2 rounded-2xl border border-line bg-panel p-2">
             <input aria-label="שם בעברית" placeholder="שם בעברית" value={s.name_he} onChange={(e) => updateStore(i, { name_he: e.target.value })} className={field} />
             <input aria-label="שם באנגלית" placeholder="English name" dir="ltr" value={s.name_en} onChange={(e) => updateStore(i, { name_en: e.target.value })} className={field} />
             <select aria-label="קטגוריה" value={s.category} onChange={(e) => updateStore(i, { category: e.target.value as Category })} className={field}>
@@ -149,13 +151,13 @@ export default function ReviewImportPage() {
             </select>
           </div>
         ))}
-        <button onClick={() => setNewStores((ss) => [...ss, EMPTY_STORE])} className="text-sm text-blue-700">➕ חנות חדשה</button>
+        <button onClick={() => setNewStores((ss) => [...ss, EMPTY_STORE])} className="flex items-center gap-1 text-sm text-mint"><Plus size={14} aria-hidden /> חנות חדשה</button>
       </section>
 
       <ul className="space-y-3">
         {rows.map((r, i) => (
-          <li key={i} className={`space-y-2 rounded-xl bg-white p-3 shadow-sm ${r.approved ? '' : 'opacity-50'}`}>
-            <label className="flex items-center gap-2 font-semibold">
+          <li key={i} className={`space-y-2 rounded-2xl border bg-panel p-3 ${problems[i].length ? 'border-bad/50' : 'border-line'} ${r.approved ? '' : 'opacity-50'}`}>
+            <label className="flex items-center gap-2 font-semibold accent-mint">
               <input type="checkbox" checked={r.approved} onChange={(e) => update(i, { approved: e.target.checked })} />
               לשמור
             </label>
@@ -190,7 +192,7 @@ export default function ReviewImportPage() {
               <select aria-label="מתי" value={r.timing} onChange={(e) => update(i, { timing: e.target.value as Timing })} className={field}>
                 {TIMINGS.map((t) => <option key={t} value={t}>{TIMING_LABELS[t]}</option>)}
               </select>
-              <label className="col-span-2 text-sm text-gray-600">
+              <label className="col-span-2 text-sm text-muted">
                 בתוקף עד
                 <input type="date" value={r.valid_until ?? ''} onChange={(e) => update(i, { valid_until: e.target.value || null })} className={field} />
               </label>
@@ -198,30 +200,31 @@ export default function ReviewImportPage() {
             <textarea aria-label="תנאים" rows={2} placeholder="תנאים" value={r.conditions ?? ''}
               onChange={(e) => update(i, { conditions: e.target.value || null })} className={field} />
             {problems[i].length > 0 && (
-              <ul className="text-sm text-red-700">{problems[i].map((p) => <li key={p}>⚠️ {p}</li>)}</ul>
+              <ul className="space-y-0.5 text-sm text-bad">{problems[i].map((p) => <li key={p} className="flex items-center gap-1"><TriangleAlert size={14} aria-hidden /> {p}</li>)}</ul>
             )}
           </li>
         ))}
       </ul>
       {imp.status === 'pending_review' && (
-        <button onClick={() => setRows((rs) => [...rs, blankRow()])} className="w-full rounded-xl border border-dashed border-blue-400 p-3 text-blue-700">
-          ➕ הוספת הטבה
+        <button onClick={() => setRows((rs) => [...rs, blankRow()])} className="flex w-full items-center justify-center gap-1 rounded-2xl border border-dashed border-line p-3 text-mint hover:border-mint">
+          <Plus size={16} aria-hidden /> הוספת הטבה
         </button>
       )}
 
-      <div className="fixed inset-x-0 bottom-16 mx-auto flex max-w-xl gap-2 bg-gray-50 p-3">
+      <div className="fixed inset-x-0 bottom-[84px] z-10 mx-auto flex max-w-xl gap-2 px-4"><div className="flex flex-1 gap-2 rounded-2xl border border-line bg-panel/95 p-2 backdrop-blur">
         {imp.status === 'pending_review' ? (
           <>
-            <button disabled={!canSave} onClick={save} className="flex-1 rounded-xl bg-blue-700 p-3 font-semibold text-white disabled:opacity-50">
+            <Button disabled={!canSave} onClick={save} className="flex-1">
               {busy ? 'שומר…' : `שמירת ${approvedCount} הטבות`}
-            </button>
-            <button disabled={busy} onClick={reject} className="rounded-xl bg-gray-200 px-4">דחייה</button>
+            </Button>
+            <Button variant="secondary" disabled={busy} onClick={reject}>דחייה</Button>
           </>
         ) : (
-          <p className="flex-1 rounded-xl bg-green-50 p-3 text-green-800">{message ?? 'הייבוא הזה כבר טופל.'}</p>
+          <p className="flex-1 rounded-xl bg-mint/10 p-3 text-mint">{message ?? 'הייבוא הזה כבר טופל.'}</p>
         )}
       </div>
-      {imp.status === 'pending_review' && message && <p className="text-sm text-red-700">{message}</p>}
+      </div>
+      {imp.status === 'pending_review' && message && <Notice tone="error">{message}</Notice>}
     </main>
   );
 }

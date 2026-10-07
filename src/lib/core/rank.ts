@@ -97,3 +97,13 @@ export function birthdayBenefits(snapshot: Snapshot, today: IsraelDay): Benefit[
       eligibleItems(b, snapshot.wallet).length > 0,
   );
 }
+
+/** The single best ₪ saving for the entered amount, across "pay with" and "show" benefits; null without an amount. */
+export function bestRowId(result: RankResult): string | null {
+  let best: Row | null = null;
+  for (const row of [...result.pay, ...result.show]) {
+    if (row.birthdayLocked || !row.savings || row.savings.spendMore > 0 || row.savings.saved <= 0) continue;
+    if (!best || row.savings.saved > best.savings!.saved) best = row;
+  }
+  return best?.benefit.id ?? null;
+}

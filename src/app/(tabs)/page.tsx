@@ -1,13 +1,18 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { Cake, ChevronLeft, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
+import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
 import { isBirthdayMonth, israelToday } from '@/lib/core/dates';
+import { CATEGORY_LABELS } from '@/lib/core/labels';
 import { searchStores } from '@/lib/core/normalize';
-import { birthdayBenefits, rankForStore, type Row } from '@/lib/core/rank';
+import { bestRowId, birthdayBenefits, rankForStore, type Row } from '@/lib/core/rank';
 import { parseAmount } from '@/lib/core/savings';
 import type { Store } from '@/lib/core/types';
 import { useSnap } from '@/lib/useSnapshot';
+
+const QUICK_AMOUNTS = [100, 300, 500];
 
 export default function WhereAmIPage() {
   const { snapshot, online, error } = useSnap();
@@ -15,80 +20,113 @@ export default function WhereAmIPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [amountText, setAmountText] = useState('');
 
-  if (!snapshot) return <p className="p-4 text-gray-500">טוען…</p>;
+  if (!snapshot) return <Loading />;
 
   const today = israelToday();
   const amount = parseAmount(amountText);
   const birthMonth = snapshot.profile?.birth_month ?? null;
   const matches = store ? [] : searchStores(snapshot.stores, query);
   const result = store ? rankForStore(snapshot, store, amount, today) : null;
+  const best = result ? bestRowId(result) : null;
   const birthdayCount = isBirthdayMonth(birthMonth, today) ? birthdayBenefits(snapshot, today).length : 0;
 
   const section = (title: string, rows: Row[], testId: string) =>
     rows.length > 0 && (
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-gray-500">{title}</h2>
+        <SectionTitle>{title}</SectionTitle>
         <ul data-testid={testId} className="space-y-2">
-          {rows.map((r) => <BenefitCard key={r.benefit.id} {...r} store={store} birthMonth={birthMonth} />)}
+          {rows.map((r) => (
+            <BenefitCard key={r.benefit.id} {...r} store={store} birthMonth={birthMonth} best={r.benefit.id === best} />
+          ))}
         </ul>
       </section>
     );
 
   return (
-    <main className="space-y-4 p-4">
-      <h1 className="text-xl font-bold">איפה אני</h1>
-      {!online && <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-800">אין חיבור — מוצגים הנתונים האחרונים שנשמרו.</p>}
-      {online && error && <p className="rounded-lg bg-red-50 p-2 text-sm text-red-800">{error}</p>}
+    <main className="space-y-5">
+      <header className="pt-2">
+        <p className="text-sm text-muted">שלום 👋</p>
+        <h1 className="text-2xl font-bold">איפה אני?</h1>
+      </header>
+
+      {!online && (
+        <Notice tone="warn"><WifiOff size={14} className="me-1 inline" aria-hidden />אין חיבור — מוצגים הנתונים האחרונים שנשמרו.</Notice>
+      )}
+      {online && error && <Notice tone="error">{error}</Notice>}
       {birthdayCount > 0 && (
-        <Link href="/benefits?birthday=1" className="block rounded-xl bg-pink-50 p-3 font-semibold text-pink-800">
-          🎂 חודש יום ההולדת — {birthdayCount} הטבות יום הולדת מחכות לכם
+        <Link href="/benefits?birthday=1"
+          className="flex items-center gap-3 rounded-2xl border border-party/30 bg-party/10 p-3.5 text-party">
+          <Cake size={22} aria-hidden />
+          <span className="flex-1 font-semibold">חודש יום ההולדת — {birthdayCount} הטבות מחכות לכם</span>
+          <ChevronLeft size={18} aria-hidden />
         </Link>
       )}
 
       {store ? (
-        <div className="flex items-center justify-between rounded-xl bg-blue-50 p-3">
-          <span className="font-semibold">{store.name_he} · {store.name_en}</span>
-          <button onClick={() => { setStore(null); setQuery(''); }} className="text-sm text-blue-700">החלפת חנות ✕</button>
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-panel p-3.5">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-panel-2 text-mint"><StoreIcon size={20} aria-hidden /></span>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">{store.name_he}</p>
+            <p className="text-xs text-muted">{store.name_en} · {CATEGORY_LABELS[store.category]}</p>
+          </div>
+          <button onClick={() => { setStore(null); setQuery(''); }} aria-label="החלפת חנות"
+            className="grid h-9 w-9 place-items-center rounded-xl text-muted hover:bg-panel-2 hover:text-fg">
+            <X size={18} aria-hidden />
+          </button>
         </div>
       ) : (
-        <div>
-          <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="איפה אתם קונים?"
-            aria-label="חיפוש חנות" className="w-full rounded-xl border border-gray-300 p-3 text-lg" />
+        <div className="space-y-2">
+          <div className="relative">
+            <Search size={20} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
+            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="איפה אתם קונים?"
+              aria-label="חיפוש חנות" className={`${field} py-3.5 ps-11 text-lg`} />
+          </div>
           {query.trim() && (
-            <ul className="mt-2 divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
+            <ul className="overflow-hidden rounded-2xl border border-line bg-panel">
               {matches.map((s) => (
-                <li key={s.id}>
-                  <button onClick={() => setStore(s)} className="w-full p-3 text-start">
-                    {s.name_he} <span className="text-gray-500">· {s.name_en}</span>
+                <li key={s.id} className="border-b border-line last:border-0">
+                  <button onClick={() => setStore(s)} className="flex w-full items-center gap-3 p-3 text-start hover:bg-panel-2">
+                    <StoreIcon size={16} className="text-dim" aria-hidden />
+                    <span>{s.name_he} <span className="text-muted">· {s.name_en}</span></span>
                   </button>
                 </li>
               ))}
               {matches.length === 0 && (
-                <li className="p-3 text-sm text-gray-500">לא נמצאה חנות. אפשר לייבא את ההטבות שלה בלשונית &quot;ייבוא&quot;.</li>
+                <li className="p-3 text-sm text-muted">לא נמצאה חנות. אפשר לייבא את ההטבות שלה בלשונית &quot;ייבוא&quot;.</li>
               )}
             </ul>
+          )}
+          {!query.trim() && (
+            <p className="px-1 text-sm text-dim">{snapshot.stores.length} חנויות · {snapshot.benefits.length} הטבות בארנק שלכם</p>
           )}
         </div>
       )}
 
       {store && (
-        <label className="block">
-          <span className="text-sm text-gray-600">כמה אתם מוציאים? (₪)</span>
-          <input inputMode="decimal" value={amountText} onChange={(e) => setAmountText(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-gray-300 p-3 text-lg" dir="ltr" />
-        </label>
+        <div className="space-y-2">
+          <label className="block">
+            <span className="text-sm text-muted">כמה אתם מוציאים? (₪)</span>
+            <input inputMode="decimal" value={amountText} onChange={(e) => setAmountText(e.target.value)} dir="ltr"
+              placeholder="0" className={`${field} mt-1 text-lg`} />
+          </label>
+          <div className="flex gap-2">
+            {QUICK_AMOUNTS.map((n) => (
+              <Chip key={n} active={amount === n} onClick={() => setAmountText(String(n))}>₪{n}</Chip>
+            ))}
+          </div>
+        </div>
       )}
 
       {result && (
         <>
-          {result.pay.length > 0 && !amount && (
-            <p className="text-sm text-gray-500">הזינו סכום כדי לראות כמה תחסכו בכל כרטיס.</p>
+          {result.pay.length + result.show.length > 0 && !amount && (
+            <p className="text-sm text-dim">הזינו סכום כדי לראות כמה תחסכו בכל כרטיס.</p>
           )}
           {section('שלמו עם', result.pay, 'pay-results')}
-          {section('הטבות נוספות', result.other, 'other-results')}
           {section('הציגו או הזינו קוד', result.show, 'show-results')}
+          {section('הטבות נוספות', result.other, 'other-results')}
           {result.pay.length + result.other.length + result.show.length === 0 && (
-            <p className="text-gray-500">אין לכם הטבות בחנות הזו.</p>
+            <Notice>אין לכם הטבות בחנות הזו.</Notice>
           )}
         </>
       )}

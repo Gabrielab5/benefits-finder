@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+/* Dark premium theme (design B). Classes: bg-ink, bg-panel, bg-panel-2, border-line, text-fg, text-muted, text-dim, bg-mint, text-mint-ink… */
+@theme {
+  --color-ink: #0e1424;
+  --color-panel: #1a2236;
+  --color-panel-2: #222c44;
+  --color-line: #2a3550;
+  --color-fg: #e6e9f2;
+  --color-muted: #8b93a8;
+  --color-dim: #5d6782;
+  --color-mint: #34d399;
+  --color-mint-ink: #062a1e;
+  --color-warn: #fbbf24;
+  --color-bad: #fb7185;
+  --color-party: #f472b6;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-fg);
+}
+
+/* Keep native date / select pickers readable on the dark theme. */
+input,
+select,
+textarea {
+  color-scheme: dark;
+}

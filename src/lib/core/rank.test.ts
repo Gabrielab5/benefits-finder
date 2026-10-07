@@ -98,3 +98,20 @@ describe('birthdayBenefits', () => {
     expect(birthdayBenefits(snapshot, OCT)).toEqual([]);
   });
 });
+
+import { bestRowId } from './rank';
+
+describe('bestRowId', () => {
+  it('picks the biggest shekel saving across pay-with-card and show-membership benefits', () => {
+    const show = benefit({ id: 'dreamShow', program_id: 'hever', value: 12, requires: 'membership' });
+    const s = { ...snapshot, benefits: [b1, show] };
+    expect(bestRowId(rankForStore(s, mango, 300, OCT))).toBe('dreamShow'); // ₪36 (show) beats ₪30 (pay)
+  });
+  it('ignores birthday-locked benefits and ones below their minimum spend', () => {
+    const s = { ...snapshot, benefits: [b2, b6, b8] }; // calFixed needs ₪300, birthday locked in October
+    expect(bestRowId(rankForStore(s, mango, 250, OCT))).toBe('heverGeneral');
+  });
+  it('returns null when no amount was entered', () => {
+    expect(bestRowId(rankForStore(snapshot, mango, null, OCT))).toBeNull();
+  });
+});

@@ -17,7 +17,7 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
   return (
     <SnapshotProvider>
       <OnboardingGate />
-      <div className="mx-auto max-w-xl pb-24">{children}</div>
+      <div className="mx-auto max-w-xl px-4 pb-28 pt-[max(env(safe-area-inset-top),8px)]">{children}</div>
       <BottomNav />
     </SnapshotProvider>
   );

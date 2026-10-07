@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { ChevronDown, List, Search, SlidersHorizontal } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
+import { Button, Chip, Loading, PageHeader, field } from '@/components/ui';
 import { browseBenefits, EMPTY_FILTERS, type BrowseFilters } from '@/lib/core/browse';
 import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, TYPE_LABELS } from '@/lib/core/labels';
@@ -8,13 +10,12 @@ import { BENEFIT_TYPES, CATEGORIES, type BenefitType, type Category } from '@/li
 import { useSnap } from '@/lib/useSnapshot';
 
 const PAGE = 100;
-const field = 'w-full rounded-lg border border-gray-300 bg-white p-2';
 type BoolKey = 'birthday' | 'expiringThisWeek' | 'recent' | 'onlyMine';
 const CHECKS: [BoolKey, string][] = [
-  ['birthday', '🎂 הטבות יום הולדת'],
+  ['onlyMine', 'רק שלי'],
+  ['birthday', '🎂 יום הולדת'],
   ['expiringThisWeek', 'פגות השבוע'],
-  ['recent', 'נוספו לאחרונה'],
-  ['onlyMine', 'רק מה שהארנק שלי פותח'],
+  ['recent', 'חדשות'],
 ];
 
 export default function BenefitsPage() {
@@ -27,7 +28,7 @@ export default function BenefitsPage() {
     if (new URLSearchParams(window.location.search).get('birthday')) setF((x) => ({ ...x, birthday: true }));
   }, []);
 
-  if (!snapshot) return <p className="p-4 text-gray-500">טוען…</p>;
+  if (!snapshot) return <Loading />;
 
   const set = <K extends keyof BrowseFilters>(key: K, value: BrowseFilters[K]) => {
     setF((x) => ({ ...x, [key]: value }));
@@ -35,16 +36,30 @@ export default function BenefitsPage() {
   };
   const rows = browseBenefits(snapshot, f, israelToday(), new Date());
   const birthMonth = snapshot.profile?.birth_month ?? null;
+  const extraFilters = [f.programId, f.walletItemId, f.category, f.type, f.channel].filter(Boolean).length;
 
   return (
-    <main className="space-y-4 p-4">
-      <h1 className="text-xl font-bold">כל ההטבות</h1>
-      <input type="search" value={f.q} onChange={(e) => set('q', e.target.value)} placeholder="חיפוש חנות, תוכנית או הטבה"
-        aria-label="חיפוש" className="w-full rounded-xl border border-gray-300 p-3" />
+    <main className="space-y-4">
+      <PageHeader title="כל ההטבות" subtitle={`${rows.length} הטבות`} icon={List} />
 
-      <details className="rounded-xl bg-white p-3 shadow-sm">
-        <summary className="cursor-pointer font-semibold">סינון</summary>
-        <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="relative">
+        <Search size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
+        <input type="search" value={f.q} onChange={(e) => set('q', e.target.value)} placeholder="חנות, תוכנית או הטבה"
+          aria-label="חיפוש" className={`${field} ps-10`} />
+      </div>
+
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        {CHECKS.map(([key, label]) => (
+          <Chip key={key} active={f[key]} onClick={() => set(key, !f[key])}>{label}</Chip>
+        ))}
+      </div>
+
+      <details className="group rounded-2xl border border-line bg-panel">
+        <summary className="flex cursor-pointer list-none items-center gap-2 p-3 text-sm text-muted">
+          <SlidersHorizontal size={16} aria-hidden /> עוד סינונים{extraFilters ? ` (${extraFilters})` : ''}
+          <ChevronDown size={16} className="ms-auto transition group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="grid grid-cols-2 gap-2 border-t border-line p-3">
           <select aria-label="תוכנית" value={f.programId ?? ''} onChange={(e) => set('programId', e.target.value || null)} className={field}>
             <option value="">כל התוכניות</option>
             {snapshot.programs.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -66,27 +81,19 @@ export default function BenefitsPage() {
             <option value="in_store">בחנות</option>
             <option value="online">אונליין</option>
           </select>
+          <Button variant="ghost" onClick={() => { setF(EMPTY_FILTERS); setLimit(PAGE); }}>ניקוי הכל</Button>
         </div>
-        <div className="mt-3 space-y-1">
-          {CHECKS.map(([key, label]) => (
-            <label key={key} className="flex items-center gap-2">
-              <input type="checkbox" checked={f[key]} onChange={(e) => set(key, e.target.checked)} />
-              {label}
-            </label>
-          ))}
-        </div>
-        <button onClick={() => { setF(EMPTY_FILTERS); setLimit(PAGE); }} className="mt-3 text-sm text-blue-700">ניקוי סינון</button>
       </details>
 
-      <p className="text-sm text-gray-500">{rows.length} הטבות</p>
       <ul className="space-y-2">
         {rows.slice(0, limit).map((r) => (
           <BenefitCard key={r.benefit.id} benefit={r.benefit} program={r.program} items={r.items} store={r.store}
             savings={null} birthdayLocked={r.birthdayLocked} birthMonth={birthMonth} />
         ))}
       </ul>
+      {rows.length === 0 && <p className="py-8 text-center text-sm text-dim">לא נמצאו הטבות בסינון הזה.</p>}
       {rows.length > limit && (
-        <button onClick={() => setLimit(limit + PAGE)} className="w-full rounded-xl bg-gray-200 p-3">עוד הטבות</button>
+        <Button variant="secondary" onClick={() => setLimit(limit + PAGE)} className="w-full">עוד הטבות</Button>
       )}
     </main>
   );

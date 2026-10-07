@@ -71,5 +71,6 @@ test('search a store in English and see the best card first', async ({ page, con
 
   const first = page.getByTestId('pay-results').getByRole('listitem').first();
   await expect(first).toContainText('כרטיס בדיקה ב'); // ₪50 beats 10% of ₪400 = ₪40
-  await expect(first).toContainText('חיסכון ₪50');
+  await expect(first).toContainText('₪50');
+  await expect(first).toContainText('הכי משתלם');
 });
