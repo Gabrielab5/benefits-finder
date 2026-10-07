@@ -7,7 +7,7 @@ import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, REQUIRES_LABELS, TIMING_LABELS, TYPE_LABELS } from '@/lib/core/labels';
 import { mergeImport } from '@/lib/core/merge';
 import {
-  blankRow, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
+  blankRow, existingForImport, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
 } from '@/lib/core/review';
 import {
   BENEFIT_TYPES, CATEGORIES, REQUIRES, TIMINGS,
@@ -66,11 +66,15 @@ export default function ReviewImportPage() {
 
       // Read straight from the database (not the possibly stale snapshot) so a retry after a
       // half-finished save, or a save from a second tab, sees what was already written.
-      const [stores, existing] = await Promise.all([
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) throw new Error('not signed in');
+      const shared = Boolean(imp.shared);
+      const [stores, programBenefits] = await Promise.all([
         selectAll<Store>((a, b) => sb.from('stores').select('*').order('id').range(a, b)),
-        selectAll<Benefit>((a, b) => sb.from('benefits').select('*').eq('program_id', imp.program_id)
-          .neq('status', 'archived').order('id').range(a, b)),
+        selectAll<Benefit>((a, b) => sb.from('benefits').select('*').eq('program_id', imp.program_id).order('id').range(a, b)),
       ]);
+      // Shared imports merge with shared benefits only; private ones with your own only.
+      const existing = existingForImport(programBenefits, imp.program_id, shared, user.id);
 
       const newStoreIds: (string | undefined)[] = [];
       const usedIndexes = [...new Set(approved.map((r) => r.new_store_index).filter((i): i is number => i != null))];
@@ -78,6 +82,7 @@ export default function ReviewImportPage() {
         let id = group.existingId;
         if (!id) {
           const { data, error } = await sb.from('stores').insert({
+            ...(shared ? { user_id: null } : {}),
             name_he: group.draft.name_he.trim(), name_en: group.draft.name_en.trim(), aliases: group.draft.aliases,
             category: group.draft.category, channel: group.draft.channel,
           }).select('id').single();
@@ -92,7 +97,7 @@ export default function ReviewImportPage() {
 
       if (plan.inserts.length > 0) {
         const { error } = await sb.from('benefits')
-          .insert(plan.inserts.map((b) => ({ ...b, program_id: imp.program_id, last_verified_at: nowIso })));
+          .insert(plan.inserts.map((b) => ({ ...b, program_id: imp.program_id, last_verified_at: nowIso, ...(shared ? { user_id: null } : {}) })));
         if (error) throw error;
       }
       for (const u of plan.updates) {
@@ -136,6 +141,7 @@ export default function ReviewImportPage() {
   return (
     <main className="space-y-5 pb-40">
       <PageHeader title={`בדיקת ייבוא · ${program?.name ?? ''}`} icon={ClipboardCheck} />
+      <p className="text-xs text-dim">{imp.shared ? 'לקטלוג המשותף — כל המשתמשים יראו' : 'פרטי — רק אתם תראו'}</p>
       <p className="text-sm text-muted">
         {imp.source === 'manual' ? 'הוספה ידנית.' : `${rows.length} הטבות נמצאו${imp.is_refresh ? ' (רענון)' : ''}.`} בדקו, תקנו או בטלו סימון לפני שמירה.
       </p>

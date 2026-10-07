@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, ChevronLeft, Copy, ExternalLink, Plus } from 'lucide-react';
 import { Button, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import { buildChatPrompt, parseChatAnswer } from '@/lib/ai/chatImport';
+import { isShared } from '@/lib/core/catalog';
 import { israelToday } from '@/lib/core/dates';
 import { formatDate, IMPORT_ERRORS } from '@/lib/core/labels';
 import { blankRow } from '@/lib/core/review';
@@ -35,6 +36,7 @@ export default function ImportPage() {
   const [copied, setCopied] = useState(false);
   const [promptFallback, setPromptFallback] = useState<string | null>(null);
   const [isRefresh, setIsRefresh] = useState(false);
+  const [shareChoice, setShareChoice] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<{ id: string; program_id: string; created_at: string }[]>([]);
@@ -55,6 +57,9 @@ export default function ImportPage() {
 
   if (!snapshot) return <Loading />;
   const programName = new Map(snapshot.programs.map((p) => [p.id, p.name]));
+  const isAdmin = Boolean(snapshot.profile?.is_admin);
+  const selected = snapshot.programs.find((p) => p.id === programId);
+  const toShared = isAdmin && shareChoice && Boolean(selected && isShared(selected));
   const hasInput = mode === 'link' ? url.trim() : mode === 'text' ? text.trim() : mode === 'screenshot' ? files.length > 0
     : mode === 'chat' ? answer.trim() : true;
   const ready = online && !busy && !!programId && !!hasInput;
@@ -82,7 +87,7 @@ export default function ImportPage() {
       return;
     }
     const { data, error } = await supabaseBrowser().from('imports').insert({
-      program_id: programId, source: 'chat', raw_input: { url: url.trim() || null, text: null, paths: null },
+      program_id: programId, source: 'chat', shared: toShared, raw_input: { url: url.trim() || null, text: null, paths: null },
       is_refresh: isRefresh, extracted: result.extraction, status: 'pending_review',
     }).select('id').single();
     if (error) throw error;
@@ -92,7 +97,7 @@ export default function ImportPage() {
   /** Manual entry: no AI, opens the review screen with one empty row. Free and always available. */
   async function startManual() {
     const { data, error } = await supabaseBrowser().from('imports').insert({
-      program_id: programId, source: 'manual', raw_input: { url: null, text: null, paths: null },
+      program_id: programId, source: 'manual', shared: toShared, raw_input: { url: null, text: null, paths: null },
       extracted: { new_stores: [], benefits: [(({ approved: _a, ...rest }) => rest)(blankRow())] },
       status: 'pending_review',
     }).select('id').single();
@@ -142,9 +147,15 @@ export default function ImportPage() {
         <span className="text-sm text-muted">של איזו תוכנית ההטבות?</span>
         <select aria-label="תוכנית" value={programId} onChange={(e) => setProgramId(e.target.value)} className={`${field} mt-1`}>
           <option value="">בחרו תוכנית</option>
-          {snapshot.programs.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {snapshot.programs.map((p) => <option key={p.id} value={p.id}>{p.name}{isShared(p) ? '' : ' (פרטי)'}</option>)}
         </select>
       </label>
+      {isAdmin && selected && isShared(selected) && (
+        <label className="flex items-center gap-2 text-sm text-muted">
+          <input type="checkbox" className="h-4 w-4 accent-mint" checked={shareChoice} onChange={(e) => setShareChoice(e.target.checked)} />
+          לקטלוג המשותף (כל המשתמשים יראו)
+        </label>
+      )}
 
       <div className="flex rounded-2xl border border-line bg-panel p-1" role="tablist">
         {MODES.map(([m, label]) => (
