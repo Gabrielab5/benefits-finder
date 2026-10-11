@@ -25,7 +25,9 @@ export default function BenefitsPage() {
 
   useEffect(() => {
     // Read the query string without useSearchParams (which would need a Suspense boundary).
-    if (new URLSearchParams(window.location.search).get('birthday')) setF((x) => ({ ...x, birthday: true }));
+    const q = new URLSearchParams(window.location.search);
+    setF((x) => ({ ...x, birthday: x.birthday || q.has('birthday'), expiringThisWeek: x.expiringThisWeek || q.has('expiring'),
+      recent: x.recent || q.has('recent') }));
   }, []);
 
   if (!snapshot) return <Loading />;
