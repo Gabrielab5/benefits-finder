@@ -196,13 +196,47 @@ erDiagram
     STORES ||--o{ BENEFITS : "valid at"
     PROGRAMS ||--o{ IMPORTS : "refreshed by"
 
-    PROFILE { int birth_month  int anniversary_month  jsonb children  bool is_admin }
-    CARD_PRODUCTS { text name  text type  uuid[] program_ids }
-    WALLET_ITEMS { text name  uuid product_id  int birthday_month }
-    PROGRAMS { text name  text kind  text benefits_url }
-    STORES { text name_he  text name_en  text[] aliases  text category }
-    BENEFITS { text title  text type  numeric value  numeric min_spend  text timing  date valid_until }
-    IMPORTS { text source  jsonb extracted  text status  bool shared }
+    PROFILE {
+        int birth_month
+        int anniversary_month
+        jsonb children
+        bool is_admin
+    }
+    CARD_PRODUCTS {
+        text name
+        text type
+        uuid_array program_ids
+    }
+    WALLET_ITEMS {
+        text name
+        uuid product_id
+        int birthday_month
+    }
+    PROGRAMS {
+        text name
+        text kind
+        text benefits_url
+    }
+    STORES {
+        text name_he
+        text name_en
+        text_array aliases
+        text category
+    }
+    BENEFITS {
+        text title
+        text type
+        numeric value
+        numeric min_spend
+        text timing
+        date valid_until
+    }
+    IMPORTS {
+        text source
+        jsonb extracted
+        text status
+        bool shared
+    }
 ```
 
 ---
