@@ -1,53 +1,79 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { israelToday } from '@/lib/core/dates';
+import { pushMessages } from '@/lib/core/pushPlan';
 import { activeDateBenefits } from '@/lib/core/specialDates';
-import type { Benefit, Profile, Program, Store, WalletItem } from '@/lib/core/types';
+import type { Profile } from '@/lib/core/types';
 import { buildDateEmail } from '@/lib/email/birthdayEmail';
-import { selectAll } from '@/lib/selectAll';
+import { pushConfigured, sendToDevices, type PushSub } from '@/lib/push/send';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { fetchUserSnapshot } from '@/lib/userSnapshot';
 
-/** Daily: e-mail each user once a year per special date (birthday, club birthday, anniversary, each child). */
+/** Daily: special-date e-mails (when Resend is set up) and push alerts (dates, expiring on Sundays, new benefits). */
 export async function GET(req: Request) {
   if (!process.env.CRON_SECRET || req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const today = israelToday();
+  const now = new Date();
+  const today = israelToday(now);
   const sb = supabaseAdmin();
-  const { data: profiles, error } = await sb.from('profile').select('*').eq('email_reminders', true);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const [{ data: profiles, error }, { data: subs, error: subsError }] = await Promise.all([
+    sb.from('profile').select('*'),
+    sb.from('push_subscriptions').select('*'),
+  ]);
+  if (error || subsError) return NextResponse.json({ error: (error ?? subsError)!.message }, { status: 500 });
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  let sent = 0;
+  const devicesOf = new Map<string, PushSub[]>();
+  if (pushConfigured()) for (const s of (subs ?? []) as PushSub[]) devicesOf.set(s.user_id, [...(devicesOf.get(s.user_id) ?? []), s]);
+  const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+  let emailed = 0;
+  let pushed = 0;
+
   for (const profile of (profiles ?? []) as Profile[]) {
     const uid = profile.user_id;
-    const visible = `user_id.is.null,user_id.eq.${uid}`; // shared catalog + this user's private rows
-    const [programs, wallet, stores, benefits] = await Promise.all([
-      selectAll<Program>((a, b) => sb.from('programs').select('*').or(visible).order('id').range(a, b)),
-      selectAll<WalletItem>((a, b) => sb.from('wallet_items').select('*').eq('user_id', uid).order('id').range(a, b)),
-      selectAll<Store>((a, b) => sb.from('stores').select('*').or(visible).order('id').range(a, b)),
-      selectAll<Benefit>((a, b) => sb.from('benefits').select('*').or(visible).eq('status', 'active').order('id').range(a, b)),
-    ]);
-    const reminded = profile.reminded ?? [];
-    const sections = activeDateBenefits({ profile, programs, wallet, stores, benefits, fetchedAt: '' }, today)
-      .filter((s) => !reminded.includes(`${s.window.key}:${today.year}`));
-    if (sections.length === 0) continue; // nothing new; maybe benefits get imported later this month
+    const devices = devicesOf.get(uid) ?? [];
+    const wantsEmail = Boolean(resend && profile.email_reminders);
+    if (!devices.length && !wantsEmail) continue;
+    try {
+      const snapshot = await fetchUserSnapshot(sb, profile);
+      const before = profile.reminded ?? [];
+      let reminded = before;
+      const patch: Partial<Profile> = {};
 
-    const { data: { user } } = await sb.auth.admin.getUserById(uid);
-    if (!user?.email) continue;
-    const email = buildDateEmail(sections, { programs, stores }, process.env.APP_URL!);
-    const { error: sendError } = await resend.emails.send({
-      from: process.env.RESEND_FROM ?? 'onboarding@resend.dev',
-      to: user.email,
-      subject: email.subject,
-      html: email.html,
-    });
-    if (sendError) {
-      console.error('date reminder failed', sendError);
-      continue;
+      if (wantsEmail) {
+        const sections = activeDateBenefits(snapshot, today).filter((s) => !reminded.includes(`${s.window.key}:${today.year}`));
+        const { data: { user } } = sections.length ? await sb.auth.admin.getUserById(uid) : { data: { user: null } };
+        if (user?.email) {
+          const email = buildDateEmail(sections, snapshot, process.env.APP_URL!);
+          const { error: sendError } = await resend!.emails.send({
+            from: process.env.RESEND_FROM ?? 'onboarding@resend.dev', to: user.email, subject: email.subject, html: email.html,
+          });
+          if (sendError) console.error('date reminder failed', sendError);
+          else {
+            reminded = [...reminded, ...sections.map((s) => `${s.window.key}:${today.year}`)];
+            emailed++;
+          }
+        }
+      }
+
+      if (devices.length) {
+        const { messages, newSince } = pushMessages(snapshot, today, now);
+        let newDelivered = false;
+        for (const m of messages) {
+          if (!(await sendToDevices(sb, devices, m))) continue;
+          pushed++;
+          reminded = [...reminded, ...m.remindKeys];
+          if (m.kind === 'new') newDelivered = true;
+        }
+        // Only move the "new benefits" watermark past benefits the user was actually told about.
+        if (newSince && (newDelivered || !messages.some((m) => m.kind === 'new'))) patch.push_new_since = newSince;
+      }
+
+      if (reminded !== before) patch.reminded = reminded;
+      if (Object.keys(patch).length) await sb.from('profile').update(patch).eq('user_id', uid);
+    } catch (e) {
+      console.error('reminders failed for one user', e);
     }
-    await sb.from('profile').update({ reminded: [...reminded, ...sections.map((s) => `${s.window.key}:${today.year}`)] }).eq('user_id', uid);
-    sent++;
   }
-  return NextResponse.json({ sent });
+  return NextResponse.json({ emailed, pushed });
 }
