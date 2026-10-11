@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import { LogOut, RefreshCw, Settings, Trash2, TriangleAlert } from 'lucide-react';
 import AdminPanel from '@/components/AdminPanel';
 import DatesForm, { datesValid, type DatesValue } from '@/components/DatesForm';
+import PushSettings from '@/components/PushSettings';
 import { Button, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import { isShared } from '@/lib/core/catalog';
 import { formatDate, KIND_LABELS } from '@/lib/core/labels';
 import { PROGRAM_KINDS, type Program, type ProgramKind } from '@/lib/core/types';
+import { unsubscribeDevice } from '@/lib/push/client';
 import { idbClear } from '@/lib/snapshot';
 import { startImport } from '@/lib/startImport';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -83,6 +85,7 @@ export default function SourcesPage() {
   }
 
   async function logout() {
+    await unsubscribeDevice(sb); // the next person on this device must not get this user's alerts
     await sb.auth.signOut();
     await idbClear();
     location.href = '/login';
@@ -195,6 +198,7 @@ export default function SourcesPage() {
             <Button disabled={!online || !datesValid(currentDates)} onClick={saveDates} className="w-full">שמירת התאריכים</Button>
           )}
           {saved && !dates && <Notice tone="success">התאריכים נשמרו.</Notice>}
+          <PushSettings profile={profile} online={online} onChange={refresh} />
           <label className="flex items-center gap-2">
             <input type="checkbox" className="h-4 w-4 accent-mint" disabled={!online} checked={profile.email_reminders}
               onChange={(e) => write(sb.from('profile').update({ email_reminders: e.target.checked }).eq('user_id', profile.user_id))} />
