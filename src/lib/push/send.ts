@@ -31,7 +31,8 @@ export async function sendToDevices(sb: SupabaseClient, subs: PushSub[], payload
       return 1;
     } catch (e) {
       const status = (e as { statusCode?: number }).statusCode;
-      if (status === 404 || status === 410) await sb.from('push_subscriptions').delete().eq('id', s.id);
+      // 404/410: the device is gone. 401/403: it was made with keys we no longer have; the user turns it on again.
+      if (status === 401 || status === 403 || status === 404 || status === 410) await sb.from('push_subscriptions').delete().eq('id', s.id);
       else console.error('push failed', status);
       return 0;
     }

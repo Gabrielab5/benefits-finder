@@ -371,7 +371,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 
 ### 🎂 Special dates
 - ✅ Birthday, club birthday month, wedding anniversary, children's birthdays
-- 🔜 **Push notifications** as well as email, so you don't need a Resend key
+- ✅ **Push notifications**: special dates, benefits expiring this week, new benefits for your cards (free, no Resend key needed)
 - 🔜 **Holiday sales calendar**: Black Friday, Pesach and Rosh Hashana sales, back-to-school
 - 💭 **Partner's birthday and pets** 🐶 (pet-store clubs have birthday perks too)
 

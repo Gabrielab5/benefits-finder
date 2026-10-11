@@ -2,11 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/core/types';
 
 /** Why push can't be turned on here, or 'ok'. iPhone only supports it in the app added to the Home Screen. */
-export function pushSupport(): 'unsupported' | 'ios_install' | 'denied' | 'ok' {
+export function pushSupport(): 'unsupported' | 'ios_install' | 'denied' | 'not_configured' | 'ok' {
   const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const standalone = matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
   if (ios && !standalone) return 'ios_install';
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return 'unsupported';
+  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) return 'not_configured';
   if (Notification.permission === 'denied') return 'denied';
   return 'ok';
 }
@@ -21,15 +22,32 @@ function base64UrlToBytes(b64: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
+const STEP_TIMEOUT_MS = 10_000;
+
+/** Rejects with `sw_unavailable` if `p` takes longer than 10 s (a missing service worker never settles). */
+function inTime<T>(p: Promise<T>): Promise<T> {
+  return Promise.race([p, new Promise<never>((_, reject) => setTimeout(() => reject(new Error('sw_unavailable')), STEP_TIMEOUT_MS))]);
+}
+
+/** The service worker registration, registering it once if it is missing (e.g. the first load failed). */
+async function workerRegistration(): Promise<ServiceWorkerRegistration> {
+  try {
+    return (await inTime(navigator.serviceWorker.getRegistration())) ?? (await inTime(navigator.serviceWorker.register('/sw.js')));
+  } catch {
+    throw new Error('sw_unavailable');
+  }
+}
+
 /** Asks permission and saves this device. Always starts a fresh subscription, so a device another user
  * signed in on earlier never stays tied to that user. Returns false when permission was not given. */
 export async function subscribeDevice(sb: SupabaseClient, profile: Profile): Promise<boolean> {
-  if ((await Notification.requestPermission()) !== 'granted') return false;
-  const reg = await navigator.serviceWorker.ready;
-  await (await reg.pushManager.getSubscription())?.unsubscribe();
-  const sub = await reg.pushManager.subscribe({
+  // Permission is requested right away, still inside the tap (Safari ignores it otherwise); the worker is checked meanwhile.
+  const [permission, reg] = await Promise.all([Notification.requestPermission(), workerRegistration()]);
+  if (permission !== 'granted') return false;
+  await (await inTime(reg.pushManager.getSubscription()))?.unsubscribe();
+  const sub = await inTime(reg.pushManager.subscribe({
     userVisibleOnly: true, applicationServerKey: base64UrlToBytes(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
-  });
+  }));
   const keys = sub.toJSON().keys!;
   const { error } = await sb.from('push_subscriptions').insert({ endpoint: sub.endpoint, p256dh: keys.p256dh, auth: keys.auth });
   if (error) {
@@ -63,4 +81,14 @@ export async function unsubscribeDevice(sb: SupabaseClient): Promise<void> {
   } catch {
     // no service worker (dev) or already gone
   }
+}
+
+/** What to tell the user after "send a test notification". `status` is the HTTP status of /api/push/test,
+ * `delivered` how many of their devices the push service accepted. */
+export function testResultMessage(status: number, delivered: number): { tone: 'success' | 'error'; text: string } {
+  if (status === 503) return { tone: 'error', text: 'ההתראות עוד לא הוגדרו בשרת.' };
+  if (status === 401) return { tone: 'error', text: 'צריך להתחבר מחדש כדי לשלוח התראת בדיקה.' };
+  if (status !== 200) return { tone: 'error', text: 'שליחת הבדיקה נכשלה. נסו שוב בעוד רגע.' };
+  if (delivered > 0) return { tone: 'success', text: 'נשלחה התראת בדיקה. לא הופיעה? בדקו שההתראות מותרות לאפליקציה בהגדרות הטלפון.' };
+  return { tone: 'error', text: 'ההתראה לא נמסרה למכשיר. כבו והפעילו מחדש את ההתראות.' };
 }

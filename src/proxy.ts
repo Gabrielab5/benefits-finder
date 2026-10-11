@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { authCodeRedirect } from '@/lib/authRedirect';
 
-const PUBLIC_PREFIXES = ['/login', '/auth/', '/api/cron/'];
+const PUBLIC_PREFIXES = ['/login', '/auth/', '/api/cron/', '/api/push/renew'];
 
 export async function proxy(request: NextRequest) {
   const codeTarget = authCodeRedirect(request.nextUrl);
@@ -43,5 +43,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icon|apple-icon).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icon|apple-icon|badge).*)'],
 };

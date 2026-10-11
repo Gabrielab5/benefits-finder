@@ -42,10 +42,34 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data.text() }; // plain text (e.g. DevTools "Push"): still show something
+  }
+  const tag = data.tag || 'message';
   event.waitUntil(self.registration.showNotification(data.title || 'ההטבות שלי', {
-    body: data.body, icon: '/icon', badge: '/icon', tag: data.tag, dir: 'rtl', lang: 'he', data: { url: data.url || '/' },
+    body: data.body, icon: '/icon', badge: '/badge', tag, dir: 'rtl', lang: 'he', data: { url: data.url || '/' },
+    renotify: tag !== 'test', // a newer alert replacing an older one still makes a sound; the test alert doesn't
   }));
+});
+
+// The browser replaced the subscription (Chrome does this now and then): store the new one in place of the old.
+self.addEventListener('pushsubscriptionchange', (event) => {
+  const old = event.oldSubscription;
+  if (!old) return; // nothing to match it to; the app re-checks on next open
+  event.waitUntil(
+    (event.newSubscription ? Promise.resolve(event.newSubscription) : self.registration.pushManager.subscribe(old.options))
+      .then((sub) => {
+        const keys = sub.toJSON().keys;
+        return fetch('/api/push/renew', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ oldEndpoint: old.endpoint, endpoint: sub.endpoint, p256dh: keys.p256dh, auth: keys.auth }),
+        });
+      })
+      .catch(() => {}),
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {

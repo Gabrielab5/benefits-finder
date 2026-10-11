@@ -92,6 +92,16 @@ describe('row level security', () => {
     expect(forged.error).not.toBeNull();
   });
 
+  it('keeps at most 10 devices per user, dropping the oldest', async () => {
+    for (let i = 0; i < 11; i++) {
+      const { error } = await b.sb.from('push_subscriptions').insert({ endpoint: `https://fcm.googleapis.com/fcm/send/e2e-cap-${i}`, p256dh: 'k', auth: 's' });
+      expect(error).toBeNull();
+    }
+    const { data } = await b.sb.from('push_subscriptions').select('endpoint');
+    expect(data).toHaveLength(10);
+    expect(data!.map((r) => r.endpoint)).not.toContain('https://fcm.googleapis.com/fcm/send/e2e-cap-0');
+  });
+
   it('only accepts real push-service endpoints (the server posts to them)', async () => {
     const evil = await a.sb.from('push_subscriptions').insert({ endpoint: 'https://169.254.169.254/latest', p256dh: 'k', auth: 's' });
     expect(evil.error).not.toBeNull();

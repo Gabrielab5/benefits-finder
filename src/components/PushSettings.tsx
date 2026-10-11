@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { Bell, BellOff, Send } from 'lucide-react';
 import { Button, Notice } from '@/components/ui';
 import type { Profile } from '@/lib/core/types';
-import { pushSupport, subscribeDevice, syncDevice, unsubscribeDevice } from '@/lib/push/client';
+import { pushSupport, subscribeDevice, syncDevice, testResultMessage, unsubscribeDevice } from '@/lib/push/client';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
-type State = 'loading' | 'unsupported' | 'ios_install' | 'denied' | 'off' | 'on';
+type State = 'loading' | 'unsupported' | 'ios_install' | 'denied' | 'not_configured' | 'off' | 'on';
 const SWITCHES = [
   ['push_dates', '🎂 תאריכים מיוחדים'],
   ['push_expiring', '⏳ הטבות שמסתיימות השבוע (בימי ראשון)'],
@@ -38,8 +38,10 @@ export default function PushSettings({ profile, online, onChange }: { profile: P
     setMessage(null);
     try {
       await fn();
-    } catch {
-      setMessage({ tone: 'error', text: 'הפעולה נכשלה. נסו שוב.' });
+    } catch (e) {
+      setMessage({ tone: 'error', text: (e as Error).message === 'sw_unavailable'
+        ? 'ההתראות לא זמינות כרגע. רעננו את הדף ונסו שוב.'
+        : 'הפעולה נכשלה. נסו שוב.' });
     } finally {
       setBusy(false);
     }
@@ -57,10 +59,8 @@ export default function PushSettings({ profile, online, onChange }: { profile: P
   });
   const test = () => act(async () => {
     const res = await fetch('/api/push/test', { method: 'POST' });
-    const { delivered } = (await res.json()) as { delivered?: number };
-    setMessage(delivered
-      ? { tone: 'success', text: 'נשלחה התראת בדיקה.' }
-      : { tone: 'error', text: 'ההתראה לא נשלחה. נסו לכבות ולהפעיל מחדש.' });
+    const { delivered } = (await res.json().catch(() => ({}))) as { delivered?: number };
+    setMessage(testResultMessage(res.status, delivered ?? 0));
   });
   const toggle = (key: (typeof SWITCHES)[number][0], value: boolean) => act(async () => {
     const { error } = await sb.from('profile').update({ [key]: value }).eq('user_id', profile.user_id);
@@ -75,6 +75,8 @@ export default function PushSettings({ profile, online, onChange }: { profile: P
       {state === 'ios_install' && (
         <Notice>באייפון צריך קודם להוסיף את האפליקציה למסך הבית: שיתוף ← הוספה למסך הבית, ולפתוח אותה משם.</Notice>
       )}
+      {state === 'not_configured' && <Notice>ההתראות עוד לא הוגדרו בשרת.</Notice>}
+      {!online && (state === 'on' || state === 'off') && <Notice tone="warn">שינוי הגדרות ההתראות דורש חיבור לאינטרנט.</Notice>}
       {state === 'denied' && <Notice tone="warn">ההתראות חסומות בהגדרות הדפדפן. אפשר לאפשר אותן בהגדרות האתר.</Notice>}
       {state === 'off' && (
         <Button disabled={!online || busy} onClick={enable} className="w-full">הפעלת התראות במכשיר הזה</Button>

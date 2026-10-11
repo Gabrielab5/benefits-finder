@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { israelToday } from './dates';
-import { israelWeekday, pushMessages } from './pushPlan';
+import { bundle, israelWeekday, pruneReminded, pushMessages, type PushMessage } from './pushPlan';
 import type { Benefit, Profile, Snapshot, WalletItem } from './types';
 
 const SUNDAY = new Date('2026-10-11T06:00:00Z');
@@ -76,5 +76,39 @@ describe('new benefit alerts', () => {
   });
   it('leaves the watermark alone when nothing is new', () => {
     expect(run(profile(), [benefit('old')], MONDAY)).toEqual({ messages: [], newSince: null });
+  });
+});
+
+describe('review follow-ups', () => {
+  it('a benefit added while the run is going waits for tomorrow (never announced twice)', () => {
+    const during = benefit('during', { created_at: '2026-10-12T06:00:05+00:00' });
+    expect(run(profile(), [during], MONDAY)).toEqual({ messages: [], newSince: null });
+  });
+  it('sends the Sunday expiring alert at most once that day (cron re-run)', () => {
+    const soon = benefit('soon', { valid_until: '2026-10-15' });
+    expect(run(profile(), [soon]).messages[0].remindKeys).toEqual(['push:expiring:2026-10-11']);
+    expect(kinds(run(profile({ reminded: ['push:expiring:2026-10-11'] }), [soon]))).toEqual([]);
+  });
+});
+
+describe('bundle', () => {
+  const m = (kind: PushMessage['kind'], keys: string[] = []): PushMessage =>
+    ({ kind, title: `t-${kind}`, body: 'b', url: `/${kind}`, tag: kind, remindKeys: keys });
+  it('leaves a single alert as it is', () => {
+    expect(bundle([m('new')])).toEqual([m('new')]);
+    expect(bundle([])).toEqual([]);
+  });
+  it('turns several alerts into one summary that keeps every bookkeeping key', () => {
+    expect(bundle([m('dates', ['push:birthday:2026']), m('expiring', ['push:expiring:2026-10-11']), m('new')])).toEqual([{
+      kind: 'summary', parts: ['dates', 'expiring', 'new'], title: 'ההטבות שלי', body: 't-dates · t-expiring · t-new', url: '/',
+      tag: 'summary', remindKeys: ['push:birthday:2026', 'push:expiring:2026-10-11'],
+    }]);
+  });
+});
+
+describe('pruneReminded', () => {
+  it('drops bookkeeping from earlier years so the list never grows forever', () => {
+    expect(pruneReminded(['birthday:2025', 'push:birthday:2025', 'push:expiring:2025-12-28', 'birthday:2026', 'push:expiring:2026-10-11'], 2026))
+      .toEqual(['birthday:2026', 'push:expiring:2026-10-11']);
   });
 });

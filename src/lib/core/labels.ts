@@ -52,5 +52,6 @@ export function headlineText(b: Pick<Benefit, 'type' | 'value'>): string {
   if (b.type === 'percent_off' && b.value != null) return `${b.value}% הנחה`;
   if (b.type === 'fixed_off' && b.value != null) return `${shekel(b.value)} הנחה`;
   if (b.type === 'cashback_percent' && b.value != null) return `${b.value}% החזר`;
+  if (b.type === 'points' && b.value != null) return `${b.value}% צבירה`;
   return TYPE_LABELS[b.type];
 }

@@ -5,7 +5,8 @@ import { activeDateBenefits } from './specialDates';
 import type { Benefit, Snapshot } from './types';
 
 export interface PushMessage {
-  kind: 'dates' | 'expiring' | 'new';
+  kind: 'dates' | 'expiring' | 'new' | 'summary';
+  parts?: PushMessage['kind'][]; // for a summary: the alerts it stands for
   title: string;
   body: string;
   url: string; // opened when the notification is tapped
@@ -44,7 +45,8 @@ export function pushMessages(s: Snapshot, today: IsraelDay, now: Date): { messag
     }
   }
 
-  if (p.push_expiring !== false && israelWeekday(now) === 0) {
+  const expiringKey = `push:expiring:${today.iso}`; // once a day even if the cron runs twice
+  if (p.push_expiring !== false && israelWeekday(now) === 0 && !(p.reminded ?? []).includes(expiringKey)) {
     const weekEnd = addDays(today.iso, 7);
     const ending = s.benefits
       .filter((b) => mine(b) && b.valid_until && b.valid_until >= today.iso && b.valid_until <= weekEnd)
@@ -52,7 +54,7 @@ export function pushMessages(s: Snapshot, today: IsraelDay, now: Date): { messag
     if (ending.length) {
       messages.push({
         kind: 'expiring', title: `⏳ ${count(ending.length, 'הטבה אחת מסתיימת', 'הטבות מסתיימות')} השבוע`,
-        body: titles(ending), url: '/benefits?expiring=1', tag: 'expiring', remindKeys: [],
+        body: titles(ending), url: '/benefits?expiring=1', tag: 'expiring', remindKeys: [expiringKey],
       });
     }
   }
@@ -60,11 +62,29 @@ export function pushMessages(s: Snapshot, today: IsraelDay, now: Date): { messag
   // The watermark keeps moving while the switch is off, so switching it back on doesn't announce the backlog.
   if (p.push_new === false || !p.push_new_since) return { messages, newSince: now.toISOString() };
   const since = new Date(p.push_new_since).getTime();
-  const fresh = s.benefits.filter((b) => b.user_id == null && mine(b) && new Date(b.created_at).getTime() > since);
+  // Up to the run's start only: anything added while the run is going is tomorrow's news, not announced twice.
+  const fresh = s.benefits.filter((b) => {
+    const created = new Date(b.created_at).getTime();
+    return b.user_id == null && mine(b) && created > since && created <= now.getTime();
+  });
   if (!fresh.length) return { messages, newSince: null };
   messages.push({
     kind: 'new', title: `✨ ${count(fresh.length, 'הטבה חדשה', 'הטבות חדשות')} לכרטיסים שלך`,
     body: titles(fresh), url: '/benefits?recent=1', tag: 'new', remindKeys: [],
   });
   return { messages, newSince: now.toISOString() };
+}
+
+/** Several alerts on the same morning become one summary notification (one buzz, not three). */
+export function bundle(messages: PushMessage[]): PushMessage[] {
+  if (messages.length < 2) return messages;
+  return [{
+    kind: 'summary', parts: messages.map((m) => m.kind), title: 'ההטבות שלי', body: messages.map((m) => m.title).join(' · '),
+    url: '/', tag: 'summary', remindKeys: messages.flatMap((m) => m.remindKeys),
+  }];
+}
+
+/** Bookkeeping keys all end in ":<year>" or ":<year>-MM-DD"; earlier years can go. */
+export function pruneReminded(keys: string[], year: number): string[] {
+  return keys.filter((k) => k.includes(`:${year}`));
 }

@@ -16,6 +16,17 @@ create policy "add own" on public.push_subscriptions for insert to authenticated
 create policy "remove own" on public.push_subscriptions for delete to authenticated
   using (user_id = (select auth.uid()));
 grant select, insert, delete on public.push_subscriptions to authenticated;
+
+-- At most 10 devices per user: adding one more removes the oldest.
+create function public.cap_push_subscriptions() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from public.push_subscriptions where id in (
+    select id from public.push_subscriptions where user_id = new.user_id order by created_at desc, id offset 9);
+  return new;
+end $$;
+create trigger cap_push_subscriptions before insert on public.push_subscriptions
+  for each row execute function public.cap_push_subscriptions();
 grant all on public.push_subscriptions to service_role;
 
 alter table public.profile
