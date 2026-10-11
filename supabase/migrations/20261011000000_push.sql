@@ -2,7 +2,8 @@
 create table public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users on delete cascade,
-  endpoint text not null unique,
+  -- Only real push services (Chrome/Android, Firefox, Safari/iOS, Edge): the server POSTs to this URL.
+  endpoint text not null unique check (endpoint ~ '^https://(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9-]+\.notify\.windows\.com)/'),
   p256dh text not null,
   auth text not null,
   created_at timestamptz not null default now()

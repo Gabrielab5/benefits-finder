@@ -36,8 +36,21 @@ export async function subscribeDevice(sb: SupabaseClient, profile: Profile): Pro
     await sub.unsubscribe();
     throw error;
   }
-  if (!profile.push_new_since) await sb.from('profile').update({ push_new_since: new Date().toISOString() }).eq('user_id', profile.user_id);
+  // Start counting "new benefits" from now: a watermark left over from before push was off would announce a backlog.
+  await sb.from('profile').update({ push_new_since: new Date().toISOString() }).eq('user_id', profile.user_id);
   return true;
+}
+
+/** 'on' only when this browser's subscription belongs to the signed-in user. A subscription left by someone
+ * else on a shared device, or one whose row was dropped after the push service said it is gone, is removed. */
+export async function syncDevice(sb: SupabaseClient): Promise<'on' | 'off'> {
+  const sub = await currentSubscription();
+  if (!sub) return 'off';
+  const { data, error } = await sb.from('push_subscriptions').select('id').eq('endpoint', sub.endpoint).maybeSingle();
+  if (error) return 'on'; // offline or a hiccup: don't drop a working subscription
+  if (data) return 'on';
+  await sub.unsubscribe();
+  return 'off';
 }
 
 /** Stops push on this device (also used on logout). Best effort. */

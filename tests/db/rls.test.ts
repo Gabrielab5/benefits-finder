@@ -83,12 +83,17 @@ describe('row level security', () => {
   });
 
   it('push subscriptions are private to their owner', async () => {
-    const endpoint = 'https://e2e.example/push-a';
+    const endpoint = 'https://fcm.googleapis.com/fcm/send/e2e-push-a';
     expect((await a.sb.from('push_subscriptions').insert({ endpoint, p256dh: 'k', auth: 's' })).error).toBeNull();
     expect((await b.sb.from('push_subscriptions').select('endpoint')).data).toEqual([]);
     await b.sb.from('push_subscriptions').delete().eq('endpoint', endpoint);
     expect((await a.sb.from('push_subscriptions').select('endpoint')).data).toEqual([{ endpoint }]);
-    const forged = await b.sb.from('push_subscriptions').insert({ user_id: a.id, endpoint: 'https://e2e.example/push-b', p256dh: 'k', auth: 's' });
+    const forged = await b.sb.from('push_subscriptions').insert({ user_id: a.id, endpoint: 'https://fcm.googleapis.com/fcm/send/e2e-push-b', p256dh: 'k', auth: 's' });
     expect(forged.error).not.toBeNull();
+  });
+
+  it('only accepts real push-service endpoints (the server posts to them)', async () => {
+    const evil = await a.sb.from('push_subscriptions').insert({ endpoint: 'https://169.254.169.254/latest', p256dh: 'k', auth: 's' });
+    expect(evil.error).not.toBeNull();
   });
 });

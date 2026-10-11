@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Bell, BellOff, Send } from 'lucide-react';
 import { Button, Notice } from '@/components/ui';
 import type { Profile } from '@/lib/core/types';
-import { currentSubscription, pushSupport, subscribeDevice, unsubscribeDevice } from '@/lib/push/client';
+import { pushSupport, subscribeDevice, syncDevice, unsubscribeDevice } from '@/lib/push/client';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
 type State = 'loading' | 'unsupported' | 'ios_install' | 'denied' | 'off' | 'on';
@@ -13,11 +13,11 @@ const SWITCHES = [
   ['push_new', '✨ הטבות חדשות לכרטיסים שלי'],
 ] as const;
 
-async function detect(): Promise<State> {
+async function detect(sb: ReturnType<typeof supabaseBrowser>): Promise<State> {
   const support = pushSupport();
   if (support !== 'ok') return support;
   try {
-    return (await currentSubscription()) ? 'on' : 'off';
+    return await syncDevice(sb);
   } catch {
     return 'unsupported';
   }
@@ -30,7 +30,7 @@ export default function PushSettings({ profile, online, onChange }: { profile: P
   const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    detect().then(setState);
+    detect(supabaseBrowser()).then(setState);
   }, []);
 
   async function act(fn: () => Promise<void>) {

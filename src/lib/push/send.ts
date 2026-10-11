@@ -11,7 +11,13 @@ export function pushConfigured(): boolean {
   const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const priv = process.env.VAPID_PRIVATE_KEY;
   if (!pub || !priv) return false;
-  if (!configured) webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@example.com', pub, priv);
+  if (configured) return true;
+  try {
+    webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@example.com', pub, priv);
+  } catch (e) {
+    console.error('push disabled: bad VAPID settings', (e as Error).message); // never take e-mail reminders down with it
+    return false;
+  }
   configured = true;
   return true;
 }
@@ -21,7 +27,7 @@ export async function sendToDevices(sb: SupabaseClient, subs: PushSub[], payload
   const body = JSON.stringify({ title: payload.title, body: payload.body, url: payload.url, tag: payload.tag });
   const results = await Promise.all(subs.map(async (s) => {
     try {
-      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, body, { TTL: 86_400 });
+      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, body, { TTL: 86_400, timeout: 10_000 });
       return 1;
     } catch (e) {
       const status = (e as { statusCode?: number }).statusCode;

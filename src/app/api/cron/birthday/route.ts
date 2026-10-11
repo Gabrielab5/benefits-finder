@@ -21,10 +21,11 @@ export async function GET(req: Request) {
     sb.from('profile').select('*'),
     sb.from('push_subscriptions').select('*'),
   ]);
-  if (error || subsError) return NextResponse.json({ error: (error ?? subsError)!.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (subsError) console.error('push skipped: cannot read subscriptions', subsError.message); // e-mail still goes out
 
   const devicesOf = new Map<string, PushSub[]>();
-  if (pushConfigured()) for (const s of (subs ?? []) as PushSub[]) devicesOf.set(s.user_id, [...(devicesOf.get(s.user_id) ?? []), s]);
+  if (!subsError && pushConfigured()) for (const s of (subs ?? []) as PushSub[]) devicesOf.set(s.user_id, [...(devicesOf.get(s.user_id) ?? []), s]);
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
   let emailed = 0;
   let pushed = 0;
@@ -50,7 +51,9 @@ export async function GET(req: Request) {
           });
           if (sendError) console.error('date reminder failed', sendError);
           else {
+            // Recorded right away, so a later push problem can never make tomorrow's run e-mail it again.
             reminded = [...reminded, ...sections.map((s) => `${s.window.key}:${today.year}`)];
+            await sb.from('profile').update({ reminded }).eq('user_id', uid);
             emailed++;
           }
         }
