@@ -36,6 +36,10 @@ export interface Profile {
   anniversary_day?: number | null;
   children?: Child[];
   reminded?: string[]; // "<window key>:<year>" already e-mailed
+  push_dates?: boolean;
+  push_expiring?: boolean;
+  push_new?: boolean;
+  push_new_since?: string | null; // "new benefits" counts shared benefits created after this
 }
 
 /** `user_id`: null = shared catalog row, otherwise private to that user (optional in test fixtures). */
