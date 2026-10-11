@@ -1,6 +1,7 @@
 {
   "name": "benefits-finder",
   "version": "0.1.0",
+  "description": "Hebrew PWA that tells you which Israeli credit card or club to use at any store, ranked by ₪ savings.",
   "private": true,
   "scripts": {
     "dev": "next dev",
