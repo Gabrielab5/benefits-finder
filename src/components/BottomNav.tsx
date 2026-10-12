@@ -1,14 +1,15 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { List, Plus, Search, Settings, Wallet, type LucideIcon } from 'lucide-react';
+import { Layers, List, Plus, Search, Settings, Wallet, type LucideIcon } from 'lucide-react';
 
 const TABS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/', label: 'איפה אני', icon: Search },
   { href: '/benefits', label: 'כל ההטבות', icon: List },
   { href: '/wallet', label: 'הארנק', icon: Wallet },
   { href: '/import', label: 'ייבוא', icon: Plus },
-  { href: '/sources', label: 'מקורות', icon: Settings },
+  { href: '/sources', label: 'מקורות', icon: Layers },
+  { href: '/settings', label: 'הגדרות', icon: Settings },
 ];
 
 export default function BottomNav() {

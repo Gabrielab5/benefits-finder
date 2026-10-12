@@ -1,8 +1,9 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { Mail, Plus, ShieldCheck, Trash2, UserPlus } from 'lucide-react';
+import { Mail, Plus, ShieldCheck, Trash2, UserPlus, X } from 'lucide-react';
 import { Button, Notice, SectionTitle, field } from '@/components/ui';
 import { isShared } from '@/lib/core/catalog';
+import { normalize } from '@/lib/core/normalize';
 import type { CardProduct, Program } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
@@ -39,6 +40,7 @@ export default function AdminPanel({ programs, products, onChange }: {
   const [message, setMessage] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState<CardProduct['type']>('card');
+  const [productQuery, setProductQuery] = useState('');
 
   const load = useCallback(async () => {
     const res = await fetch('/api/admin/users');
@@ -78,7 +80,8 @@ export default function AdminPanel({ programs, products, onChange }: {
     }
   }
   const sharedPrograms = programs.filter(isShared);
-  const sharedProducts = products.filter(isShared);
+  const q = normalize(productQuery);
+  const sharedProducts = products.filter((p) => isShared(p) && (!q || normalize(p.name).includes(q)));
 
   return (
     <section className="space-y-5 rounded-2xl border border-mint/30 bg-panel p-4">
@@ -124,6 +127,8 @@ export default function AdminPanel({ programs, products, onChange }: {
       <div className="space-y-2">
         <SectionTitle>כרטיסים ומועדונים בקטלוג</SectionTitle>
         <p className="text-xs text-dim">משתמשים בוחרים מהרשימה הזו בהרשמה, וכל פריט פותח את ההטבות של התוכניות שמסומנות בו.</p>
+        <input type="search" value={productQuery} onChange={(e) => setProductQuery(e.target.value)}
+          placeholder="חיפוש בקטלוג" aria-label="חיפוש בקטלוג" className={field} />
         <ul className="space-y-2">
           {sharedProducts.map((p) => (
             <li key={p.id} className="space-y-2 rounded-xl border border-line bg-panel-2 p-3">
@@ -141,17 +146,22 @@ export default function AdminPanel({ programs, products, onChange }: {
                   <Trash2 size={15} aria-hidden />
                 </button>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {sharedPrograms.map((prog) => {
-                  const on = p.program_ids.includes(prog.id);
-                  const next = on ? p.program_ids.filter((x) => x !== prog.id) : [...p.program_ids, prog.id];
-                  return (
-                    <button key={prog.id} aria-pressed={on} onClick={() => write(sb.from('card_products').update({ program_ids: next }).eq('id', p.id))}
-                      className={`rounded-full border px-2.5 py-1 text-xs ${on ? 'border-mint bg-mint/10 text-mint' : 'border-line text-dim'}`}>
-                      {prog.name}
-                    </button>
-                  );
-                })}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {sharedPrograms.filter((prog) => p.program_ids.includes(prog.id)).map((prog) => (
+                  <button key={prog.id} aria-label={`הסרת ${prog.name} מ-${p.name}`}
+                    onClick={() => write(sb.from('card_products').update({ program_ids: p.program_ids.filter((x) => x !== prog.id) }).eq('id', p.id))}
+                    className="flex items-center gap-1 rounded-full border border-mint bg-mint/10 px-2.5 py-1 text-xs text-mint">
+                    {prog.name} <X size={11} aria-hidden />
+                  </button>
+                ))}
+                <select value="" aria-label={`הוספת תוכנית ל-${p.name}`}
+                  onChange={(e) => e.target.value && write(sb.from('card_products').update({ program_ids: [...p.program_ids, e.target.value] }).eq('id', p.id))}
+                  className="w-28 rounded-full border border-line bg-panel-2 px-2 py-1 text-xs text-dim">
+                  <option value="">+ תוכנית</option>
+                  {sharedPrograms.filter((prog) => !p.program_ids.includes(prog.id)).map((prog) => (
+                    <option key={prog.id} value={prog.id}>{prog.name}</option>
+                  ))}
+                </select>
               </div>
             </li>
           ))}
