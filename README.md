@@ -276,6 +276,7 @@ Copy [`.env.example`](.env.example) to `.env.local` and fill it in:
 | `APP_URL` | ✅ | Public URL of the app, used in emails |
 | `RESEND_API_KEY` / `RESEND_FROM` | ➖ | Only for birthday and special-date reminder emails |
 | `ANTHROPIC_API_KEY` / `NEXT_PUBLIC_AI_API` | ➖ | Only for the paid AI import (`on` to enable) |
+| `GEMINI_API_KEY` | ➖ | AI chat on the home page (free key from Google AI Studio; `GEMINI_MODEL` optional) |
 | `E2E_EMAIL` | ➖ | Test user for e2e tests. **Must contain `e2e`**, because the test wipes that user |
 
 > [!CAUTION]

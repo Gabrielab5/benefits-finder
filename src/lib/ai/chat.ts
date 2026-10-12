@@ -2,7 +2,6 @@ import { CATEGORY_LABELS, CHANNEL_LABELS, TIMING_LABELS, TYPE_LABELS } from '@/l
 import { eligibleItems } from '@/lib/core/rank';
 import type { Snapshot } from '@/lib/core/types';
 
-export const CHAT_MODEL = 'claude-sonnet-5-5';
 const MAX_LINES = 1500; // ponytail: hard cap keeps the prompt small; retrieve per question if wallets outgrow it
 
 export interface ChatMessage {

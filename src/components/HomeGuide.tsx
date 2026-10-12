@@ -19,6 +19,7 @@ const SUGGESTIONS = [
 const ERRORS: Record<string, string> = {
   ai_off: 'הצ׳אט החכם כבוי כרגע (אין מפתח AI מוגדר).',
   unauthorized: 'צריך להתחבר מחדש.',
+  rate_limited: 'הגעתם למכסת השאלות החינמית לרגע זה. נסו שוב בעוד דקה.',
 };
 
 /** Home intro (what the app does, how to use it) plus a free-text AI chat over the user's own benefits. */
