@@ -6,8 +6,9 @@ import { supabaseServer } from '@/lib/supabase/server';
 
 export const maxDuration = 60;
 
-// The "latest" alias follows Google's current Flash model, so the free tier keeps working when versions retire.
-const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+// Google retires old Flash models for new keys (2.5 is gone, the -latest alias hangs); override with GEMINI_MODEL.
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const FALLBACK_MODEL = 'gemini-3.5-flash-lite';
 const fail = (error: string, status: number) => NextResponse.json({ error }, { status });
 
 export async function POST(req: Request) {
@@ -20,28 +21,32 @@ export async function POST(req: Request) {
   if (!messages) return fail('bad_request', 400);
 
   const context = buildChatContext(await fetchSnapshot(supabase), israelToday().iso);
-  const upstream = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`,
-    {
+  const body = JSON.stringify({
+    systemInstruction: { parts: [{ text: `${CHAT_SYSTEM}\n\n${context}` }] },
+    contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+    // Light thinking keeps answers to a few seconds; maxOutputTokens includes the thinking tokens.
+    generationConfig: { maxOutputTokens: 4096, thinkingConfig: { thinkingLevel: 'low' } },
+  });
+  // The free tier often answers 503 "high demand"; then try the lighter model once.
+  let upstream: Response | null = null;
+  for (const model of [MODEL, FALLBACK_MODEL]) {
+    upstream = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: `${CHAT_SYSTEM}\n\n${context}` }] },
-        contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-        generationConfig: { maxOutputTokens: 4096 }, // includes the model's thinking tokens
-      }),
-      signal: req.signal,
-    },
-  ).catch(() => null);
+      body,
+      signal: AbortSignal.any([req.signal, AbortSignal.timeout(25_000)]), // two tries fit in maxDuration
+    }).catch(() => null);
+    if (upstream?.ok) break;
+    console.error('chat failed', model, upstream?.status, await upstream?.text().catch(() => ''));
+  }
   if (!upstream?.ok || !upstream.body) {
-    console.error('chat failed', upstream?.status, await upstream?.text().catch(() => ''));
     return fail(upstream?.status === 429 ? 'rate_limited' : 'ai_failed', 502);
   }
 
   // Gemini streams SSE lines "data: {json}"; forward only the answer text.
   const enc = new TextEncoder();
   let buf = '';
-  const body = upstream.body.pipeThrough(new TextDecoderStream()).pipeThrough(new TransformStream<string, Uint8Array>({
+  const out = upstream.body.pipeThrough(new TextDecoderStream()).pipeThrough(new TransformStream<string, Uint8Array>({
     transform(chunk, ctrl) {
       buf += chunk;
       const lines = buf.split('\n');
@@ -55,5 +60,5 @@ export async function POST(req: Request) {
       }
     },
   }));
-  return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
+  return new Response(out, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
