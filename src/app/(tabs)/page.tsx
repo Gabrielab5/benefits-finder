@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
+import HomeGuide from '@/components/HomeGuide';
 import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
 import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, WINDOW_ICON } from '@/lib/core/labels';
@@ -106,6 +107,8 @@ export default function WhereAmIPage() {
           )}
         </div>
       )}
+
+      <div hidden={!!store || !!query.trim()}><HomeGuide /></div>
 
       {store && (
         <div className="space-y-2">
