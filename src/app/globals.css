@@ -2,28 +2,57 @@
 
 /* Dark premium theme (design B). Classes: bg-ink, bg-panel, bg-panel-2, border-line, text-fg, text-muted, text-dim, bg-mint, text-mint-ink… */
 @theme {
-  --color-ink: #0e1424;
-  --color-panel: #1a2236;
-  --color-panel-2: #222c44;
-  --color-line: #2a3550;
-  --color-fg: #e6e9f2;
-  --color-muted: #8b93a8;
-  --color-dim: #5d6782;
-  --color-mint: #34d399;
-  --color-mint-ink: #062a1e;
-  --color-warn: #fbbf24;
-  --color-bad: #fb7185;
-  --color-party: #f472b6;
+  --color-ink: #161d38;
+  --color-panel: #222b4d;
+  --color-panel-2: #2c365c;
+  --color-line: #3d4873;
+  --color-fg: #f4f6fc;
+  --color-muted: #b0b8d4;
+  --color-dim: #8590b3;
+  --color-mint: #3ee8ad;
+  --color-mint-ink: #04291b;
+  --color-sky: #5cc8ff;
+  --color-violet: #9b8cff;
+  --color-warn: #fcc93a;
+  --color-bad: #ff7a93;
+  --color-party: #f77ac0;
 }
 
 html {
   color-scheme: dark;
 }
 
+/* Soft aurora behind everything. */
 body {
-  background: var(--color-ink);
+  background:
+    radial-gradient(60rem 40rem at 100% -10%, rgb(155 140 255 / 0.18), transparent 60%),
+    radial-gradient(50rem 35rem at -10% 110%, rgb(62 232 173 / 0.12), transparent 60%),
+    var(--color-ink);
+  background-attachment: fixed;
   color: var(--color-fg);
 }
+
+/* Every mint fill is a glossy mint→sky gradient with a top highlight. */
+.bg-mint {
+  background-image: linear-gradient(135deg, var(--color-mint), var(--color-sky));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6);
+}
+
+/* Panels get a faint glass edge on top. */
+.bg-panel, .bg-panel-2 { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); }
+
+/* Light sweep across primary buttons and active chips on hover. */
+.shiny { position: relative; overflow: hidden; isolation: isolate; }
+.shiny::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+}
+.shiny:hover::after, .shiny:focus-visible::after { transform: translateX(120%); }
 
 /* Keep native date / select pickers readable on the dark theme. */
 input,
@@ -48,8 +77,8 @@ textarea {
 @keyframes glow-move { 50% { transform: translate(-30%, 20%); } }
 @keyframes spin-border { to { --angle: 360deg; } }
 @keyframes ring {
-  0% { box-shadow: 0 0 0 0 rgb(52 211 153 / 0.45); }
-  100% { box-shadow: 0 0 0 12px rgb(52 211 153 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(62 232 173 / 0.45); }
+  100% { box-shadow: 0 0 0 12px rgb(62 232 173 / 0); }
 }
 @keyframes dot {
   0%, 80%, 100% { opacity: 0.25; transform: none; }
@@ -77,7 +106,7 @@ textarea {
   width: 70%;
   aspect-ratio: 1;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgb(52 211 153 / 0.28), transparent 65%);
+  background: radial-gradient(circle, rgb(62 232 173 / 0.28), transparent 65%);
   animation: glow-move 9s ease-in-out infinite;
 }
 

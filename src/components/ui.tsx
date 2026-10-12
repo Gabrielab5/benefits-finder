@@ -7,8 +7,8 @@ export const field =
   'focus:border-mint focus:outline-none focus:ring-1 focus:ring-mint disabled:opacity-50';
 
 const VARIANTS = {
-  primary: 'bg-mint text-mint-ink font-semibold hover:brightness-110',
-  secondary: 'border border-line bg-panel-2 text-fg hover:border-dim',
+  primary: 'shiny bg-mint text-mint-ink font-semibold hover:brightness-110',
+  secondary: 'border border-line bg-panel-2 text-fg hover:border-mint/60 hover:text-mint',
   ghost: 'text-mint hover:bg-panel-2',
   danger: 'text-bad hover:bg-panel-2',
 } as const;
@@ -41,7 +41,7 @@ export function Chip({
       aria-pressed={active}
       {...props}
       className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm transition ${
-        active ? 'bg-mint font-semibold text-mint-ink' : 'border border-line text-muted hover:text-fg'
+        active ? 'shiny bg-mint font-semibold text-mint-ink' : 'border border-line bg-panel/60 text-muted hover:border-violet/60 hover:text-fg'
       } ${className}`}
     />
   );
@@ -51,7 +51,7 @@ export function PageHeader({ title, subtitle, icon: Icon }: { title: string; sub
   return (
     <header className="flex items-center gap-3 pt-2">
       {Icon && (
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-panel-2 text-mint">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-violet/30 to-mint/20 text-mint ring-1 ring-white/10">
           <Icon size={20} aria-hidden />
         </span>
       )}
