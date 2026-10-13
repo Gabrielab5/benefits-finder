@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { israelToday } from './dates';
 import { bundle, israelWeekday, pruneReminded, pushMessages, type PushMessage } from './pushPlan';
-import type { Benefit, Profile, Snapshot, WalletItem } from './types';
+import type { Benefit, GiftCard, Profile, Snapshot, WalletItem } from './types';
 
 const SUNDAY = new Date('2026-10-11T06:00:00Z');
 const MONDAY = new Date('2026-10-12T06:00:00Z');
@@ -91,6 +91,34 @@ describe('review follow-ups', () => {
   });
 });
 
+describe('gift card expiry alerts', () => {
+  const gift = (id: string, expires_on: string | null, o: Partial<GiftCard> = {}): GiftCard => ({
+    id, name: id, amount: 200, balance: 150, received_on: null, expires_on, code: null, link: null, any_store: true,
+    store_ids: [], stores_url: null, notes: null, created_at: '', ...o,
+  });
+  const giftRun = (cards: GiftCard[], p = profile(), now = MONDAY) =>
+    pushMessages({ ...snap(p, []), giftCards: cards }, israelToday(now), now);
+
+  it('alerts any day at 30, 7 and 1 days left, once per stage', () => {
+    const r = giftRun([gift('BuyMe', '2026-10-19')]); // Monday 12.10 → 7 days left
+    expect(r.messages).toEqual([expect.objectContaining({
+      kind: 'gift', title: '🎁 ₪150 בBuyMe פג בעוד 7 ימים', url: '/wallet/gift-cards',
+      remindKeys: ['push:gift:BuyMe:7:2026-10-19'],
+    })]);
+    expect(kinds(giftRun([gift('BuyMe', '2026-10-19')], profile({ reminded: ['push:gift:BuyMe:7:2026-10-19'] })))).toEqual([]);
+    expect(giftRun([gift('x', '2026-10-13')]).messages[0].title).toContain('מחר');
+    expect(giftRun([gift('x', '2026-11-11')]).messages[0].remindKeys).toEqual(['push:gift:x:30:2026-11-11']);
+  });
+  it('skips cards far from expiry, already expired, used up, or without a date, and respects the switch', () => {
+    expect(kinds(giftRun([gift('far', '2026-11-12'), gift('gone', '2026-10-11'), gift('used', '2026-10-13', { balance: 0 }), gift('none', null)]))).toEqual([]);
+    expect(kinds(giftRun([gift('x', '2026-10-13')], profile({ push_expiring: false })))).toEqual([]);
+  });
+  it('groups several cards into one alert, soonest first', () => {
+    const r = giftRun([gift('b', '2026-10-30'), gift('a', '2026-10-12')]);
+    expect(r.messages[0]).toMatchObject({ title: '🎁 2 גיפטקארדים פגים בקרוב', body: 'a ₪150 עד 12.10.2026 · b ₪150 עד 30.10.2026' });
+  });
+});
+
 describe('bundle', () => {
   const m = (kind: PushMessage['kind'], keys: string[] = []): PushMessage =>
     ({ kind, title: `t-${kind}`, body: 'b', url: `/${kind}`, tag: kind, remindKeys: keys });
@@ -110,5 +138,8 @@ describe('pruneReminded', () => {
   it('drops bookkeeping from earlier years so the list never grows forever', () => {
     expect(pruneReminded(['birthday:2025', 'push:birthday:2025', 'push:expiring:2025-12-28', 'birthday:2026', 'push:expiring:2026-10-11'], 2026))
       .toEqual(['birthday:2026', 'push:expiring:2026-10-11']);
+  });
+  it('keeps gift card keys for a future expiry', () => {
+    expect(pruneReminded(['push:gift:g:30:2027-01-20', 'push:gift:g:1:2025-12-31'], 2026)).toEqual(['push:gift:g:30:2027-01-20']);
   });
 });

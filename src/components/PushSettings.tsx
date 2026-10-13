@@ -9,7 +9,7 @@ import { supabaseBrowser } from '@/lib/supabase/browser';
 type State = 'loading' | 'unsupported' | 'ios_install' | 'denied' | 'not_configured' | 'off' | 'on';
 const SWITCHES = [
   ['push_dates', '🎂 תאריכים מיוחדים'],
-  ['push_expiring', '⏳ הטבות שמסתיימות השבוע (בימי ראשון)'],
+  ['push_expiring', '⏳ הטבות שמסתיימות השבוע (בימי ראשון) וגיפטקארדים לפני שפג תוקפם'],
   ['push_new', '✨ הטבות חדשות לכרטיסים שלי'],
 ] as const;
 

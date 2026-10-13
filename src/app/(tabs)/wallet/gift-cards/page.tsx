@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Copy, ExternalLink, Gift, ImageUp, Link2, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { ChevronRight, Copy, ExternalLink, Gift, Image as ImageIcon, ImageUp, Link2, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button, Card, Chip, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import { addDays, israelToday } from '@/lib/core/dates';
 import { GIFT_CARD_PRESETS, storesSearchUrl, type GiftCardPreset } from '@/lib/core/giftcards';
@@ -25,11 +25,16 @@ interface Draft {
   store_ids: string[];
   stores_url: string;
   notes: string;
+  image_path: string | null; // saved photo
+  image: Shot | null; // new photo, uploaded on save
 }
 const EMPTY: Draft = {
   name: '', amount: '', balance: '', received_on: '', expires_on: '', code: '', link: '',
-  any_store: false, store_ids: [], stores_url: '', notes: '',
+  any_store: false, store_ids: [], stores_url: '', notes: '', image_path: null, image: null,
 };
+
+type Shot = { type: string; data: string }; // base64 JPEG
+const BUCKET = 'imports'; // private, owner-only folders "<user_id>/..."
 
 interface Extracted {
   name: string | null;
@@ -51,7 +56,7 @@ const ERRORS: Record<string, string> = {
 };
 
 /** Phone screenshots can pass the 4.5 MB request limit; a 1600 px JPEG keeps text readable and stays small. */
-async function shrink(file: File): Promise<{ type: string; data: string }> {
+async function shrink(file: File): Promise<Shot> {
   const img = await createImageBitmap(file);
   const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
   const canvas = document.createElement('canvas');
@@ -70,6 +75,7 @@ export default function GiftCardsPage() {
   const [storeQuery, setStoreQuery] = useState('');
   const [unmatched, setUnmatched] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
   if (!snapshot) return <Loading />;
 
   const cards = snapshot.giftCards ?? [];
@@ -89,10 +95,10 @@ export default function GiftCardsPage() {
     open({ ...EMPTY, name: p.name, any_store: !!p.anyStore, store_ids, stores_url: p.stores || p.anyStore ? '' : storesSearchUrl(p.name) });
   }
 
-  async function extract(input: { url: string } | { image: { type: string; data: string } }) {
+  async function extract(input: { url: string } | { image: Shot }) {
     setBusy(true);
     setError(null);
-    const base = { ...EMPTY, link: 'url' in input ? input.url : '' };
+    const base = { ...EMPTY, link: 'url' in input ? input.url : '', image: 'image' in input ? input.image : null };
     try {
       const res = await fetch('/api/giftcards/extract', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
@@ -116,13 +122,22 @@ export default function GiftCardsPage() {
     }
   }
 
-  async function onScreenshot(file: File | undefined) {
+  async function onScreenshot(file: File | undefined, attachOnly = false) {
     if (!file) return;
+    let image: Shot;
     try {
-      await extract({ image: await shrink(file) });
+      image = await shrink(file);
     } catch {
-      setError('לא הצלחנו לקרוא את התמונה.');
+      return setError('לא הצלחנו לקרוא את התמונה.');
     }
+    if (attachOnly) set({ image });
+    else await extract({ image });
+  }
+
+  async function showImage(path: string) {
+    const { data } = await supabaseBrowser().storage.from(BUCKET).createSignedUrl(path, 300);
+    if (data) setViewing(data.signedUrl);
+    else setError('לא הצלחנו לפתוח את התמונה.');
   }
 
   async function run(op: PromiseLike<{ error: unknown }>, msg: string): Promise<boolean> {
@@ -149,14 +164,28 @@ export default function GiftCardsPage() {
       store_ids: d.any_store ? [] : d.store_ids, stores_url: d.stores_url.trim() || null, notes: d.notes.trim() || null,
     };
     const sb = supabaseBrowser();
-    if (await run(d.id ? sb.from('gift_cards').update(row).eq('id', d.id) : sb.from('gift_cards').insert(row), 'השמירה נכשלה.')) {
+    const old = cards.find((c) => c.id === d.id)?.image_path ?? null;
+    let image_path = d.image_path;
+    if (d.image) {
+      const { data: { user } } = await sb.auth.getUser();
+      const bytes = Uint8Array.from(atob(d.image.data), (ch) => ch.charCodeAt(0));
+      image_path = `${user?.id}/gift-cards/${crypto.randomUUID()}.jpg`;
+      const { error } = await sb.storage.from(BUCKET).upload(image_path, new Blob([bytes], { type: d.image.type }));
+      if (error) return setError('העלאת התמונה נכשלה.');
+    }
+    const op = d.id ? sb.from('gift_cards').update({ ...row, image_path }).eq('id', d.id) : sb.from('gift_cards').insert({ ...row, image_path });
+    if (await run(op, 'השמירה נכשלה.')) {
+      if (old && old !== image_path) await sb.storage.from(BUCKET).remove([old]);
       setDraft(null);
     }
   }
 
   async function remove(c: GiftCard) {
     if (!confirm(`למחוק את "${c.name}"?`)) return;
-    await run(supabaseBrowser().from('gift_cards').delete().eq('id', c.id), 'המחיקה נכשלה.');
+    const sb = supabaseBrowser();
+    if (await run(sb.from('gift_cards').delete().eq('id', c.id), 'המחיקה נכשלה.') && c.image_path) {
+      await sb.storage.from(BUCKET).remove([c.image_path]);
+    }
   }
 
   const edit = (c: GiftCard) => {
@@ -165,6 +194,7 @@ export default function GiftCardsPage() {
       id: c.id, name: c.name, amount: String(c.amount), balance: String(c.balance), received_on: c.received_on ?? '',
       expires_on: c.expires_on ?? '', code: c.code ?? '', link: c.link ?? '', any_store: c.any_store,
       store_ids: c.store_ids, stores_url: c.stores_url ?? '', notes: c.notes ?? '',
+      image_path: c.image_path ?? null, image: null,
     });
   };
 
@@ -210,6 +240,11 @@ export default function GiftCardsPage() {
                     <button onClick={() => navigator.clipboard.writeText(c.code!)} dir="ltr"
                       className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
                       {c.code} <Copy size={12} aria-label="העתקה" />
+                    </button>
+                  )}
+                  {c.image_path && (
+                    <button onClick={() => showImage(c.image_path!)} className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
+                      <ImageIcon size={12} aria-hidden /> תמונה
                     </button>
                   )}
                   {c.link && (
@@ -360,6 +395,24 @@ export default function GiftCardsPage() {
               </>
             )}
           </fieldset>
+          <div className="flex items-center gap-3">
+            {draft.image ? (
+              // eslint-disable-next-line @next/next/no-img-element -- local preview of a data URL
+              <img src={`data:${draft.image.type};base64,${draft.image.data}`} alt="תמונת הגיפטקארד" className="h-16 w-16 rounded-lg object-cover" />
+            ) : draft.image_path ? (
+              <button type="button" onClick={() => showImage(draft.image_path!)} className="grid h-16 w-16 place-items-center rounded-lg border border-line text-mint">
+                <ImageIcon size={20} aria-label="הצגת התמונה" />
+              </button>
+            ) : null}
+            <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-mint">
+              <ImageUp size={16} aria-hidden /> {draft.image || draft.image_path ? 'החלפת תמונה' : 'צירוף תמונה / צילום מסך'}
+              <input type="file" accept="image/*" className="sr-only" aria-label="תמונת הגיפטקארד"
+                onChange={(e) => onScreenshot(e.target.files?.[0], true)} />
+            </label>
+            {(draft.image || draft.image_path) && (
+              <button type="button" onClick={() => set({ image: null, image_path: null })} className="text-sm text-bad">הסרה</button>
+            )}
+          </div>
           <label className="block">
             <span className="text-sm text-muted">הערות</span>
             <textarea rows={2} value={draft.notes} onChange={(e) => set({ notes: e.target.value })} className={`${field} mt-1`} />
@@ -371,6 +424,12 @@ export default function GiftCardsPage() {
         </Card>
       )}
       {error && <Notice tone="error">{error}</Notice>}
+      {viewing && (
+        <button onClick={() => setViewing(null)} aria-label="סגירה" className="fixed inset-0 z-30 grid place-items-center bg-black/90 p-4">
+          {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}
+          <img src={viewing} alt="תמונת הגיפטקארד" className="max-h-full max-w-full rounded-xl bg-white" />
+        </button>
+      )}
     </main>
   );
 }

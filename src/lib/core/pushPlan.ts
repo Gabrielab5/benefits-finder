@@ -1,11 +1,11 @@
 import { addDays, type IsraelDay } from './dates';
-import { WINDOW_ICON } from './labels';
+import { WINDOW_ICON, formatDate, shekel } from './labels';
 import { eligibleItems } from './rank';
 import { activeDateBenefits } from './specialDates';
 import type { Benefit, Snapshot } from './types';
 
 export interface PushMessage {
-  kind: 'dates' | 'expiring' | 'new' | 'summary';
+  kind: 'dates' | 'expiring' | 'gift' | 'new' | 'summary';
   parts?: PushMessage['kind'][]; // for a summary: the alerts it stands for
   title: string;
   body: string;
@@ -24,6 +24,10 @@ export function israelWeekday(now: Date): number {
 export const pushKey = (windowKey: string, year: number) => `push:${windowKey}:${year}`;
 
 const count = (n: number, one: string, many: string) => (n === 1 ? one : `${n} ${many}`);
+const GIFT_STAGES = [30, 7, 1]; // days before a gift card expires: one alert at each
+const daysBetween = (fromIso: string, toIso: string) => Math.round((Date.parse(toIso) - Date.parse(fromIso)) / 86_400_000);
+const inDays = (d: number) => (d === 0 ? 'היום' : d === 1 ? 'מחר' : `בעוד ${d} ימים`);
+
 const titles = (list: Benefit[]) => list.slice(0, 3).map((b) => b.title).join(' · ') + (list.length > 3 ? ' …' : '');
 
 /** What one user should get today. `newSince` is the new "new benefits" watermark, or null to keep it. */
@@ -59,6 +63,29 @@ export function pushMessages(s: Snapshot, today: IsraelDay, now: Date): { messag
     }
   }
 
+  if (p.push_expiring !== false) {
+    // Each card alerts once per stage it reaches (30 / 7 / 1 days left); a new expiry date starts over.
+    const due = (s.giftCards ?? []).flatMap((c) => {
+      if (c.balance <= 0 || !c.expires_on || c.expires_on < today.iso) return [];
+      const left = daysBetween(today.iso, c.expires_on);
+      const stage = GIFT_STAGES.findLast((d) => left <= d);
+      const key = `push:gift:${c.id}:${stage}:${c.expires_on}`;
+      return stage === undefined || (p.reminded ?? []).includes(key) ? [] : [{ c, left, key }];
+    }).sort((a, b) => a.left - b.left);
+    if (due.length) {
+      const [first] = due;
+      messages.push({
+        kind: 'gift',
+        title: due.length === 1
+          ? `🎁 ${shekel(first.c.balance)} ב${first.c.name} פג ${inDays(first.left)}`
+          : `🎁 ${due.length} גיפטקארדים פגים בקרוב`,
+        body: due.slice(0, 3).map(({ c }) => `${c.name} ${shekel(c.balance)} עד ${formatDate(c.expires_on!)}`).join(' · ')
+          + (due.length > 3 ? ' …' : ''),
+        url: '/wallet/gift-cards', tag: 'gift', remindKeys: due.map((d) => d.key),
+      });
+    }
+  }
+
   // The watermark keeps moving while the switch is off, so switching it back on doesn't announce the backlog.
   if (p.push_new === false || !p.push_new_since) return { messages, newSince: now.toISOString() };
   const since = new Date(p.push_new_since).getTime();
@@ -84,7 +111,7 @@ export function bundle(messages: PushMessage[]): PushMessage[] {
   }];
 }
 
-/** Bookkeeping keys all end in ":<year>" or ":<year>-MM-DD"; earlier years can go. */
+/** Bookkeeping keys all end in ":<year>" or ":<year>-MM-DD"; earlier years can go (gift card keys end in a future expiry). */
 export function pruneReminded(keys: string[], year: number): string[] {
-  return keys.filter((k) => k.includes(`:${year}`));
+  return keys.filter((k) => Number(/:(\d{4})(-\d\d-\d\d)?$/.exec(k)?.[1]) >= year);
 }

@@ -124,6 +124,7 @@ export interface GiftCard {
   store_ids: string[];
   stores_url: string | null;
   notes: string | null;
+  image_path?: string | null; // in the private "imports" storage bucket
   created_at: string;
 }
 

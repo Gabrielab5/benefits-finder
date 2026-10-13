@@ -100,6 +100,20 @@ It's an installable **PWA**. Your last snapshot is stored on the device (Indexed
 
 </td>
 </tr>
+<tr>
+<td valign="top">
+
+### 🎁 Gift cards
+Keep every gift card in one place: BuyMe, תו הזהב, store cards and the rest. Add one by **pasting its link**, **uploading a screenshot** (AI fills in the details) or **typing it in**, or start from a preset for the most popular cards. It keeps the balance left, the expiry date, the code, a photo of the card to show at the register, and which stores accept it, with a Google search to find them. Before a card with money left expires you get a **reminder** 30, 7 and 1 days ahead, plus a banner on the home screen.
+
+</td>
+<td valign="top">
+
+### 🧾 Gift card + best discount
+At a store, enter the amount and the app tells you **which gift card to use** and what's left to pay: `price − gift card − best discount`. It uses the soonest-expiring card first, and knows that a "pay with card" discount only applies to the part the card pays.
+
+</td>
+</tr>
 </table>
 
 ---
@@ -143,6 +157,10 @@ flowchart LR
 | `percent_off`, `cashback_percent` | `A × value%`, capped by `max_discount` |
 | `fixed_off` | `value`, only if `A ≥ min_spend` |
 | `points`, `bogo`, `gift`, `installments`, `other` | shown but not ranked by ₪, because no honest number exists |
+
+**With gift cards** the app compares two ways to pay and shows the cheaper one:
+- show a club / enter a coupon (discount on the full price), then pay with gift cards;
+- pay with gift cards first, then pay what's left with a card, whose discount applies only to that part.
 
 Dates are always evaluated in **Asia/Jerusalem** time. A birthday benefit is valid **for the whole birth month**: born on 21.9 means the benefit runs from 1.9 to 30.9.
 
@@ -195,6 +213,8 @@ erDiagram
     PROGRAMS ||--o{ BENEFITS : offers
     STORES ||--o{ BENEFITS : "valid at"
     PROGRAMS ||--o{ IMPORTS : "refreshed by"
+    PROFILE ||--o{ GIFT_CARDS : owns
+    GIFT_CARDS }o--o{ STORES : "accepted at"
 
     PROFILE {
         int birth_month
@@ -231,6 +251,13 @@ erDiagram
         text timing
         date valid_until
     }
+    GIFT_CARDS {
+        text name
+        numeric balance
+        date expires_on
+        uuid_array store_ids
+        text image_path
+    }
     IMPORTS {
         text source
         jsonb extracted
@@ -257,10 +284,12 @@ npm install
 ```
 
 ### 3. Database
-In the Supabase SQL editor, run the migrations **in order**:
+In the Supabase SQL editor, run every file in [`supabase/migrations`](supabase/migrations) **in order** (oldest first):
 
-1. [`supabase/migrations/20261006000000_init.sql`](supabase/migrations/20261006000000_init.sql) creates the tables, RLS and storage bucket
-2. [`supabase/migrations/20261007000000_shared_catalog.sql`](supabase/migrations/20261007000000_shared_catalog.sql) adds the shared catalog, special dates and admin role
+1. `20261006000000_init.sql` creates the tables, RLS and storage bucket
+2. `20261007000000_shared_catalog.sql` adds the shared catalog, special dates and admin role
+3. `20261011000000_push.sql` adds push notification devices and settings
+4. `20261013000000_gift_cards.sql` and `20261013000001_gift_card_image.sql` add gift cards and their photos
 
 Then in **Authentication → Providers**, enable Email and, optionally, Google.
 
@@ -276,7 +305,7 @@ Copy [`.env.example`](.env.example) to `.env.local` and fill it in:
 | `APP_URL` | ✅ | Public URL of the app, used in emails |
 | `RESEND_API_KEY` / `RESEND_FROM` | ➖ | Only for birthday and special-date reminder emails |
 | `ANTHROPIC_API_KEY` / `NEXT_PUBLIC_AI_API` | ➖ | Only for the paid AI import (`on` to enable) |
-| `GEMINI_API_KEY` | ➖ | AI chat on the home page (free key from Google AI Studio; `GEMINI_MODEL` optional) |
+| `GEMINI_API_KEY` | ➖ | AI chat on the home page and reading gift cards from a link or screenshot (free key from Google AI Studio; `GEMINI_MODEL` optional) |
 | `E2E_EMAIL` | ➖ | Test user for e2e tests. **Must contain `e2e`**, because the test wipes that user |
 
 > [!CAUTION]
@@ -330,11 +359,11 @@ src/
 │  ├─ (tabs)/            # the 5 bottom-nav screens
 │  │  ├─ page.tsx        # 🔍 Where am I?
 │  │  ├─ benefits/       # 📋 All benefits
-│  │  ├─ wallet/         # 💳 My wallet
+│  │  ├─ wallet/         # 💳 My wallet (+ gift-cards/)
 │  │  ├─ import/         # ➕ Import + review
 │  │  └─ sources/        # ⚙️ Sources, dates, admin
 │  ├─ login/ onboarding/ auth/
-│  └─ api/               # import · admin/users · cron/birthday
+│  └─ api/               # import · giftcards/extract · chat · admin/users · cron/birthday
 ├─ components/           # BenefitCard, DatesForm, AdminPanel, ui
 ├─ lib/
 │  ├─ core/              # 🧠 pure, tested business logic
@@ -363,6 +392,8 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 
 ### 💳 Wallet & benefits
 - ✅ Brand-style card art, shared catalog, private benefits
+- ✅ **Gift cards**: store them (link, screenshot or manual), track the balance left, and get "use this gift card + this discount" at the register
+- 💭 **BuyMe sync**: BuyMe has no public API for consumers yet, so cards come in by link or screenshot
 - 🔜 **More cards in the catalog**: Isracard variants, Amex, Leumi Card, bank-branded and fuel-company cards, El Al and airline clubs, Hever, workers' committees, student and IDF/reservist benefits
 - 🔜 **Points and miles value**: estimate the ₪ worth of points, so points benefits can be ranked too
 - 🔜 **Expiry alerts**: "3 benefits you hold end this week"
@@ -372,7 +403,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 
 ### 🎂 Special dates
 - ✅ Birthday, club birthday month, wedding anniversary, children's birthdays
-- ✅ **Push notifications**: special dates, benefits expiring this week, new benefits for your cards (free, no Resend key needed)
+- ✅ **Push notifications**: special dates, benefits expiring this week, gift cards about to expire (30 / 7 / 1 days ahead), new benefits for your cards (free, no Resend key needed)
 - 🔜 **Holiday sales calendar**: Black Friday, Pesach and Rosh Hashana sales, back-to-school
 - 💭 **Partner's birthday and pets** 🐶 (pet-store clubs have birthday perks too)
 

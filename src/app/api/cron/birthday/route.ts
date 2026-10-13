@@ -68,7 +68,7 @@ async function remindUser(run: Run, profile: Profile, devices: PushSub[]) {
   if (Object.keys(patch).length) await save(run, uid, patch);
 }
 
-/** Daily: special-date e-mails and push alerts (dates, expiring on Sundays, new benefits). */
+/** Daily: special-date e-mails and push alerts (dates, expiring on Sundays, gift cards about to expire, new benefits). */
 export async function GET(req: Request) {
   if (!process.env.CRON_SECRET || req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
