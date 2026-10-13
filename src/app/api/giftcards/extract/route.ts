@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { callGemini } from '@/lib/ai/gemini';
+import { callGemini, FAST } from '@/lib/ai/gemini';
 import { israelToday } from '@/lib/core/dates';
 import { findStoreByName } from '@/lib/core/normalize';
 import type { Store } from '@/lib/core/types';
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       thinkingConfig: { thinkingLevel: 'low' },
       maxOutputTokens: 4096, // includes thinking; a busy voucher must not turn into minutes of output
     },
-  }), key, req.signal);
+  }), key, req.signal, FAST);
   if (!res?.ok) return fail(res?.status === 429 ? 'rate_limited' : 'ai_failed', 502);
 
   const parts: { text?: string; thought?: boolean }[] = (await res.json()).candidates?.[0]?.content?.parts ?? [];
