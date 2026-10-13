@@ -1,12 +1,13 @@
 'use client';
 import { useState } from 'react';
-import { CreditCard, Pencil, Plus, RefreshCw, Search, Trash2, Wallet } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronLeft, CreditCard, Gift, Pencil, Plus, RefreshCw, Search, Trash2, Wallet } from 'lucide-react';
 import { MONTHS } from '@/components/DatesForm';
 import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import { needsCatalogUpdate, walletItemFromProduct } from '@/lib/core/catalog';
 import { cardArtFor } from '@/lib/core/cardArt';
 import { monthNameHe } from '@/lib/core/dates';
-import { KIND_LABELS } from '@/lib/core/labels';
+import { KIND_LABELS, shekel } from '@/lib/core/labels';
 import { normalize } from '@/lib/core/normalize';
 import type { CardProduct, WalletItem } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -90,6 +91,17 @@ export default function WalletPage() {
     <main className="space-y-6">
       <PageHeader title="הארנק שלי" subtitle="הכרטיסים והחברויות שלכם" icon={Wallet} />
       {!online && <Notice tone="warn">אין חיבור — אפשר רק לצפות.</Notice>}
+
+      <Link href="/wallet/gift-cards" className="flex items-center gap-3 rounded-2xl border border-party/30 bg-party/10 p-3.5 text-party">
+        <Gift size={20} aria-hidden />
+        <span className="flex-1 font-semibold">
+          גיפטקארדים
+          {(snapshot.giftCards ?? []).length > 0 && (
+            <span className="font-normal"> · {shekel((snapshot.giftCards ?? []).reduce((s, c) => s + c.balance, 0))}</span>
+          )}
+        </span>
+        <ChevronLeft size={18} aria-hidden />
+      </Link>
 
       {(['card', 'membership'] as const).map((type) => {
         const list = snapshot.wallet.filter((w) => w.type === type);

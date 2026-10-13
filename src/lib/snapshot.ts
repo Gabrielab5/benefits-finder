@@ -1,20 +1,23 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Benefit, CardProduct, Profile, Program, Snapshot, Store, WalletItem } from './core/types';
+import type { Benefit, CardProduct, GiftCard, Profile, Program, Snapshot, Store, WalletItem } from './core/types';
 import { selectAll } from './selectAll';
 
 export async function fetchSnapshot(sb: SupabaseClient): Promise<Snapshot> {
-  const [profile, programs, wallet, stores, benefits, products] = await Promise.all([
+  const [profile, programs, wallet, stores, benefits, products, giftCards] = await Promise.all([
     sb.from('profile').select('*').maybeSingle(),
     selectAll<Program>((a, b) => sb.from('programs').select('*').order('name').order('id').range(a, b)),
     selectAll<WalletItem>((a, b) => sb.from('wallet_items').select('*').order('created_at').order('id').range(a, b)),
     selectAll<Store>((a, b) => sb.from('stores').select('*').order('id').range(a, b)),
     selectAll<Benefit>((a, b) => sb.from('benefits').select('*').neq('status', 'archived').order('id').range(a, b)),
     selectAll<CardProduct>((a, b) => sb.from('card_products').select('*').order('name').order('id').range(a, b)),
+    // Optional so the app keeps working until the gift_cards migration is applied.
+    selectAll<GiftCard>((a, b) => sb.from('gift_cards').select('*').order('expires_on', { nullsFirst: false }).order('id').range(a, b))
+      .catch(() => []),
   ]);
   if (profile.error) throw profile.error;
   return {
     profile: (profile.data as Profile | null) ?? null,
-    programs, wallet, stores, benefits, products,
+    programs, wallet, stores, benefits, products, giftCards,
     fetchedAt: new Date().toISOString(),
   };
 }

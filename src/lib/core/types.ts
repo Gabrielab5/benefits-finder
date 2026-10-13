@@ -111,6 +111,22 @@ export interface CardProduct {
   program_ids: string[];
 }
 
+export interface GiftCard {
+  id: string;
+  name: string;
+  amount: number;
+  balance: number;
+  received_on: string | null; // YYYY-MM-DD
+  expires_on: string | null; // YYYY-MM-DD, inclusive
+  code: string | null;
+  link: string | null;
+  any_store: boolean;
+  store_ids: string[];
+  stores_url: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface Snapshot {
   profile: Profile | null;
   programs: Program[];
@@ -118,5 +134,6 @@ export interface Snapshot {
   stores: Store[];
   benefits: Benefit[]; // never includes archived
   products?: CardProduct[];
+  giftCards?: GiftCard[];
   fetchedAt: string;
 }
