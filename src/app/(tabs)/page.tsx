@@ -1,12 +1,13 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
+import { ChevronLeft, Gift, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
 import HomeGuide from '@/components/HomeGuide';
 import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
 import { israelToday } from '@/lib/core/dates';
-import { CATEGORY_LABELS, WINDOW_ICON } from '@/lib/core/labels';
+import { giftCardPlan } from '@/lib/core/giftcards';
+import { CATEGORY_LABELS, WINDOW_ICON, shekel } from '@/lib/core/labels';
 import { searchStores } from '@/lib/core/normalize';
 import { bestRowId, eligibleItems, rankForStore, type Row } from '@/lib/core/rank';
 import { parseAmount } from '@/lib/core/savings';
@@ -29,6 +30,7 @@ export default function WhereAmIPage() {
   const matches = store ? [] : searchStores(snapshot.stores, query);
   const result = store ? rankForStore(snapshot, store, amount, today) : null;
   const best = result ? bestRowId(result) : null;
+  const plan = store && amount ? giftCardPlan(snapshot, store, amount, today) : null;
   const windows = activeDateBenefits(snapshot, today);
 
   const section = (title: string, rows: Row[], testId: string) =>
@@ -129,6 +131,27 @@ export default function WhereAmIPage() {
         <>
           {result.pay.length + result.show.length > 0 && !amount && (
             <p className="text-sm text-dim">הזינו סכום כדי לראות כמה תחסכו בכל כרטיס.</p>
+          )}
+          {plan && (
+            <section data-testid="gift-plan" className="space-y-2 rounded-2xl border border-party/40 bg-party/10 p-3.5">
+              <p className="flex items-center gap-2 font-semibold text-party"><Gift size={18} aria-hidden /> עם הגיפטקארד שלכם</p>
+              <ul className="space-y-1 text-sm">
+                {plan.uses.map((u) => (
+                  <li key={u.card.id}>• ממשו <span className="font-semibold">{shekel(u.amount)}</span> מ{u.card.name}</li>
+                ))}
+                {plan.discount && (
+                  <li>
+                    • {plan.discount.row.benefit.requires === 'pay_with_card' ? 'את היתרה שלמו עם' : 'הציגו'}{' '}
+                    {plan.discount.row.items.map((i) => i.nickname || i.name).join(' / ')} — חיסכון {shekel(plan.discount.saved)}
+                  </li>
+                )}
+              </ul>
+              <p className="text-sm text-muted">
+                {shekel(amount!)} − {shekel(plan.uses.reduce((s, u) => s + u.amount, 0))} גיפטקארד
+                {plan.discount ? ` − ${shekel(plan.discount.saved)} הנחה` : ''} ={' '}
+                <span className="text-base font-bold text-fg">{shekel(plan.pay)} לתשלום</span>
+              </p>
+            </section>
           )}
           {section('שלמו עם', result.pay, 'pay-results')}
           {section('הציגו או הזינו קוד', result.show, 'show-results')}
