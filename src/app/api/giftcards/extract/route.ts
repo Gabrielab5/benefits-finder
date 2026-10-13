@@ -22,7 +22,7 @@ const Extracted = z.object({
   expires_on: z.string().nullable().describe('Expiry date, YYYY-MM-DD'),
   code: z.string().nullable().describe('Voucher / card code or number'),
   any_store: z.boolean().describe('True only if it works in any business (e.g. a prepaid credit-card gift card)'),
-  stores: z.array(z.string()).describe('Store / chain names that accept it, as written'),
+  stores: z.array(z.string()).max(40).describe('Store / chain names that accept it, as written (at most 40)'),
 });
 
 const PROMPT = `Extract the details of this Israeli gift card / voucher (שובר, גיפט קארד, תו קנייה). Hebrew is common.
@@ -53,6 +53,7 @@ export async function POST(req: Request) {
       responseMimeType: 'application/json',
       responseJsonSchema: z.toJSONSchema(Extracted),
       thinkingConfig: { thinkingLevel: 'low' },
+      maxOutputTokens: 4096, // includes thinking; a busy voucher must not turn into minutes of output
     },
   }), key, req.signal);
   if (!res?.ok) return fail(res?.status === 429 ? 'rate_limited' : 'ai_failed', 502);
