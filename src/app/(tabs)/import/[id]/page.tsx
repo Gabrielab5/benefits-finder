@@ -220,7 +220,7 @@ export default function ReviewImportPage() {
       <div className="fixed inset-x-0 bottom-[84px] z-10 mx-auto flex max-w-xl gap-2 px-4"><div className="flex flex-1 gap-2 rounded-2xl border border-line bg-panel/95 p-2 backdrop-blur">
         {imp.status === 'pending_review' ? (
           <>
-            <Button disabled={!canSave} onClick={save} className="flex-1">
+            <Button disabled={!canSave} loading={busy} onClick={save} className="flex-1">
               {busy ? 'שומר…' : `שמירת ${approvedCount} הטבות`}
             </Button>
             <Button variant="secondary" disabled={busy} onClick={reject}>דחייה</Button>

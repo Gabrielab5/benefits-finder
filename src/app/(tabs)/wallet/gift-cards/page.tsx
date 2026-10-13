@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Copy, ExternalLink, Gift, Image as ImageIcon, ImageUp, Link2, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button, Card, Chip, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import Waiting from '@/components/Waiting';
 import { addDays, israelToday } from '@/lib/core/dates';
 import { GIFT_CARD_PRESETS, storesSearchUrl, type GiftCardPreset } from '@/lib/core/giftcards';
 import { formatDate, shekel } from '@/lib/core/labels';
@@ -76,6 +77,7 @@ export default function GiftCardsPage() {
   const [unmatched, setUnmatched] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   if (!snapshot) return <Loading />;
 
   const cards = snapshot.giftCards ?? [];
@@ -152,6 +154,15 @@ export default function GiftCardsPage() {
   }
 
   async function save(d: Draft) {
+    setSaving(true);
+    try {
+      await persist(d);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function persist(d: Draft) {
     const amount = parseAmount(d.amount);
     const balance = d.balance.trim() === '' ? amount : d.balance.trim() === '0' ? 0 : parseAmount(d.balance);
     if (!d.name.trim()) return setError('חסר שם.');
@@ -167,9 +178,10 @@ export default function GiftCardsPage() {
     const old = cards.find((c) => c.id === d.id)?.image_path ?? null;
     let image_path = d.image_path;
     if (d.image) {
-      const { data: { user } } = await sb.auth.getUser();
+      const uid = (await sb.auth.getSession()).data.session?.user.id; // local, no round trip; storage RLS checks it anyway
+      if (!uid) return setError('צריך להתחבר מחדש.');
       const bytes = Uint8Array.from(atob(d.image.data), (ch) => ch.charCodeAt(0));
-      image_path = `${user?.id}/gift-cards/${crypto.randomUUID()}.jpg`;
+      image_path = `${uid}/gift-cards/${crypto.randomUUID()}.jpg`;
       const { error } = await sb.storage.from(BUCKET).upload(image_path, new Blob([bytes], { type: d.image.type }));
       if (error) return setError('העלאת התמונה נכשלה.');
     }
@@ -296,10 +308,9 @@ export default function GiftCardsPage() {
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (url.trim()) extract({ url: url.trim() }); }}>
               <input type="url" required value={url} onChange={(e) => setUrl(e.target.value)} dir="ltr" placeholder="https://buyme.co.il/..."
                 aria-label="קישור לגיפטקארד" className={field} />
-              <Button type="submit" disabled={busy}>{busy ? 'קורא…' : 'חילוץ'}</Button>
+              <Button type="submit" loading={busy}>חילוץ</Button>
             </form>
           )}
-          {busy && <p className="text-sm text-muted">מחלצים את הפרטים…</p>}
           <div className="space-y-2">
             <SectionTitle>הנפוצים</SectionTitle>
             <div className="flex flex-wrap gap-2">
@@ -424,6 +435,8 @@ export default function GiftCardsPage() {
         </Card>
       )}
       {error && <Notice tone="error">{error}</Notice>}
+      {busy && <Waiting overlay label="קוראים את הגיפטקארד" />}
+      {saving && <Waiting overlay label="שומרים" />}
       {viewing && (
         <button onClick={() => setViewing(null)} aria-label="סגירה" className="fixed inset-0 z-30 grid place-items-center bg-black/90 p-4">
           {/* eslint-disable-next-line @next/next/no-img-element -- short-lived signed URL */}

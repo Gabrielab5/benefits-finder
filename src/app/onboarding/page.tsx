@@ -178,7 +178,7 @@ export default function OnboardingPage() {
       {error && <Notice tone="error">{error}</Notice>}
       <div className="flex gap-2">
         {step > 1 && <Button variant="secondary" onClick={() => setStep(step - 1)}>חזרה</Button>}
-        <Button disabled={busy || (step === 1 && !datesValid(dates))} onClick={step === 3 ? finish : () => setStep(step + 1)} className="flex-1 py-3">
+        <Button loading={busy} disabled={step === 1 && !datesValid(dates)} onClick={step === 3 ? finish : () => setStep(step + 1)} className="flex-1 py-3">
           {step === 3 ? 'סיום' : 'המשך'}
         </Button>
       </div>
