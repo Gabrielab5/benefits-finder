@@ -104,7 +104,7 @@ It's an installable **PWA**. Your last snapshot is stored on the device (Indexed
 <td valign="top">
 
 ### 🎁 Gift cards
-Keep every gift card in one place: BuyMe, תו הזהב, store cards and the rest. Add one by **pasting its link**, **uploading a screenshot** (AI fills in the details) or **typing it in**, or start from a preset for the most popular cards. It keeps the balance left, the expiry date, the code, a photo of the card to show at the register, and which stores accept it, with a Google search to find them.
+Keep every gift card in one place: BuyMe, תו הזהב, store cards and the rest. Add one by **pasting its link**, **uploading a screenshot** (AI fills in the details) or **typing it in**, or start from a preset for the most popular cards. It keeps the balance left, the expiry date, the code, a photo of the card to show at the register, and which stores accept it, with a Google search to find them. Before a card with money left expires you get a **reminder** 30, 7 and 1 days ahead, plus a banner on the home screen.
 
 </td>
 <td valign="top">
@@ -403,7 +403,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 
 ### 🎂 Special dates
 - ✅ Birthday, club birthday month, wedding anniversary, children's birthdays
-- ✅ **Push notifications**: special dates, benefits expiring this week, new benefits for your cards (free, no Resend key needed)
+- ✅ **Push notifications**: special dates, benefits expiring this week, gift cards about to expire (30 / 7 / 1 days ahead), new benefits for your cards (free, no Resend key needed)
 - 🔜 **Holiday sales calendar**: Black Friday, Pesach and Rosh Hashana sales, back-to-school
 - 💭 **Partner's birthday and pets** 🐶 (pet-store clubs have birthday perks too)
 

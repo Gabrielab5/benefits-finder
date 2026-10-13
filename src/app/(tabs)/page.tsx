@@ -5,9 +5,9 @@ import { ChevronLeft, Gift, Search, Store as StoreIcon, WifiOff, X } from 'lucid
 import BenefitCard from '@/components/BenefitCard';
 import HomeGuide from '@/components/HomeGuide';
 import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
-import { israelToday } from '@/lib/core/dates';
+import { addDays, israelToday } from '@/lib/core/dates';
 import { giftCardPlan } from '@/lib/core/giftcards';
-import { CATEGORY_LABELS, WINDOW_ICON, shekel } from '@/lib/core/labels';
+import { CATEGORY_LABELS, WINDOW_ICON, formatDate, shekel } from '@/lib/core/labels';
 import { searchStores } from '@/lib/core/normalize';
 import { bestRowId, eligibleItems, rankForStore, type Row } from '@/lib/core/rank';
 import { parseAmount } from '@/lib/core/savings';
@@ -32,6 +32,8 @@ export default function WhereAmIPage() {
   const best = result ? bestRowId(result) : null;
   const plan = store && amount ? giftCardPlan(snapshot, store, amount, today) : null;
   const windows = activeDateBenefits(snapshot, today);
+  const monthAhead = addDays(today.iso, 30);
+  const expiringGifts = (snapshot.giftCards ?? []).filter((c) => c.balance > 0 && c.expires_on && c.expires_on >= today.iso && c.expires_on <= monthAhead);
 
   const section = (title: string, rows: Row[], testId: string) =>
     rows.length > 0 && (
@@ -65,6 +67,18 @@ export default function WhereAmIPage() {
                 <span aria-hidden>{WINDOW_ICON[window.kind]}</span> {window.label} — {benefits.length} הטבות פעילות החודש
               </span>
             ))}
+          </span>
+          <ChevronLeft size={18} aria-hidden />
+        </Link>
+      )}
+
+      {expiringGifts.length > 0 && (
+        <Link href="/wallet/gift-cards" className="flex items-center gap-3 rounded-2xl border border-warn/30 bg-warn/10 p-3.5 text-warn">
+          <Gift size={18} aria-hidden />
+          <span className="flex-1 font-semibold">
+            {expiringGifts.length === 1
+              ? `${shekel(expiringGifts[0].balance)} ב${expiringGifts[0].name} פג עד ${formatDate(expiringGifts[0].expires_on!)}`
+              : `${expiringGifts.length} גיפטקארדים פגים החודש — ${shekel(expiringGifts.reduce((s, c) => s + c.balance, 0))}`}
           </span>
           <ChevronLeft size={18} aria-hidden />
         </Link>
