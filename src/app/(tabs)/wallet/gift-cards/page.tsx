@@ -52,8 +52,9 @@ interface Extracted {
 const ERRORS: Record<string, string> = {
   unreadable: 'לא הצלחנו לקרוא את הקישור (אולי צריך להתחבר כדי לראות אותו). הקישור נשמר — השלימו את הפרטים ידנית או העלו צילום מסך.',
   ai_off: 'החילוץ האוטומטי כבוי. מלאו את הפרטים ידנית.',
-  rate_limited: 'יותר מדי בקשות כרגע. נסו שוב בעוד דקה, או מלאו ידנית.',
-  default: 'לא הצלחנו לחלץ את הפרטים. מלאו אותם ידנית.',
+  rate_limited: 'הגענו למכסת ה-AI החינמית לרגע. נסו שוב בעוד דקה, או מלאו ידנית.',
+  ai_failed: 'ה-AI של Google עמוס כרגע ולא הספיק לקרוא את הגיפטקארד. הצילום נשמר בטופס — נסו שוב, או מלאו ידנית.',
+  default: 'לא הצלחנו לחלץ את הפרטים. נסו שוב, או מלאו אותם ידנית.',
 };
 
 /** Phone screenshots can pass the 4.5 MB request limit; a 1600 px JPEG keeps text readable and stays small. */
@@ -78,6 +79,7 @@ export default function GiftCardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [retry, setRetry] = useState<(() => void) | null>(null); // last failed extraction, same input
   if (!snapshot) return <Loading />;
 
   const cards = snapshot.giftCards ?? [];
@@ -100,6 +102,7 @@ export default function GiftCardsPage() {
   async function extract(input: { url: string } | { image: Shot }) {
     setBusy(true);
     setError(null);
+    setRetry(null);
     const base = { ...EMPTY, link: 'url' in input ? input.url : '', image: 'image' in input ? input.image : null };
     try {
       const res = await fetch('/api/giftcards/extract', {
@@ -116,7 +119,9 @@ export default function GiftCardsPage() {
         any_store: x.any_store, store_ids: x.store_ids, stores_url: x.name && !x.any_store ? storesSearchUrl(x.name) : '',
       });
     } catch (e) {
-      setError(ERRORS[(e as Error).message] ?? ERRORS.default);
+      const code = (e as Error).message;
+      setError(ERRORS[code] ?? ERRORS.default);
+      if (code !== 'unreadable' && code !== 'ai_off') setRetry(() => () => extract(input));
       setUnmatched([]);
       open(base);
     } finally {
@@ -435,6 +440,9 @@ export default function GiftCardsPage() {
         </Card>
       )}
       {error && <Notice tone="error">{error}</Notice>}
+      {error && retry && (
+        <Button variant="secondary" onClick={retry} className="w-full">נסו לקרוא שוב</Button>
+      )}
       {busy && <Waiting overlay label="קוראים את הגיפטקארד" />}
       {saving && <Waiting overlay label="שומרים" />}
       {viewing && (

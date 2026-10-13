@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { callGemini, FAST } from '@/lib/ai/gemini';
+import { raceGemini } from '@/lib/ai/gemini';
 import { israelToday } from '@/lib/core/dates';
 import { findStoreByName } from '@/lib/core/normalize';
 import type { Store } from '@/lib/core/types';
@@ -13,6 +13,7 @@ export const maxDuration = 60;
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const MAX_IMAGE = 6_000_000; // base64 chars (~4.5 MB, the request body limit)
 const fail = (error: string, status = 422) => NextResponse.json({ error }, { status });
+type GeminiJson = { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
 
 const Extracted = z.object({
   name: z.string().nullable().describe('Gift card brand / name, e.g. "BuyMe", "תו הזהב", "שופרסל"'),
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
     return fail('bad_request', 400);
   }
 
-  const res = await callGemini('generateContent', JSON.stringify({
+  const res = await raceGemini(JSON.stringify({
     contents: [{ role: 'user', parts: [{ text: `${PROMPT}\nToday is ${israelToday().iso}.` }, part] }],
     generationConfig: {
       responseMimeType: 'application/json',
@@ -55,21 +56,16 @@ export async function POST(req: Request) {
       thinkingConfig: { thinkingLevel: 'low' },
       maxOutputTokens: 4096, // includes thinking; a busy voucher must not turn into minutes of output
     },
-  }), key, req.signal, FAST);
-  if (!res?.ok) return fail(res?.status === 429 ? 'rate_limited' : 'ai_failed', 502);
-
-  const parts: { text?: string; thought?: boolean }[] = (await res.json()).candidates?.[0]?.content?.parts ?? [];
-  let parsed;
-  try {
-    parsed = Extracted.safeParse(JSON.parse(parts.filter((p) => !p.thought).map((p) => p.text ?? '').join('')));
-  } catch {
-    return fail('ai_failed', 502);
-  }
-  if (!parsed.success) return fail('ai_failed', 502);
+  }), key, (json) => {
+    // A malformed answer is rejected here, so the other model's answer can still win.
+    const parts: { text?: string; thought?: boolean }[] = (json as GeminiJson).candidates?.[0]?.content?.parts ?? [];
+    return Extracted.parse(JSON.parse(parts.filter((p) => !p.thought).map((p) => p.text ?? '').join('')));
+  });
+  if (!res.ok) return fail(res.status === 429 ? 'rate_limited' : 'ai_failed', 502);
 
   // Map the names to catalog stores; the rest go back as text for the user to see.
   const stores = await selectAll<Store>((a, b) => supabase.from('stores').select('*').order('id').range(a, b));
-  const { stores: names, ...details } = parsed.data;
+  const { stores: names, ...details } = res.value;
   const found = names.map((n) => [n, findStoreByName(stores, n)] as const);
   return NextResponse.json({
     ...details,
