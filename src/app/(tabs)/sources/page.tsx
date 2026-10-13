@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, Layers, Plus, RefreshCw, Search, Trash2, TriangleAlert } from 'lucide-react';
 import { Chip, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import Waiting from '@/components/Waiting';
 import { isShared } from '@/lib/core/catalog';
 import { CATEGORY_LABELS, formatDate, KIND_LABELS } from '@/lib/core/labels';
 import { listSources, type SourceSort } from '@/lib/core/sources';
@@ -204,6 +205,7 @@ export default function SourcesPage() {
           </ul>
         </section>
       )}
+      {busyId && <Waiting overlay label="מרעננים את ההטבות — עד כמה דקות" />}
     </main>
   );
 }

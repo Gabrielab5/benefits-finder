@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import Waiting from './Waiting';
 
 /** Shared look for text inputs, selects and textareas. */
 export const field =
@@ -13,16 +14,25 @@ const VARIANTS = {
   danger: 'text-bad hover:bg-panel-2',
 } as const;
 
+/** `loading`: disabled with a spinner right away, so a tap always shows it registered. */
 export function Button({
   variant = 'primary',
   className = '',
+  loading = false,
+  disabled,
+  children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: keyof typeof VARIANTS }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: keyof typeof VARIANTS; loading?: boolean }) {
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 ${VARIANTS[variant]} ${className}`}
-    />
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm transition active:scale-[0.98] disabled:pointer-events-none ${loading ? 'disabled:opacity-80' : 'disabled:opacity-40'} ${VARIANTS[variant]} ${className}`}
+    >
+      {loading && <span className="btn-spinner" aria-hidden />}
+      {children}
+    </button>
   );
 }
 
@@ -74,14 +84,8 @@ export function Notice({ tone = 'info', children }: { tone?: keyof typeof TONES;
   return <p className={`rounded-xl border px-3 py-2 text-sm ${TONES[tone]}`}>{children}</p>;
 }
 
-export function Loading() {
-  return (
-    <div className="space-y-3 p-4" aria-label="טוען">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="h-20 animate-pulse rounded-2xl bg-panel" />
-      ))}
-    </div>
-  );
+export function Loading({ label = 'טוענים את ההטבות שלכם' }: { label?: string }) {
+  return <Waiting label={label} />;
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {

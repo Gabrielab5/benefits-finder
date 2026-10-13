@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Check, ChevronLeft, Copy, ExternalLink, Plus } from 'lucide-react';
 import { Button, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import Waiting from '@/components/Waiting';
 import { buildChatPrompt, parseChatAnswer } from '@/lib/ai/chatImport';
 import { isShared } from '@/lib/core/catalog';
 import { israelToday } from '@/lib/core/dates';
@@ -214,7 +215,7 @@ export default function ImportPage() {
       )}
       {mode === 'manual' && <Notice>הקלדת הטבות בעצמכם, בלי AI. תמיד עובד ובחינם.</Notice>}
 
-      <Button disabled={!ready} onClick={submit} className="w-full py-3">
+      <Button disabled={!ready} loading={busy} onClick={submit} className="w-full py-3">
         {mode === 'manual' ? 'הוספה ידנית' : mode === 'chat' ? 'המשך לבדיקה'
           : busy ? 'מחלץ הטבות… זה יכול לקחת כמה דקות' : 'חילוץ הטבות'}
       </Button>
@@ -234,6 +235,9 @@ export default function ImportPage() {
             ))}
           </ul>
         </section>
+      )}
+      {busy && (mode === 'link' || mode === 'text' || mode === 'screenshot') && (
+        <Waiting overlay label="מחלצים הטבות — זה יכול לקחת כמה דקות" />
       )}
     </main>
   );

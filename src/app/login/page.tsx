@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, Mail } from 'lucide-react';
 import { Button, Notice, field } from '@/components/ui';
+import Waiting from '@/components/Waiting';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
 function GoogleLogo() {
@@ -44,6 +45,7 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState<string | null>(null); // full-screen wait while the browser moves on
 
   async function sendCode(e: FormEvent) {
     e.preventDefault();
@@ -63,18 +65,26 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     const { error } = await supabaseBrowser().auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' });
-    setBusy(false);
-    if (error) setError('הקוד שגוי או שפג תוקפו.');
-    else location.href = '/';
+    if (error) {
+      setBusy(false);
+      setError('הקוד שגוי או שפג תוקפו.');
+      return;
+    }
+    setLeaving('נכנסים לחשבון');
+    location.href = '/';
   }
 
   async function google() {
     setError(null);
+    setLeaving('מעבירים אתכם ל-Google'); // shows at once; the redirect itself can take a few seconds
     const { error } = await supabaseBrowser().auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${location.origin}/auth/callback` },
     });
-    if (error) setError('הכניסה עם Google עדיין לא הוגדרה.');
+    if (error) {
+      setLeaving(null);
+      setError('הכניסה עם Google עדיין לא הוגדרה.');
+    }
   }
 
   return (
@@ -96,7 +106,7 @@ export default function LoginPage() {
                   placeholder="name@example.com" autoComplete="email" className={`${field} ps-10 text-start`} />
               </div>
             </label>
-            <Button disabled={busy} className="w-full py-3">שלחו לי קוד כניסה</Button>
+            <Button loading={busy} className="w-full py-3">{busy ? 'שולחים קוד…' : 'שלחו לי קוד כניסה'}</Button>
           </form>
         ) : (
           <form onSubmit={verify} className="space-y-4">
@@ -104,7 +114,7 @@ export default function LoginPage() {
               שלחנו קוד ל-<span className="text-fg" dir="ltr">{email}</span>
             </p>
             <CodeBoxes value={code} onChange={setCode} />
-            <Button disabled={busy || code.length < 6} className="w-full py-3">כניסה</Button>
+            <Button loading={busy} disabled={code.length < 6} className="w-full py-3">{busy ? 'בודקים…' : 'כניסה'}</Button>
             <button type="button" onClick={() => { setSent(false); setCode(''); }}
               className="mx-auto flex items-center gap-1 text-sm text-mint">
               <ArrowRight size={14} aria-hidden /> לשלוח שוב / לשנות אימייל
@@ -116,14 +126,15 @@ export default function LoginPage() {
           <span className="h-px flex-1 bg-line" /> או <span className="h-px flex-1 bg-line" />
         </div>
 
-        <button onClick={google}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 active:scale-[0.98]">
-          <GoogleLogo /> המשך עם Google
+        <button onClick={google} disabled={!!leaving}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 active:scale-[0.98] disabled:opacity-80">
+          {leaving ? <span className="btn-spinner text-gray-500" aria-hidden /> : <GoogleLogo />} המשך עם Google
         </button>
         {error && <Notice tone="error">{error}</Notice>}
       </div>
 
       <p className="text-center text-xs text-dim">הכניסה פתוחה רק למשתמשים שהוזמנו.</p>
+      {leaving && <Waiting overlay label={leaving} />}
     </main>
   );
 }

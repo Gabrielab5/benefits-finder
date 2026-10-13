@@ -79,7 +79,7 @@ export default function PushSettings({ profile, online, onChange }: { profile: P
       {!online && (state === 'on' || state === 'off') && <Notice tone="warn">שינוי הגדרות ההתראות דורש חיבור לאינטרנט.</Notice>}
       {state === 'denied' && <Notice tone="warn">ההתראות חסומות בהגדרות הדפדפן. אפשר לאפשר אותן בהגדרות האתר.</Notice>}
       {state === 'off' && (
-        <Button disabled={!online || busy} onClick={enable} className="w-full">הפעלת התראות במכשיר הזה</Button>
+        <Button disabled={!online} loading={busy} onClick={enable} className="w-full">הפעלת התראות במכשיר הזה</Button>
       )}
       {state === 'on' && (
         <>

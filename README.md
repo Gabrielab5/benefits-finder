@@ -419,6 +419,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 - 💭 **Share a benefit** to WhatsApp in one tap
 
 ### 🌍 Reach & polish
+- ✅ **Instant feedback**: every button shows it was tapped, and longer waits (login, reading a gift card, importing) get a loading screen with a catch-the-shekels mini game 🪙
 - 🔜 **English and Arabic UI** (the search already understands English)
 - 🔜 **Light theme** next to the current dark one
 - 🔜 **Accessibility pass**: screen-reader labels, larger text mode, contrast
