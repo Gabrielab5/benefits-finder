@@ -338,6 +338,8 @@ Set `is_admin = true` on your row in the `profile` table once (SQL editor). The 
 | `npm run test:ai` | Regression tests for the optional paid AI extraction |
 | `npm run lint` | ESLint |
 
+Every pull request runs `lint`, `test` and `build` on GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)); a PR merges only when they pass.
+
 ---
 
 ## ☁️ Deployment
