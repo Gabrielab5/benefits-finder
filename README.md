@@ -355,6 +355,8 @@ Add the same environment variables in **Vercel → Settings → Environment Vari
 ### Keeping benefits fresh
 Benefits change all the time. [`scripts/monthly-refresh.md`](scripts/monthly-refresh.md) describes the monthly refresh: re-research each program, load the results as **pending imports** with [`scripts/load-researched-benefits.mjs`](scripts/load-researched-benefits.mjs), review them in the app and approve. Nothing reaches users without a human review.
 
+The store list itself comes from [`docs/research/israel-chains-loyalty-clubs.md`](docs/research/israel-chains-loyalty-clubs.md): about 300 Israeli store and restaurant chains by category, whether each has its own club, and the club benefits with their sources. New chains go into [`src/lib/seedStores.ts`](src/lib/seedStores.ts) and reach the shared catalog with `npx tsx scripts/add-seed-stores.mts` (safe to re-run, skips any spelling that's already there). New store clubs go in with [`scripts/add-shared-clubs.mjs`](scripts/add-shared-clubs.mjs), and their benefits through the same pending-import review.
+
 ---
 
 ## 📁 Project structure
