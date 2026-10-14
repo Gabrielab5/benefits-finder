@@ -69,8 +69,16 @@ test('search a store in English and see the best card first', async ({ page, con
   await page.getByRole('button', { name: /מנגו בדיקה/ }).click();
   await page.getByLabel('כמה אתם מוציאים? (₪)').fill('400');
 
-  const first = page.getByTestId('pay-results').getByRole('listitem').first();
-  await expect(first).toContainText('כרטיס בדיקה ב'); // ₪50 beats 10% of ₪400 = ₪40
-  await expect(first).toContainText('₪50');
-  await expect(first).toContainText('הכי משתלם');
+  const answer = page.getByTestId('answer'); // the winner, hoisted above the other options
+  await expect(answer).toContainText('הכי משתלם');
+  await expect(answer).toContainText('כרטיס בדיקה ב'); // ₪50 beats 10% of ₪400 = ₪40
+  await expect(answer).toContainText('₪50');
+  await expect(page.getByTestId('pay-results').getByRole('listitem').first()).toContainText('₪40');
+
+  // Store and amount survive a tab switch (and sit in the URL as a shareable link).
+  await expect(page).toHaveURL(/store=.+&amount=400/);
+  await page.getByRole('link', { name: 'כל ההטבות' }).click();
+  await expect(page).toHaveURL(/\/benefits/);
+  await page.getByRole('link', { name: 'איפה אני' }).click();
+  await expect(page.getByTestId('answer')).toContainText('₪50');
 });

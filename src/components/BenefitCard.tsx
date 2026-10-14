@@ -18,7 +18,7 @@ interface Props {
   amount?: number | null; // the entered purchase amount the savings were computed for
   dateLocked: boolean;
   lockedMonths: number[];
-  best?: boolean;
+  best?: boolean; // the hoisted answer: action first, mint border and glow
 }
 
 export default function BenefitCard({ benefit, program, items, store, savings, amount, dateLocked, lockedMonths, best = false }: Props) {
@@ -31,6 +31,13 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
   const how = met && amount ? savingsDerivation(benefit, amount, savings) : null;
   const outdated = isOutdated(benefit.last_verified_at, new Date());
   const isPrivate = Boolean(benefit.user_id);
+  const title = (
+    <>
+      {benefit.timing !== 'always' && <span aria-label={TIMING_LABELS[benefit.timing]}>{TIMING_ICON[benefit.timing]} </span>}
+      {benefit.title}
+    </>
+  );
+  const more = line.more.map((m) => ` · ${m}`).join('');
 
   async function copyCode() {
     if (!benefit.coupon_code) return;
@@ -39,7 +46,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
   }
 
   return (
-    <li className={`rounded-2xl border bg-panel p-3.5 transition ${best ? 'border-mint' : 'border-line'} ${dateLocked ? 'opacity-50' : ''}`}>
+    <li className={`rounded-2xl border bg-panel p-3.5 transition ${best ? 'answer border-mint' : 'border-line'} ${dateLocked ? 'opacity-50' : ''}`}>
       {best && (
         <p className="mb-2 flex items-center gap-1 text-xs font-semibold text-mint">
           <Sparkles size={14} aria-hidden /> הכי משתלם
@@ -49,24 +56,28 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
       <div className="flex items-start gap-3">
         <span aria-hidden className="mt-0.5 grid h-7 w-11 shrink-0 place-items-center overflow-hidden rounded-md px-0.5 text-[6px] font-black leading-none tracking-wider text-white/90"
           style={{ background: swatchBg }}>{art?.mark}</span>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold leading-snug text-fg">
-            {benefit.timing !== 'always' && <span aria-label={TIMING_LABELS[benefit.timing]}>{TIMING_ICON[benefit.timing]} </span>}
-            {benefit.title}
-          </p>
-          <p className="mt-0.5 text-sm text-muted">
-            {line.verb} <span className="text-fg">{line.who}</span>
-            {line.more.map((m) => ` · ${m}`).join('')}
-          </p>
-        </div>
-        <div className="shrink-0 text-end">
+        {best ? (
+          <div className="min-w-0 flex-1">
+            <p className="font-bold leading-snug text-fg">{line.verb} {line.who}</p>
+            <p className="mt-0.5 text-sm text-muted">{title}{more}</p>
+          </div>
+        ) : (
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold leading-snug text-fg">{title}</p>
+            <p className="mt-0.5 text-sm text-muted">
+              {line.verb} <span className="text-fg">{line.who}</span>
+              {more}
+            </p>
+          </div>
+        )}
+        <div className="max-w-[40%] shrink-0 text-end">
           {met ? (
             <>
               <p className="text-lg font-bold leading-none text-mint">{shekel(savings.saved)}</p>
               <p className="mt-1 text-[11px] text-dim">חיסכון</p>
             </>
           ) : (
-            <span className="rounded-lg bg-panel-2 px-2 py-1 text-xs font-semibold text-fg">{headlineText(benefit)}</span>
+            <span className="inline-block rounded-lg bg-panel-2 px-2 py-1 text-xs font-semibold leading-snug text-fg">{headlineText(benefit)}</span>
           )}
         </div>
       </div>

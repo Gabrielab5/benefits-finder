@@ -235,6 +235,7 @@ Depth is a hybrid. Tonal layering does most of the work (Midnight Pocket → Lin
 ### Shadow Vocabulary
 - **Glass edge** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05)`): every panel surface. Not optional.
 - **Mint gloss** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6)`): every mint fill (primary button, active chip, step badges).
+- **Answer glow** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6)`): the hoisted answer on the store screen only, with its mint border (`.answer`).
 - **Card lift** (`box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3)`): wallet card art only.
 - **Pulse ring** (animated `0 0 0 0` → `0 0 0 12px rgb(62 232 173 / 0)`): a one-off attention ring on a guided first action.
 
@@ -286,7 +287,7 @@ A 40px square icon tile with a 12px radius, a violet-to-mint diagonal tint at 30
 A 12px-radius line of body text in four tones: info (Raised Lining, Fog), warn, error and success. The last three follow the Tinted Status Rule.
 
 ### Benefit Card (signature)
-The answer unit on the store screen and the all-benefits list. A Lining Navy card (16px, 14px padding) with a 44×28px mini card swatch in issuer colors at the start. Next comes the benefit title in Body Strong with the action line beneath ("pay with" / "show" plus the card and program names). The ₪ saving (Shekel Figure Rule) or a value badge sits at the end. The best result gets a full mint border and a mint "הכי משתלם" label with a sparkle icon. Date-locked benefits drop to 50% opacity with a pink "available in" pill. Details expand in a native `<details>` with a rotating chevron, and the source link is in mint.
+The answer unit on the store screen and the all-benefits list. A Lining Navy card (16px, 14px padding) with a 44×28px mini card swatch in issuer colors at the start. Next comes the benefit title in Body Strong with the action line beneath ("pay with" / "show" plus the card and program names). The ₪ saving (Shekel Figure Rule) or a value badge sits at the end. The best result is hoisted directly under the amount field as the answer: a mint "הכי משתלם" label with a sparkle icon and why it won, the action first in bold ("הציגו רי-בר", "שלמו עם מקס") with the benefit title beneath, the ₪ figure and its derivation, and the coupon code to copy. It gets a full mint border and the Answer glow. The rest follow under "עוד אפשרויות", without the winner. Long value badges wrap inside a 40% end column so the title keeps most of the row. Date-locked benefits drop to 50% opacity with a pink "available in" pill. Details expand in a native `<details>` with a rotating chevron, and the source link is in mint.
 
 ### Wallet Card (signature)
 Each held card or club is drawn as a credit-card shaped tile (1.6:1, 16px radius, Card Lift shadow). The fill is a 140° gradient between two approximate issuer colors. Without a known brand, the user's chosen color fades into the page ink. The top-start corner carries a 10px black-weight wordmark with 0.08em tracking. The card name is in bold with a drop shadow, the program names sit at the bottom, and the last 4 digits are in tracked mono. On-card actions are 28px icon tiles in 25% black with backdrop blur.
@@ -307,7 +308,7 @@ Long waits (sign-in, reading a gift card, importing) show a spinning coin with a
 
 ### Don't:
 - **Don't** use issuer brand colors (Max pink, Shufersal red, Rebar green…) on buttons, banners, chips or headings. The app is not affiliated with any issuer.
-- **Don't** put drop shadows on panels or cards. Only mint fills, wallet card art and the floating nav get real depth.
+- **Don't** put drop shadows on panels or cards. Only mint fills, the hoisted answer, wallet card art and the floating nav get real depth.
 - **Don't** use mint for decoration, headings or non-savings emphasis.
 - **Don't** introduce a second typeface. Monospace is only for codes and card digits.
 - **Don't** use physical left/right for layout or icon placement.

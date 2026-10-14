@@ -88,6 +88,6 @@ export function Loading({ label = 'טוענים את ההטבות שלכם' }: {
   return <Waiting label={label} />;
 }
 
-export function SectionTitle({ children }: { children: ReactNode }) {
-  return <h2 className="text-xs font-semibold tracking-wide text-dim">{children}</h2>;
+export function SectionTitle({ children, as: Tag = 'h2' }: { children: ReactNode; as?: 'h2' | 'h3' }) {
+  return <Tag className="text-xs font-semibold tracking-wide text-dim">{children}</Tag>;
 }

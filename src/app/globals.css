@@ -41,6 +41,9 @@ body {
 /* Panels get a faint glass edge on top. */
 .bg-panel, .bg-panel-2 { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); }
 
+/* The hoisted answer on the store screen: the one panel that glows mint (after .bg-panel so it wins). */
+.answer { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6); }
+
 /* Light sweep across primary buttons and active chips on hover. */
 .shiny { position: relative; overflow: hidden; isolation: isolate; }
 .shiny::after {

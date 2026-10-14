@@ -48,7 +48,7 @@ So at the register you guess. You pay with whatever card is on top and walk away
 <td width="50%" valign="top">
 
 ### 🔍 "Where am I?"
-Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנגו`, `מקדונלדס` and `McDonald's` all work. Enter what you're spending and every benefit you hold is ranked by **real ₪ savings**. The winner gets a glowing **"הכי משתלם"** (best value) badge.
+Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנגו`, `מקדונלדס` and `McDonald's` all work. Enter what you're spending (a quick ₪100/300/500 chip or Enter drops the keyboard) and every benefit you hold is ranked by **real ₪ savings**. The winner is lifted to the top as **one answer**: "show your Rebar card" or "pay with Max", the ₪ saved and how, and the coupon code to copy. Everything else follows under "עוד אפשרויות". The store and amount live in the URL (`/?store=…&amount=…`), so switching tabs keeps them and a link opens straight to that store.
 
 </td>
 <td width="50%" valign="top">
@@ -333,7 +333,7 @@ Set `is_admin = true` on your row in the `profile` table once (SQL editor). The 
 |---|---|
 | `npm test` | ~150 unit tests: search, ranking, savings, dates, merge, import parsing, catalog rules |
 | `npm run test:db` | Row-level security against a real Supabase: users can't see or edit each other's data, and only admins can write to the shared catalog |
-| `npm run e2e` | Playwright: the full "search a store → best card first" flow and new-user onboarding |
+| `npm run e2e` | Playwright: the full "search a store → best card first" flow (kept across a tab switch) and new-user onboarding |
 | `npm run test:ai` | Regression tests for the optional paid AI extraction |
 | `npm run lint` | ESLint |
 

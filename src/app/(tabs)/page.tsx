@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, Gift, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
 import HomeGuide from '@/components/HomeGuide';
@@ -12,40 +13,78 @@ import { searchStores } from '@/lib/core/normalize';
 import { bestRowId, eligibleItems, rankForStore, type Row } from '@/lib/core/rank';
 import { parseAmount } from '@/lib/core/savings';
 import { activeDateBenefits } from '@/lib/core/specialDates';
-import type { Store } from '@/lib/core/types';
 import { useSnap } from '@/lib/useSnapshot';
 
 const QUICK_AMOUNTS = [100, 300, 500];
 
+// The store and amount live in the URL (?store=<id>&amount=<n>): it survives a reload and makes a shareable link.
+// The nav links to a bare "/", so the last query is also kept here and restored when you come back from another tab.
+let lastQuery = '';
+
 export default function WhereAmIPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <WhereAmI />
+    </Suspense>
+  );
+}
+
+function WhereAmI() {
   const { snapshot, online, error } = useSnap();
+  const params = useSearchParams();
+  const initial = () => (params.has('store') ? params : new URLSearchParams(lastQuery));
   const [query, setQuery] = useState('');
-  const [store, setStore] = useState<Store | null>(null);
-  const [amountText, setAmountText] = useState('');
+  const [storeId, setStoreId] = useState(() => initial().get('store'));
+  const [amountText, setAmountText] = useState(() => initial().get('amount') ?? '');
+  const amountInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const q = new URLSearchParams();
+    if (storeId) q.set('store', storeId);
+    if (storeId && amountText) q.set('amount', amountText);
+    lastQuery = q.toString();
+    const search = lastQuery ? `?${lastQuery}` : '';
+    // The native call syncs with Next's router without scrolling or a server round trip, so it also works offline.
+    if (location.search !== search) history.replaceState(null, '', search || location.pathname);
+  }, [storeId, amountText]);
 
   if (!snapshot) return <Loading />;
 
   const today = israelToday();
   const amount = parseAmount(amountText);
+  const store = (storeId && snapshot.stores.find((s) => s.id === storeId)) || null;
   const matches = store ? [] : searchStores(snapshot.stores, query);
   const result = store ? rankForStore(snapshot, store, amount, today) : null;
   const best = result ? bestRowId(result) : null;
+  const bestRow = result && best ? [...result.pay, ...result.show].find((r) => r.benefit.id === best) ?? null : null;
+  const others = result ? result.pay.length + result.show.length + result.other.length - (bestRow ? 1 : 0) : 0;
   const plan = store && amount ? giftCardPlan(snapshot, store, amount, today) : null;
   const windows = activeDateBenefits(snapshot, today);
   const monthAhead = addDays(today.iso, 30);
   const expiringGifts = (snapshot.giftCards ?? []).filter((c) => c.balance > 0 && c.expires_on && c.expires_on >= today.iso && c.expires_on <= monthAhead);
 
-  const section = (title: string, rows: Row[], testId: string) =>
-    rows.length > 0 && (
+  // The winner is the answer above, so the groups list everything else.
+  const section = (title: string, rows: Row[], testId: string) => {
+    const rest = rows.filter((r) => r !== bestRow);
+    return rest.length > 0 && (
       <section className="space-y-2">
-        <SectionTitle>{title}</SectionTitle>
+        <SectionTitle as={bestRow ? 'h3' : 'h2'}>{title}</SectionTitle>
         <ul data-testid={testId} className="space-y-2">
-          {rows.map((r) => (
-            <BenefitCard key={r.benefit.id} {...r} amount={amount} best={r.benefit.id === best} />
+          {rest.map((r) => (
+            <BenefitCard key={r.benefit.id} {...r} amount={amount} />
           ))}
         </ul>
       </section>
     );
+  };
+
+  const groups = result && (
+    <>
+      {section('שלמו עם', result.pay, 'pay-results')}
+      {section('הציגו או הזינו קוד', result.show, 'show-results')}
+      {section('הטבות נוספות', result.other, 'other-results')}
+    </>
+  );
 
   return (
     <main className="space-y-5">
@@ -91,7 +130,7 @@ export default function WhereAmIPage() {
             <p className="font-semibold">{store.name_he}</p>
             <p className="text-xs text-muted">{store.name_en} · {CATEGORY_LABELS[store.category]}</p>
           </div>
-          <button onClick={() => { setStore(null); setQuery(''); }} aria-label="החלפת חנות"
+          <button onClick={() => { setStoreId(null); setQuery(''); }} aria-label="החלפת חנות"
             className="grid h-9 w-9 place-items-center rounded-xl text-muted hover:bg-panel-2 hover:text-fg">
             <X size={18} aria-hidden />
           </button>
@@ -107,7 +146,7 @@ export default function WhereAmIPage() {
             <ul className="overflow-hidden rounded-2xl border border-line bg-panel">
               {matches.map((s) => (
                 <li key={s.id} className="border-b border-line last:border-0">
-                  <button onClick={() => setStore(s)} className="flex w-full items-center gap-3 p-3 text-start hover:bg-panel-2">
+                  <button onClick={() => setStoreId(s.id)} className="flex w-full items-center gap-3 p-3 text-start hover:bg-panel-2">
                     <StoreIcon size={16} className="text-dim" aria-hidden />
                     <span>{s.name_he} <span className="text-muted">· {s.name_en}</span></span>
                   </button>
@@ -135,19 +174,26 @@ export default function WhereAmIPage() {
         <div className="space-y-2">
           <label className="block">
             <span className="text-sm text-muted">כמה אתם מוציאים? (₪)</span>
-            <input inputMode="decimal" value={amountText} onChange={(e) => setAmountText(e.target.value)} dir="ltr"
+            <input ref={amountInput} inputMode="decimal" enterKeyHint="done" value={amountText} dir="ltr"
+              onChange={(e) => setAmountText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
               placeholder="0" className={`${field} mt-1 text-lg`} />
           </label>
           <div className="flex gap-2">
             {QUICK_AMOUNTS.map((n) => (
-              <Chip key={n} active={amount === n} onClick={() => setAmountText(String(n))}>₪{n}</Chip>
+              // Drop the phone keyboard so the answer below is in view.
+              <Chip key={n} active={amount === n} onClick={() => { setAmountText(String(n)); amountInput.current?.blur(); }}>₪{n}</Chip>
             ))}
           </div>
         </div>
       )}
 
       {result && (
-        <>
+        <div className="space-y-5">
+          {bestRow && (
+            <ul data-testid="answer">
+              <BenefitCard {...bestRow} amount={amount} best />
+            </ul>
+          )}
           {result.pay.length + result.show.length > 0 && !amount && (
             <p className="text-sm text-dim">הזינו סכום כדי לראות כמה תחסכו בכל כרטיס.</p>
           )}
@@ -172,13 +218,18 @@ export default function WhereAmIPage() {
               </p>
             </section>
           )}
-          {section('שלמו עם', result.pay, 'pay-results')}
-          {section('הציגו או הזינו קוד', result.show, 'show-results')}
-          {section('הטבות נוספות', result.other, 'other-results')}
+          {bestRow ? (
+            others > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-sm font-semibold text-muted">עוד אפשרויות</h2>
+                <div className="space-y-5">{groups}</div>
+              </section>
+            )
+          ) : groups}
           {result.pay.length + result.other.length + result.show.length === 0 && (
             <Notice>אין לכם הטבות בחנות הזו.</Notice>
           )}
-        </>
+        </div>
       )}
     </main>
   );
