@@ -356,7 +356,7 @@ Benefits change all the time. [`scripts/monthly-refresh.md`](scripts/monthly-ref
 ```text
 src/
 ├─ app/
-│  ├─ (tabs)/            # the 5 bottom-nav screens
+│  ├─ (tabs)/            # the 6 bottom-nav screens
 │  │  ├─ page.tsx        # 🔍 Where am I?
 │  │  ├─ benefits/       # 📋 All benefits
 │  │  ├─ wallet/         # 💳 My wallet (+ gift-cards/)

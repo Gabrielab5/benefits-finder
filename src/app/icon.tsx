@@ -7,7 +7,7 @@ export default function Icon() {
   return new ImageResponse(
     (
       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#0e1424', color: '#34d399', fontSize: 320, fontWeight: 700 }}>
+        background: '#161d38', color: '#3ee8ad', fontSize: 320, fontWeight: 700 }}>
         ₪
       </div>
     ),

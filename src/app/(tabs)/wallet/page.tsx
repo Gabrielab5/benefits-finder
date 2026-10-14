@@ -115,7 +115,7 @@ export default function WalletPage() {
                 const art = cardArtFor([w.name, ...w.program_ids.map((id) => programs.get(id)?.name ?? '')]);
                 const background = art
                   ? `linear-gradient(140deg, ${art.from}, ${art.to})`
-                  : `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)`;
+                  : `linear-gradient(140deg, ${color}, ${color}88 60%, var(--color-ink))`;
                 const product = w.product_id ? productById.get(w.product_id) : undefined;
                 return (
                   <li key={w.id} className="space-y-1.5">
