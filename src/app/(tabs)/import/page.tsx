@@ -141,7 +141,7 @@ export default function ImportPage() {
 
   return (
     <main className="space-y-5">
-      <PageHeader title="ייבוא הטבות" subtitle="בעזרת צ׳אט חינמי או ידנית" icon={Plus} />
+      <PageHeader title="הוספת הטבות" subtitle="בעזרת צ׳אט חינמי או ידנית" icon={Plus} />
       {!online && <Notice tone="warn">ייבוא דורש חיבור לאינטרנט.</Notice>}
 
       <label className="block">

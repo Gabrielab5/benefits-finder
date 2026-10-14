@@ -115,7 +115,7 @@ export default function ReviewImportPage() {
       setImp({ ...imp, status: 'saved' });
       setMessage(
         `נשמר: ${plan.inserts.length} חדשות, ${plan.updates.length} עודכנו` +
-          (plan.notSeen.length ? `, ${plan.notSeen.length} לא נמצאו בדף (לאישור בלשונית "מקורות")` : '') + '.',
+          (plan.notSeen.length ? `, ${plan.notSeen.length} לא נמצאו בדף (לאישור בעמוד "הקטלוג")` : '') + '.',
       );
     } catch {
       await refresh(); // so a retry merges against what was already saved — no duplicates
@@ -134,7 +134,7 @@ export default function ReviewImportPage() {
   if (imp.status === 'failed' || !imp.extracted) {
     return (
       <p className="rounded-2xl border border-bad/30 bg-bad/10 p-4 text-bad">
-        הייבוא הזה נכשל ({imp.error ?? 'ללא פירוט'}). חזרו ללשונית &quot;ייבוא&quot; ונסו שוב, או בחרו &quot;ידני&quot; כדי להקליד את ההטבות בעצמכם.
+        הייבוא הזה נכשל ({imp.error ?? 'ללא פירוט'}). חזרו לעמוד &quot;הוספת הטבות&quot; ונסו שוב, או בחרו &quot;ידני&quot; כדי להקליד את ההטבות בעצמכם.
       </p>
     );
   }

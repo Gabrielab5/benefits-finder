@@ -48,7 +48,7 @@ So at the register you guess. You pay with whatever card is on top and walk away
 <td width="50%" valign="top">
 
 ### 🔍 "Where am I?"
-Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנגו`, `מקדונלדס` and `McDonald's` all work. Enter what you're spending (a quick ₪100/300/500 chip or Enter drops the keyboard) and every benefit you hold is ranked by **real ₪ savings**. The winner is lifted to the top as **one answer**: "show your Rebar card" or "pay with Max", the ₪ saved and how, and the coupon code to copy. Everything else follows under "עוד אפשרויות". The store and amount live in the URL (`/?store=…&amount=…`), so switching tabs keeps them and a link opens straight to that store.
+Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנגו`, `מקדונלדס` and `McDonald's` all work. Enter what you're spending (a quick ₪100/300/500 chip or Enter drops the keyboard) and every benefit you hold is ranked by **real ₪ savings**. The winner is lifted to the top as **one answer**: "show your Rebar card" or "pay with Max", the ₪ saved and how, and the coupon code to copy. Everything else follows under "עוד אפשרויות". The store and amount live in the URL (`/?store=…&amount=…`), so switching tabs keeps them and a link opens straight to that store. Before you pick a store, home shows **your own things**: your last 5 stores as one-tap chips, gift cards about to expire, and a small "שאלו את העוזר" row that opens the AI chat.
 
 </td>
 <td width="50%" valign="top">
@@ -133,6 +133,7 @@ At a store, enter the amount and the app tells you **which gift card to use** an
 <td align="center"><img src="docs/screenshots/login.png" width="230" alt="Login" /><br/><sub><b>Sign in</b><br/>Google or email code</sub></td>
 </tr>
 </table>
+<sub>Screenshots predate the focused home and the 4-tab nav.</sub>
 </div>
 
 ---
@@ -359,12 +360,14 @@ Benefits change all the time. [`scripts/monthly-refresh.md`](scripts/monthly-ref
 ```text
 src/
 ├─ app/
-│  ├─ (tabs)/            # the 5 bottom-nav screens
+│  ├─ (tabs)/            # 4 bottom-nav tabs: איפה אני · הטבות · ארנק · עוד
 │  │  ├─ page.tsx        # 🔍 Where am I?
 │  │  ├─ benefits/       # 📋 All benefits
 │  │  ├─ wallet/         # 💳 My wallet (+ gift-cards/)
-│  │  ├─ import/         # ➕ Import + review
-│  │  └─ sources/        # ⚙️ Sources, dates, admin
+│  │  ├─ more/           # ⋯ "עוד": links to the three screens below
+│  │  ├─ import/         # ➕ Add benefits (import + review)
+│  │  ├─ sources/        # 📚 The catalog: programs and their benefits
+│  │  └─ settings/       # ⚙️ Dates, notifications, sign-out, admin
 │  ├─ login/ onboarding/ auth/
 │  └─ api/               # import · giftcards/extract · chat · admin/users · cron/birthday
 ├─ components/           # BenefitCard, DatesForm, AdminPanel, ui
@@ -386,6 +389,7 @@ tests/                   # db (RLS) + e2e (Playwright)
 Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 🔜 = next up, 💭 = exploring.
 
 ### 🛒 At the register
+- ✅ **Focused home and 4-tab nav**: recent stores and expiring gift cards instead of a landing page, the AI chat one tap away, and Import, Catalog and Settings under "עוד"
 - 🔜 **Near me**: open the app inside a mall and the stores around you are suggested automatically (geolocation, on-device only)
 - 🔜 **Home-screen shortcut and widget**: one tap from the lock screen to the store search
 - 🔜 **Voice search**: say "שופרסל" and get the answer hands-free

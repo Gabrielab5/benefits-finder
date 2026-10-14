@@ -2,18 +2,20 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Layers, List, Plus, Search, Settings, Wallet, type LucideIcon } from 'lucide-react';
+import { Ellipsis, List, Search, Wallet, type LucideIcon } from 'lucide-react';
 
-const TABS: { href: string; label: string; icon: LucideIcon }[] = [
+type Tab = { href: string; label: string; icon: LucideIcon; also?: string[] };
+
+// "עוד" lists the less frequent screens and stays lit on each of them.
+const TABS: Tab[] = [
   { href: '/', label: 'איפה אני', icon: Search },
-  { href: '/benefits', label: 'כל ההטבות', icon: List },
-  { href: '/wallet', label: 'הארנק', icon: Wallet },
-  { href: '/import', label: 'ייבוא', icon: Plus },
-  { href: '/sources', label: 'מקורות', icon: Layers },
-  { href: '/settings', label: 'הגדרות', icon: Settings },
+  { href: '/benefits', label: 'הטבות', icon: List },
+  { href: '/wallet', label: 'ארנק', icon: Wallet },
+  { href: '/more', label: 'עוד', icon: Ellipsis, also: ['/import', '/sources', '/settings'] },
 ];
 
-const isActive = (href: string, path: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const isActive = ({ href, also = [] }: Tab, path: string) =>
+  href === '/' ? path === '/' : [href, ...also].some((h) => path.startsWith(h));
 
 /** Touch starts inside something that scrolls sideways or takes input — leave the gesture to it. */
 function ownsSwipe(el: Element | null): boolean {
@@ -41,7 +43,7 @@ export default function BottomNav() {
       const dy = e.changedTouches[0].clientY - start.y;
       start = null;
       if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
-      const i = TABS.findIndex((t) => isActive(t.href, path));
+      const i = TABS.findIndex((t) => isActive(t, path));
       const next = i >= 0 && TABS[i + (dx > 0 ? 1 : -1)];
       if (next) router.push(next.href);
     };
@@ -56,8 +58,9 @@ export default function BottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(env(safe-area-inset-bottom),12px)]">
       <ul className="mx-auto flex max-w-xl rounded-2xl border border-line bg-panel/95 p-1.5 backdrop-blur">
-        {TABS.map(({ href, label, icon: Icon }) => {
-          const active = isActive(href, path);
+        {TABS.map((tab) => {
+          const { href, label, icon: Icon } = tab;
+          const active = isActive(tab, path);
           return (
             <li key={href} className="flex-1">
               <Link href={href} aria-current={active ? 'page' : undefined}

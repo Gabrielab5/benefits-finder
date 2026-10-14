@@ -233,7 +233,7 @@ export default function WalletPage() {
           </label>
           <fieldset className="space-y-2">
             <legend className="mb-2 text-sm text-muted">אילו הטבות זה פותח?</legend>
-            {snapshot.programs.length === 0 && <p className="text-sm text-dim">הוסיפו תוכנית בלשונית &quot;מקורות&quot;.</p>}
+            {snapshot.programs.length === 0 && <p className="text-sm text-dim">הוסיפו תוכנית בעמוד &quot;הקטלוג&quot; (בלשונית &quot;עוד&quot;).</p>}
             <div className="flex flex-wrap gap-2">
               {snapshot.programs.map((p) => {
                 const on = draft.program_ids.includes(p.id);

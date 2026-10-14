@@ -4,13 +4,14 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, Gift, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
-import HomeGuide from '@/components/HomeGuide';
+import AssistantChat from '@/components/AssistantChat';
 import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
 import { addDays, israelToday } from '@/lib/core/dates';
 import { giftCardPlan } from '@/lib/core/giftcards';
 import { CATEGORY_LABELS, WINDOW_ICON, actionLine, formatDate, shekel } from '@/lib/core/labels';
 import { searchStores } from '@/lib/core/normalize';
-import { bestRowId, eligibleItems, rankForStore, type Row } from '@/lib/core/rank';
+import { bestRowId, rankForStore, type Row } from '@/lib/core/rank';
+import { addRecent } from '@/lib/core/recent';
 import { parseAmount } from '@/lib/core/savings';
 import { activeDateBenefits } from '@/lib/core/specialDates';
 import { useSnap } from '@/lib/useSnapshot';
@@ -20,6 +21,17 @@ const QUICK_AMOUNTS = [100, 300, 500];
 // The store and amount live in the URL (?store=<id>&amount=<n>): it survives a reload and makes a shareable link.
 // The nav links to a bare "/", so the last query is also kept here and restored when you come back from another tab.
 let lastQuery = '';
+
+// The stores picked from the search, per device, most recent first (ids only; resolved against the snapshot).
+const RECENT_KEY = 'recent-stores';
+function readRecent(): string[] {
+  try {
+    const ids: unknown = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]');
+    return Array.isArray(ids) ? ids.filter((id) => typeof id === 'string') : [];
+  } catch {
+    return []; // no storage (private mode, server render): start empty
+  }
+}
 
 export default function WhereAmIPage() {
   return (
@@ -36,6 +48,7 @@ function WhereAmI() {
   const [query, setQuery] = useState('');
   const [storeId, setStoreId] = useState(() => initial().get('store'));
   const [amountText, setAmountText] = useState(() => initial().get('amount') ?? '');
+  const [recentIds, setRecentIds] = useState(readRecent);
   const amountInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -67,6 +80,19 @@ function WhereAmI() {
   const windows = activeDateBenefits(snapshot, today);
   const monthAhead = addDays(today.iso, 30);
   const expiringGifts = (snapshot.giftCards ?? []).filter((c) => c.balance > 0 && c.expires_on && c.expires_on >= today.iso && c.expires_on <= monthAhead);
+  // Stores gone from the snapshot drop out here, and out of storage on the next pick.
+  const recent = recentIds.flatMap((id) => snapshot.stores.find((s) => s.id === id) ?? []);
+
+  const pick = (id: string) => {
+    setStoreId(id);
+    const ids = addRecent(recent.map((s) => s.id), id);
+    setRecentIds(ids);
+    try {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(ids));
+    } catch {
+      // storage blocked: recents just aren't kept on this device
+    }
+  };
 
   // The winner is the answer above, so the groups list everything else.
   const section = (title: string, rows: Row[], testId: string) => {
@@ -117,18 +143,6 @@ function WhereAmI() {
         </Link>
       )}
 
-      {expiringGifts.length > 0 && (
-        <Link href="/wallet/gift-cards" className="flex items-center gap-3 rounded-2xl border border-warn/30 bg-warn/10 p-3.5 text-warn">
-          <Gift size={18} aria-hidden />
-          <span className="flex-1 font-semibold">
-            {expiringGifts.length === 1
-              ? `${shekel(expiringGifts[0].balance)} ב${expiringGifts[0].name} פג עד ${formatDate(expiringGifts[0].expires_on!)}`
-              : `${expiringGifts.length} גיפטקארדים פגים החודש — ${shekel(expiringGifts.reduce((s, c) => s + c.balance, 0))}`}
-          </span>
-          <ChevronLeft size={18} aria-hidden />
-        </Link>
-      )}
-
       {store ? (
         <div className="flex items-center gap-3 rounded-2xl border border-line bg-panel p-3.5">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-panel-2 text-mint"><StoreIcon size={20} aria-hidden /></span>
@@ -152,7 +166,7 @@ function WhereAmI() {
             <ul className="overflow-hidden rounded-2xl border border-line bg-panel">
               {matches.map((s) => (
                 <li key={s.id} className="border-b border-line last:border-0">
-                  <button onClick={() => setStoreId(s.id)} className="flex w-full items-center gap-3 p-3 text-start hover:bg-panel-2">
+                  <button onClick={() => pick(s.id)} className="flex w-full items-center gap-3 p-3 text-start hover:bg-panel-2">
                     <StoreIcon size={16} className="text-dim" aria-hidden />
                     <span>{s.name_he} <span className="text-muted">· {s.name_en}</span></span>
                   </button>
@@ -162,19 +176,42 @@ function WhereAmI() {
                 <li className="space-y-1 p-3 text-sm">
                   <p className="text-fg">לא מצאנו חנות בשם הזה. נסו כתיב אחר או את השם באנגלית.</p>
                   <p className="text-muted">
-                    עדיין חסרה? אפשר <Link href="/import" className="text-mint underline underline-offset-2">לייבא את ההטבות שלה</Link>.
+                    עדיין חסרה? אפשר <Link href="/import" className="text-mint underline underline-offset-2">להוסיף את ההטבות שלה</Link>.
                   </p>
                 </li>
               )}
             </ul>
           )}
-          {!query.trim() && (
-            <p className="px-1 text-sm text-dim">{snapshot.stores.length} חנויות · {snapshot.benefits.filter((b) => eligibleItems(b, snapshot.wallet).length > 0).length} הטבות שהארנק שלכם פותח</p>
-          )}
+          {!query.trim() && (recent.length > 0 ? (
+            <section className="space-y-2 pt-3">
+              <SectionTitle>חנויות אחרונות</SectionTitle>
+              <ul className="flex flex-wrap gap-2">
+                {recent.map((s) => (
+                  <li key={s.id}><Chip aria-pressed={undefined} onClick={() => pick(s.id)}>{s.name_he}</Chip></li>
+                ))}
+              </ul>
+            </section>
+          ) : expiringGifts.length === 0 && (
+            <p className="px-1 text-sm text-dim">התחילו בהקלדת שם החנות שאתם נמצאים בה.</p>
+          ))}
         </div>
       )}
 
-      <div hidden={!!store || !!query.trim()}><HomeGuide /></div>
+      {/* Kept mounted while hidden, so an open chat survives picking a store. */}
+      <div hidden={!!store || !!query.trim()} className="space-y-3">
+        {expiringGifts.length > 0 && (
+          <Link href="/wallet/gift-cards" className="flex items-center gap-3 rounded-2xl border border-warn/30 bg-warn/10 p-3.5 text-warn">
+            <Gift size={18} aria-hidden />
+            <span className="flex-1 font-semibold">
+              {expiringGifts.length === 1
+                ? `${shekel(expiringGifts[0].balance)} ב${expiringGifts[0].name} פג עד ${formatDate(expiringGifts[0].expires_on!)}`
+                : `${expiringGifts.length} גיפטקארדים פגים החודש — ${shekel(expiringGifts.reduce((s, c) => s + c.balance, 0))}`}
+            </span>
+            <ChevronLeft size={18} aria-hidden />
+          </Link>
+        )}
+        <AssistantChat />
+      </div>
 
       {store && (
         <div className="space-y-2">

@@ -80,9 +80,7 @@ textarea {
   color-scheme: dark;
 }
 
-/* ---------- Home guide animations ---------- */
-@property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
-
+/* ---------- Entrances + the chat's typing dots ---------- */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
@@ -91,14 +89,6 @@ textarea {
   from { opacity: 0; transform: scale(0.92) translateY(6px); }
   to { opacity: 1; transform: none; }
 }
-@keyframes shimmer { to { background-position: -200% center; } }
-@keyframes float { 50% { transform: translateY(-10px) rotate(-6deg); } }
-@keyframes glow-move { 50% { transform: translate(-30%, 20%); } }
-@keyframes spin-border { to { --angle: 360deg; } }
-@keyframes ring {
-  0% { box-shadow: 0 0 0 0 rgb(62 232 173 / 0.45); }
-  100% { box-shadow: 0 0 0 12px rgb(62 232 173 / 0); }
-}
 @keyframes dot {
   0%, 80%, 100% { opacity: 0.25; transform: none; }
   40% { opacity: 1; transform: translateY(-3px); }
@@ -106,36 +96,6 @@ textarea {
 
 .fade-up { animation: fade-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .pop-in { animation: pop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.float-slow { animation: float 6s ease-in-out infinite; }
-.pulse-ring { animation: ring 2s ease-out infinite; }
-
-.shimmer-text {
-  background: linear-gradient(90deg, var(--color-mint), #60a5fa, var(--color-party), var(--color-mint));
-  background-size: 200% auto;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 4s linear infinite;
-}
-
-.hero-glow { background: linear-gradient(135deg, var(--color-panel), var(--color-ink)); }
-.hero-glow::before {
-  content: "";
-  position: absolute;
-  inset: -40% -20% auto auto;
-  width: 70%;
-  aspect-ratio: 1;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgb(62 232 173 / 0.28), transparent 65%);
-  animation: glow-move 9s ease-in-out infinite;
-}
-
-.gradient-border {
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--color-panel), var(--color-panel)) padding-box,
-    conic-gradient(from var(--angle), var(--color-line), var(--color-mint), #60a5fa, var(--color-line) 40%) border-box;
-  animation: fade-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both, spin-border 6s linear infinite;
-}
 
 .typing span {
   width: 6px;

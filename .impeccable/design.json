@@ -222,7 +222,7 @@
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Screen titles and the home-guide hero (800, tight leading)."
+        "purpose": "Screen titles such as איפה אני? and ברוכים הבאים."
       },
       "title": {
         "displayName": "Title",
@@ -254,17 +254,17 @@
       {
         "name": "mint-gloss",
         "value": "inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6)",
-        "purpose": "Every mint fill: primary button, active chip, step badges."
+        "purpose": "Every mint fill: primary button, active chip."
+      },
+      {
+        "name": "answer-glow",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6)",
+        "purpose": "The hoisted answer on the store screen only, with its mint border (.answer)."
       },
       {
         "name": "card-lift",
         "value": "0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3)",
         "purpose": "Wallet card art only."
-      },
-      {
-        "name": "pulse-ring",
-        "value": "0 0 0 12px rgb(62 232 173 / 0)",
-        "purpose": "Animated 2s attention ring on a guided first action."
       }
     ],
     "motion": [
@@ -347,8 +347,8 @@
       "name": "Bottom Navigation",
       "kind": "nav",
       "refersTo": "nav-bar",
-      "description": "Floating tab bar above the safe area. Active tab sits on a Raised Lining pill in mint.",
-      "html": "<nav class=\"ds-nav\" dir=\"rtl\"><a class=\"ds-nav-item ds-nav-active\" aria-current=\"page\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg>איפה אני</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12h.01\"/><path d=\"M3 18h.01\"/><path d=\"M3 6h.01\"/><path d=\"M8 12h13\"/><path d=\"M8 18h13\"/><path d=\"M8 6h13\"/></svg>כל ההטבות</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\"/><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/></svg>הארנק</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>ייבוא</a></nav>",
+      "description": "Floating four-tab bar above the safe area. Active tab sits on a Raised Lining pill in mint; עוד stays active on the screens it lists.",
+      "html": "<nav class=\"ds-nav\" dir=\"rtl\"><a class=\"ds-nav-item ds-nav-active\" aria-current=\"page\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg>איפה אני</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12h.01\"/><path d=\"M3 18h.01\"/><path d=\"M3 6h.01\"/><path d=\"M8 12h13\"/><path d=\"M8 18h13\"/><path d=\"M8 6h13\"/></svg>הטבות</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\"/><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/></svg>ארנק</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/></svg>עוד</a></nav>",
       "css": ".ds-nav { display: flex; max-width: 36rem; border-radius: 16px; border: 1px solid var(--color-line, #3d4873); background: rgb(34 43 77 / 0.95); backdrop-filter: blur(8px); padding: 6px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); font-family: Heebo, system-ui, sans-serif; } .ds-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; border-radius: 12px; padding: 6px 0; font-size: 11px; color: var(--color-dim, #96a2c6); text-decoration: none; transition: color 0.15s, background-color 0.15s; } .ds-nav-item:hover { color: var(--color-muted, #b0b8d4); } .ds-nav-item:focus-visible { outline: 2px solid var(--color-mint, #3ee8ad); outline-offset: 1px; } .ds-nav-active, .ds-nav-active:hover { background: var(--color-panel-2, #2c365c); color: var(--color-mint, #3ee8ad); font-weight: 600; }"
     },
     {
@@ -386,13 +386,13 @@
   ],
   "narrative": {
     "northStar": "The Pocket Concierge",
-    "overview": "A premium, attentive companion in your pocket. The world is a dark, lined wallet interior: deep navy layers, a soft aurora drifting behind them, and glass-edged panels that sit quietly until something is worth your attention. When an answer arrives (the best card, the shekels saved, the one action to take), it is lit in glossy Savings Mint. The concierge is calm by default and confident when it speaks.\n\nDensity is phone-first and compact: one centered column, readable at arm's length in a noisy store, built for one thumb. Hebrew leads and the layout is right-to-left at its core, not mirrored after the fact. The concierge also has manners and a little warmth: birthday banners in Celebration Pink, a shimmering headline on the home guide, and a catch-the-shekels coin game while you wait. A small luxury on a free app.\n\nColor comes from the cards themselves. Issuer card art (Max pink, Shufersal red, Rebar green) supplies the vivid color. The chrome around it stays navy so your own cards are the brightest thing in the wallet.",
+    "overview": "A premium, attentive companion in your pocket. The world is a dark, lined wallet interior: deep navy layers, a soft aurora drifting behind them, and glass-edged panels that sit quietly until something is worth your attention. When an answer arrives (the best card, the shekels saved, the one action to take), it is lit in glossy Savings Mint. The concierge is calm by default and confident when it speaks.\n\nDensity is phone-first and compact: one centered column, readable at arm's length in a noisy store, built for one thumb. Hebrew leads and the layout is right-to-left at its core, not mirrored after the fact. The concierge also has manners and a little warmth: birthday banners in Celebration Pink and a catch-the-shekels coin game while you wait. A small luxury on a free app.\n\nColor comes from the cards themselves. Issuer card art (Max pink, Shufersal red, Rebar green) supplies the vivid color. The chrome around it stays navy so your own cards are the brightest thing in the wallet.",
     "keyCharacteristics": [
       "Dark only: deep navy tonal layers over a fixed violet and mint aurora.",
       "Calm panels, glossy answer: flat bordered surfaces, with gloss and glow saved for the primary action, the active chip and savings.",
       "Issuer card art is the color source. UI chrome never borrows brand colors.",
       "One type family (Heebo) for Hebrew and Latin, with mono only for codes and card digits.",
-      "Soft, nested rounding from 24px hero shells down to full pills.",
+      "Soft, nested rounding from the 24px login shell down to full pills.",
       "Every tap answers instantly: a press-down scale, a spinner, a fade-up entrance. Reduced motion is respected globally."
     ],
     "rules": [
@@ -459,7 +459,8 @@
       "**Don't** introduce a second typeface. Monospace is only for codes and card digits.",
       "**Don't** use physical left/right for layout or icon placement.",
       "**Don't** ship a light surface or light-only component. The app is dark-only until a light theme is designed as a whole.",
-      "**Don't** use solid saturated fills for status. Use the hue as text over a 10% tint."
+      "**Don't** use solid saturated fills for status. Use the hue as text over a 10% tint.",
+      "**Don't** put landing-page furniture on a working screen: no hero badges, gradient or shimmering text, numbered how-it-works steps or looping decorative animation."
     ]
   }
 }

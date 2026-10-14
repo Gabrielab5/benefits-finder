@@ -72,7 +72,7 @@ export default function SourcesPage() {
 
   return (
     <main className="space-y-4">
-      <PageHeader title="מקורות" subtitle="מאיפה מגיעות ההטבות" icon={Layers} />
+      <PageHeader title="הקטלוג" subtitle="מאיפה מגיעות ההטבות" icon={Layers} />
       {!online && <Notice tone="warn">אין חיבור — אפשר רק לצפות.</Notice>}
       {error && <Notice tone="error">{error}</Notice>}
 

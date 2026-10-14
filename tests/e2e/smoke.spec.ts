@@ -77,7 +77,7 @@ test('search a store in English and see the best card first', async ({ page, con
 
   // Store and amount survive a tab switch (and sit in the URL as a shareable link).
   await expect(page).toHaveURL(/store=.+&amount=400/);
-  await page.getByRole('link', { name: 'כל ההטבות' }).click();
+  await page.getByRole('link', { name: 'הטבות', exact: true }).click();
   await expect(page).toHaveURL(/\/benefits/);
   await page.getByRole('link', { name: 'איפה אני' }).click();
   await expect(page.getByTestId('answer')).toContainText('₪50');

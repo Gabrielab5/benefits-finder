@@ -146,7 +146,7 @@ components:
 
 A premium, attentive companion in your pocket. The world is a dark, lined wallet interior: deep navy layers, a soft aurora drifting behind them, and glass-edged panels that sit quietly until something is worth your attention. When an answer arrives (the best card, the shekels saved, the one action to take), it is lit in glossy Savings Mint. The concierge is calm by default and confident when it speaks.
 
-Density is phone-first and compact: one centered column, readable at arm's length in a noisy store, built for one thumb. Hebrew leads and the layout is right-to-left at its core, not mirrored after the fact. The concierge also has manners and a little warmth: birthday banners in Celebration Pink, a shimmering headline on the home guide, and a catch-the-shekels coin game while you wait. A small luxury on a free app.
+Density is phone-first and compact: one centered column, readable at arm's length in a noisy store, built for one thumb. Hebrew leads and the layout is right-to-left at its core, not mirrored after the fact. The concierge also has manners and a little warmth: birthday banners in Celebration Pink and a catch-the-shekels coin game while you wait. A small luxury on a free app.
 
 Color comes from the cards themselves. Issuer card art (Max pink, Shufersal red, Rebar green) supplies the vivid color. The chrome around it stays navy so your own cards are the brightest thing in the wallet.
 
@@ -155,7 +155,7 @@ Color comes from the cards themselves. Issuer card art (Max pink, Shufersal red,
 - Calm panels, glossy answer: flat bordered surfaces, with gloss and glow saved for the primary action, the active chip and savings.
 - Issuer card art is the color source. UI chrome never borrows brand colors.
 - One type family (Heebo) for Hebrew and Latin, with mono only for codes and card digits.
-- Soft, nested rounding from 24px hero shells down to full pills.
+- Soft, nested rounding from the 24px login shell down to full pills.
 - Every tap answers instantly: a press-down scale, a spinner, a fade-up entrance. Reduced motion is respected globally.
 
 ## Colors
@@ -171,11 +171,11 @@ A deep navy night with one money-green voice, a violet haze for atmosphere and a
 - **Aurora Violet** (#9b8cff): atmosphere. The top-start aurora glow, the page-header icon tile gradient, and the hover border on inactive chips.
 
 ### Tertiary
-- **Celebration Pink** (#f77ac0): special dates and gifts. The birthday-month banner, "available in your month" pills on locked benefits, the gift-cards entry, and the home-guide shimmer.
+- **Celebration Pink** (#f77ac0): special dates and gifts. The birthday-month banner, "available in your month" pills on locked benefits, and the gift-cards entry.
 
 ### Neutral
-- **Midnight Pocket** (#161d38): the page itself, under the aurora. Also the deepest stop of hero gradients.
-- **Lining Navy** (#222b4d): the default surface. Cards, benefit cards, the floating nav bar, the login and hero shells.
+- **Midnight Pocket** (#161d38): the page itself, under the aurora. Also the deepest stop of the waiting screen's game area.
+- **Lining Navy** (#222b4d): the default surface. Cards, benefit cards, the floating nav bar, the login shell.
 - **Raised Lining** (#2c365c): one step up. Inputs, secondary buttons, the active tab pill, info notices, and value badges inside cards.
 - **Stitch Line** (#3d4873): every 1px border and divider.
 - **Receipt White** (#f4f6fc): primary text and headings.
@@ -203,7 +203,7 @@ A deep navy night with one money-green voice, a violet haze for atmosphere and a
 
 ### Hierarchy
 - **Display** (700, 1.875rem, 1.2): the app name on the login screen. Nowhere else.
-- **Headline** (700–800, 1.5rem, 1.33): screen titles such as "איפה אני?" and "ברוכים הבאים", and the home-guide hero (800, tight leading).
+- **Headline** (700, 1.5rem, 1.33): screen titles such as "איפה אני?" and "ברוכים הבאים".
 - **Title** (700, 1.25rem, 1.4): page headers next to their icon tile.
 - **Body Strong** (600, 1rem, 1.375): benefit titles and card names. The thing you scan for.
 - **Body** (400, 0.875rem, 1.43): the workhorse. Descriptions, button text, chips, notices, form text.
@@ -219,7 +219,7 @@ A deep navy night with one money-green voice, a violet haze for atmosphere and a
 
 A single centered column, at most 576px wide (36rem), with a 16px side gutter. The top padding respects the safe-area inset, with an 8px minimum. Each tab screen leaves 112px at the bottom so content clears the floating navigation.
 
-Rhythm is built on a 4px base: 8px between items in a list, 12–16px between groups, 20px inside hero shells. Wallet cards sit in a two-column grid. Lists such as benefits, gift cards and sources stack vertically with 8px gaps. Filter chips scroll horizontally in a single row and never wrap into a block.
+Rhythm is built on a 4px base: 8px between items in a list, 12–16px between groups, 20px inside the login shell. Wallet cards sit in a two-column grid. Lists such as benefits, gift cards and sources stack vertically with 8px gaps. Filter chips scroll horizontally in a single row and never wrap into a block.
 
 The layout is right-to-left at its core: Hebrew text, start and end alignment, logical insets (`end`, `inline-end`), and tab order flowing right to left. Swiping right moves to the next tab. Left-to-right islands (codes, card digits, English store names) are marked `dir="ltr"` or `dir="auto"` locally.
 
@@ -234,17 +234,16 @@ Depth is a hybrid. Tonal layering does most of the work (Midnight Pocket → Lin
 
 ### Shadow Vocabulary
 - **Glass edge** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05)`): every panel surface. Not optional.
-- **Mint gloss** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6)`): every mint fill (primary button, active chip, step badges).
+- **Mint gloss** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6)`): every mint fill (primary button, active chip).
 - **Answer glow** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6)`): the hoisted answer on the store screen only, with its mint border (`.answer`).
 - **Card lift** (`box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3)`): wallet card art only.
-- **Pulse ring** (animated `0 0 0 0` → `0 0 0 12px rgb(62 232 173 / 0)`): a one-off attention ring on a guided first action.
 
 ### Named Rules
 **The Gloss Is Earned Rule.** Panels stay flat at rest. Gloss, glow and the shine sweep appear only on the primary action, an active chip, or a savings mark. If everything shines, nothing does.
 
 ## Shapes
 
-Soft and pocket-friendly, with radii that nest smaller as you go inward. Hero and login shells use 24px. Cards, the nav bar and wallet cards use 16px. Buttons, inputs, notices, nav items and icon tiles use 12px. Value badges use 8px. Mini card swatches use 6px. Chips and status pills are full pills. Wallet card art follows credit-card proportions (1.6:1). Icon tiles are square (40px for page headers, 28px for on-card actions).
+Soft and pocket-friendly, with radii that nest smaller as you go inward. The login shell uses 24px. Cards, the nav bar and wallet cards use 16px. Buttons, inputs, notices, nav items and icon tiles use 12px. Value badges use 8px. Mini card swatches use 6px. Chips and status pills are full pills. Wallet card art follows credit-card proportions (1.6:1). Icon tiles are square (40px for page headers, 28px for on-card actions).
 
 ### Named Rules
 **The Nested Radius Rule.** An inner element never has a larger radius than its container. Step down 24 → 16 → 12 → 8 → full pills only for free-standing tags.
@@ -262,16 +261,16 @@ Confident and instantly responsive: every press dips to 98% scale, and a loading
 
 ### Chips
 - **Style:** full pill, 6px × 14px, 0.875rem. Inactive chips have a 60% Lining Navy fill, a Stitch Line border and Fog text.
-- **State:** inactive chips get a violet border and white text on hover. Active chips get the full glossy mint fill with Deep Mint Ink text at 600 and the shine sweep. Chips are toggle buttons (`aria-pressed`).
+- **State:** inactive chips get a violet border and white text on hover. Active chips get the full glossy mint fill with Deep Mint Ink text at 600 and the shine sweep. Chips are toggle buttons (`aria-pressed`), except one-tap picks (recent stores, chat suggestions), which are plain buttons.
 - **Status pills** (inside cards): 12px text with a 10% tint fill in party, warn or panel-2, or a hairline border for "private" and coupon codes.
 - **Hit area:** chips and tappable pills keep their size but reach 44px with an invisible `.tap` hit area (see Focus & Targets).
 
 ### Cards / Containers
-- **Corner Style:** 16px. Hero and login shells use 24px.
+- **Corner Style:** 16px. The login shell uses 24px.
 - **Background:** Lining Navy, with Raised Lining for nested blocks.
 - **Shadow Strategy:** glass edge only (see Elevation & Depth).
 - **Border:** 1px Stitch Line. A tinted border (party/30, mint/40) marks an entry point with a specific job, such as the gift-cards link or a mint outline action.
-- **Internal Padding:** 16px by default, 14px in dense lists, 20px in hero shells.
+- **Internal Padding:** 16px by default, 14px in dense lists, 20px in the login shell.
 
 ### Inputs / Fields
 - **Style:** Raised Lining fill, 1px Stitch Line border, 12px radius, 10px × 12px padding, Receipt White text, Dusk placeholder. Native pickers are forced to a dark color scheme.
@@ -284,7 +283,10 @@ Confident and instantly responsive: every press dips to 98% scale, and a loading
 - **Destructive actions** live inside the edit form, behind a confirm, never next to the edit button on a card face.
 
 ### Navigation
-A floating bottom bar: inset 12px from the screen edges and above the safe area, 576px max, Lining Navy at 95% with backdrop blur, a 16px radius, a Stitch Line border and 6px inner padding. Six equal tabs, each a stacked 20px Lucide icon over an 11px label. Inactive tabs are Dusk (hover Fog) at a 1.8 stroke. The active tab sits on a Raised Lining pill, turns mint, and uses a 600 label and a 2.4 stroke. Tabs carry `aria-current="page"`. Horizontal swipes move between tabs, unless the gesture starts inside an input or a horizontal scroller.
+A floating bottom bar: inset 12px from the screen edges and above the safe area, 576px max, Lining Navy at 95% with backdrop blur, a 16px radius, a Stitch Line border and 6px inner padding. Four equal tabs (איפה אני, הטבות, ארנק, עוד), each a stacked 20px Lucide icon over an 11px label. Inactive tabs are Dusk (hover Fog) at a 1.8 stroke. The active tab sits on a Raised Lining pill, turns mint, and uses a 600 label and a 2.4 stroke. Tabs carry `aria-current="page"`. "עוד" opens a plain list of the screens that don't need a tab (adding benefits, the catalog, settings), each with one plain-language line, and stays active on all of them. Horizontal swipes move between tabs, unless the gesture starts inside an input or a horizontal scroller.
+
+### Home (store search)
+The working screen, not a landing page: a greeting and the "איפה אני?" title, the special-date banner when a window is open, then the store search. With no store picked, the search is followed by the user's own things: up to five recent-store chips under "חנויות אחרונות" (stored per device, most recent first), the expiring gift-card banner, and a folded "שאלו את העוזר" row that opens the AI chat inline. A first-time user with neither sees one Dusk hint line under the search instead.
 
 ### Page Header
 A 40px square icon tile with a 12px radius, a violet-to-mint diagonal tint at 30%/20%, a mint icon and a hairline white ring, set before a Title-size heading and a Fog subtitle.
@@ -321,3 +323,4 @@ Long waits (sign-in, reading a gift card, importing) show a spinning coin with a
 - **Don't** use physical left/right for layout or icon placement.
 - **Don't** ship a light surface or light-only component. The app is dark-only until a light theme is designed as a whole.
 - **Don't** use solid saturated fills for status. Use the hue as text over a 10% tint.
+- **Don't** put landing-page furniture on a working screen: no hero badges, gradient or shimmering text, numbered how-it-works steps or looping decorative animation.
