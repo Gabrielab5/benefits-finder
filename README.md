@@ -96,7 +96,7 @@ It's an installable **PWA**. Your last snapshot is stored on the device (Indexed
 <td valign="top">
 
 ### 🔐 Easy, safe sign-in
-**Google** sign-in or a **6-digit email code**. Postgres **row-level security** means users can never read each other's private data. Only admins can write to the shared catalog, and the database enforces that too.
+**Google** sign-in or a **6-digit email code**, next to a collage of real cards, club logos and ₪ coins (half the screen on a desktop, a header on a phone). Postgres **row-level security** means users can never read each other's private data. Only admins can write to the shared catalog, and the database enforces that too.
 
 </td>
 </tr>
@@ -133,7 +133,7 @@ At a store, enter the amount and the app tells you **which gift card to use** an
 <td align="center"><img src="docs/screenshots/login.png" width="230" alt="Login" /><br/><sub><b>Sign in</b><br/>Google or email code</sub></td>
 </tr>
 </table>
-<sub>Screenshots predate the focused home and the 4-tab nav.</sub>
+<sub>Screenshots predate the focused home, the 4-tab nav and the login collage.</sub>
 </div>
 
 ---
@@ -370,13 +370,14 @@ src/
 │  │  └─ settings/       # ⚙️ Dates, notifications, sign-out, admin
 │  ├─ login/ onboarding/ auth/
 │  └─ api/               # import · giftcards/extract · chat · admin/users · cron/birthday
-├─ components/           # BenefitCard, DatesForm, AdminPanel, ui
+├─ components/           # BenefitCard, DatesForm, AdminPanel, LoginCollage, ui
 ├─ lib/
 │  ├─ core/              # 🧠 pure, tested business logic
 │  ├─ ai/                # chatbot prompt + answer parser (+ optional paid AI)
 │  ├─ email/             # reminder email builder
 │  └─ snapshot.ts …      # data loading + offline cache
 └─ proxy.ts              # auth gate (Next 16's middleware)
+public/login/            # the login collage's card, logo and photo images
 supabase/migrations/     # schema + RLS
 scripts/                 # catalog loading, refresh, README screenshots
 tests/                   # db (RLS) + e2e (Playwright)
@@ -427,6 +428,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 
 ### 🌍 Reach & polish
 - ✅ **Instant feedback**: every button shows it was tapped, and longer waits (login, reading a gift card, importing) get a loading screen with a catch-the-shekels mini game 🪙
+- ✅ **A sign-in page that shows what the app is about**: a collage of real cards, club logos and ₪ coins beside the form, which settles in once on load
 - 🔜 **English and Arabic UI** (the search already understands English)
 - 🔜 **Light theme** next to the current dark one
 - ✅ **Accessibility pass**: screen-reader labels (the best card is announced as it changes), contrast (all text at least 4.5:1, card art included), 44px tap targets, a visible focus ring, and focus that follows the task (a form that opens scrolls into view, a picked store moves you to the amount)
@@ -489,6 +491,6 @@ The app is invite-only. Ask an admin to add your email in the admin panel, then 
 
 Made with 💚 in Israel · Hebrew-first, RTL-native · Built with Next.js, Supabase and Vercel
 
-<sub>Not affiliated with any card issuer, bank or club. Brand names and colors are used only to help you recognize your own cards.</sub>
+<sub>Not affiliated with any card issuer, bank or club. Brand names and colors are used only to help you recognize your own cards. The logos and card images on the login page belong to their owners and are shown for illustration only.</sub>
 
 </div>
