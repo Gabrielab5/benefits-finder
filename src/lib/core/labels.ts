@@ -1,3 +1,4 @@
+import { isPerItem } from './savings';
 import type { Benefit, BenefitType, Category, Channel, ProgramKind, Requires, Timing } from './types';
 
 export const TYPE_LABELS: Record<BenefitType, string> = {
@@ -48,7 +49,13 @@ export function formatDate(iso: string): string {
   return iso.slice(0, 10).split('-').reverse().join('.');
 }
 
-export function headlineText(b: Pick<Benefit, 'type' | 'value'>): string {
+type Headlined = Pick<Benefit, 'type' | 'value'> & Partial<Pick<Benefit, 'title' | 'description' | 'conditions' | 'max_discount'>>;
+
+export function headlineText(b: Headlined): string {
+  if (isPerItem(b) && b.value != null) {
+    const what = b.type === 'cashback_percent' ? `${b.value}% החזר על פריט אחד` : `${b.value}% על פריט אחד`;
+    return b.max_discount ? `${what}, עד ${shekel(b.max_discount)}` : what;
+  }
   if (b.type === 'percent_off' && b.value != null) return `${b.value}% הנחה`;
   if (b.type === 'fixed_off' && b.value != null) return `${shekel(b.value)} הנחה`;
   if (b.type === 'cashback_percent' && b.value != null) return `${b.value}% החזר`;

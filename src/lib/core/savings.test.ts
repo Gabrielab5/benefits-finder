@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeSavings, parseAmount } from './savings';
+import { computeSavings, isPerItem, parseAmount } from './savings';
 
 describe('parseAmount', () => {
   it('treats commas as thousands separators (Israeli format)', () => {
@@ -42,5 +42,30 @@ describe('computeSavings', () => {
   });
   it('missing value saves nothing', () => {
     expect(computeSavings(b('percent_off', null), 100).saved).toBe(0);
+  });
+});
+
+describe('isPerItem', () => {
+  const p = (title: string, o: { description?: string; conditions?: string; type?: 'percent_off' | 'cashback_percent' | 'fixed_off' } = {}) =>
+    ({ type: 'percent_off' as const, title, description: null, conditions: null, ...o });
+  it('catches a percent off one drink or bowl (Rebar)', () => {
+    expect(isPerItem(p('30% הנחה על משקה או קערה ביום ההולדת'))).toBe(true);
+  });
+  it('reads the description and conditions too', () => {
+    expect(isPerItem(p('20% הנחה', { description: 'הנחה על מוצר אחד לבחירה' }))).toBe(true);
+    expect(isPerItem(p('הטבת יום הולדת', { conditions: 'על פריט בודד בלבד' }))).toBe(true);
+    expect(isPerItem(p('5% החזר', { type: 'cashback_percent', description: 'על הכוס הראשונה' }))).toBe(true);
+  });
+  it('catches English single-item wording', () => {
+    expect(isPerItem(p('Birthday: 20% off one drink'))).toBe(true);
+  });
+  it('leaves whole-purchase and many-item discounts alone', () => {
+    for (const t of ['10% הנחה על כל הקנייה', '10% הנחה על כל מוצר', '10% הנחה על מוצרים נבחרים', '15% הנחה על מוצרי חשמל',
+      'עד 6% בהתאם לסוג המוצר', 'האחוז משתנה לפי מוצר', 'ההנחה על מחיר המחירון בלבד', '10% off your whole order']) {
+      expect(isPerItem(p(t)), t).toBe(false);
+    }
+  });
+  it('only applies to percent benefits', () => {
+    expect(isPerItem(p('₪10 הנחה על משקה', { type: 'fixed_off' }))).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import type { IncomingBenefit } from './merge';
 import { findStoreByName, normalize } from './normalize';
+import { isPerItem } from './savings';
 import type { Benefit, Category, Channel, Store } from './types';
 
 export interface NewStoreDraft {
@@ -64,6 +65,15 @@ export function rowProblems(
     if (row.valid_until && row.valid_until < ctx.todayIso) p.push('ההטבה כבר פגה');
   }
   return p;
+}
+
+/** A soft check that never blocks saving: an uncapped percent may cover one item, not the whole purchase. */
+export function rowWarning(row: ReviewRow): string | null {
+  if (!row.approved || row.max_discount != null) return null;
+  if (row.type !== 'percent_off' && row.type !== 'cashback_percent') return null;
+  return isPerItem(row)
+    ? 'אין תקרת הנחה, וזיהינו הנחה על פריט אחד: לא נחשב לה חיסכון בשקלים. בדקו שזה נכון.'
+    : 'אין תקרת הנחה. בדקו שההנחה חלה על כל הקנייה ולא על פריט אחד.';
 }
 
 export interface StoreGroup {
