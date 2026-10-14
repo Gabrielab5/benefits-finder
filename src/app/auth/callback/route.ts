@@ -9,5 +9,5 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}/`);
   }
-  return NextResponse.redirect(`${origin}/login`);
+  return NextResponse.redirect(`${origin}/login?failed=1`); // e.g. Facebook refused, or a link opened in another browser
 }

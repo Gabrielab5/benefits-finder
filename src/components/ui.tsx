@@ -92,7 +92,9 @@ const TONES = {
 } as const;
 
 export function Notice({ tone = 'info', children }: { tone?: keyof typeof TONES; children: ReactNode }) {
-  return <p className={`rounded-xl border px-3 py-2 text-sm ${TONES[tone]}`}>{children}</p>;
+  // Screen readers announce errors at once and a success when they pause; info and warnings stay quiet.
+  const role = tone === 'error' ? 'alert' : tone === 'success' ? 'status' : undefined;
+  return <p role={role} className={`rounded-xl border px-3 py-2 text-sm ${TONES[tone]}`}>{children}</p>;
 }
 
 export function Loading({ label = 'טוענים את ההטבות שלכם' }: { label?: string }) {
