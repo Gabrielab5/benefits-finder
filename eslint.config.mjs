@@ -5,6 +5,8 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Client-only reads on mount (URL params, online status, first fetch) are intentional; keep them visible, not blocking.
+  { rules: { "react-hooks/set-state-in-effect": "warn" } },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
