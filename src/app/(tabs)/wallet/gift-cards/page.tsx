@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Copy, ExternalLink, Gift, Image as ImageIcon, ImageUp, Link2, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
-import { Button, Card, Chip, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import { Check, ChevronRight, Copy, ExternalLink, Gift, Image as ImageIcon, ImageUp, Link2, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { Button, Card, Chip, Loading, Notice, PageHeader, SectionTitle, field, reveal } from '@/components/ui';
 import Waiting from '@/components/Waiting';
 import { addDays, israelToday } from '@/lib/core/dates';
 import { GIFT_CARD_PRESETS, storesSearchUrl, type GiftCardPreset } from '@/lib/core/giftcards';
@@ -80,6 +80,7 @@ export default function GiftCardsPage() {
   const [viewing, setViewing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [retry, setRetry] = useState<(() => void) | null>(null); // last failed extraction, same input
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   if (!snapshot) return <Loading />;
 
   const cards = snapshot.giftCards ?? [];
@@ -220,7 +221,7 @@ export default function GiftCardsPage() {
 
   return (
     <main className="space-y-6">
-      <Link href="/wallet" className="inline-flex items-center gap-1 pt-2 text-sm text-muted hover:text-fg">
+      <Link href="/wallet" className="tap inline-flex items-center gap-1 pt-2 text-sm text-muted hover:text-fg">
         <ChevronRight size={16} aria-hidden /> לארנק
       </Link>
       <PageHeader title="גיפטקארדים" subtitle={cards.length ? `${shekel(total)} זמינים לשימוש` : 'שוברים ותווי קנייה שלכם'} icon={Gift} />
@@ -256,9 +257,9 @@ export default function GiftCardsPage() {
                     </span>
                   )}
                   {c.code && (
-                    <button onClick={() => navigator.clipboard.writeText(c.code!)} dir="ltr"
+                    <button onClick={() => navigator.clipboard.writeText(c.code!).then(() => setCopiedId(c.id))} dir="ltr"
                       className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
-                      {c.code} <Copy size={12} aria-label="העתקה" />
+                      {c.code} {copiedId === c.id ? <Check size={12} aria-label="הועתק" /> : <Copy size={12} aria-label="העתקה" />}
                     </button>
                   )}
                   {c.image_path && (
@@ -312,7 +313,7 @@ export default function GiftCardsPage() {
           </div>
           {adding === 'link' && (
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (url.trim()) extract({ url: url.trim() }); }}>
-              <input type="url" required value={url} onChange={(e) => setUrl(e.target.value)} dir="ltr" placeholder="https://buyme.co.il/..."
+              <input ref={reveal} type="url" required value={url} onChange={(e) => setUrl(e.target.value)} dir="ltr" placeholder="https://buyme.co.il/..."
                 aria-label="קישור לגיפטקארד" className={field} />
               <Button type="submit" loading={busy}>חילוץ</Button>
             </form>
@@ -328,11 +329,11 @@ export default function GiftCardsPage() {
       )}
 
       {draft && (
-        <Card className="space-y-4">
+        <Card key={draft.id ?? 'new'} className="space-y-4">
           <h2 className="font-semibold">{draft.id ? 'עריכת גיפטקארד' : 'גיפטקארד חדש'}</h2>
           <label className="block">
             <span className="text-sm text-muted">שם</span>
-            <input value={draft.name} onChange={(e) => set({ name: e.target.value })} placeholder="BuyMe, תו הזהב…" className={`${field} mt-1`} />
+            <input ref={reveal} value={draft.name} onChange={(e) => set({ name: e.target.value })} placeholder="BuyMe, תו הזהב…" className={`${field} mt-1`} />
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label>
@@ -374,7 +375,7 @@ export default function GiftCardsPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {draft.store_ids.map((id) => (
                       <button key={id} type="button" onClick={() => set({ store_ids: draft.store_ids.filter((x) => x !== id) })}
-                        className="inline-flex items-center gap-1 rounded-full border border-mint bg-mint/10 px-2.5 py-1 text-sm text-mint">
+                        className="tap inline-flex items-center gap-1 rounded-full border border-mint bg-mint/10 px-2.5 py-1 text-sm text-mint">
                         {storeById.get(id)?.name_he ?? id} <X size={12} aria-label="הסרה" />
                       </button>
                     ))}
@@ -405,7 +406,7 @@ export default function GiftCardsPage() {
                   <input type="url" dir="ltr" value={draft.stores_url} onChange={(e) => set({ stores_url: e.target.value })} className={`${field} mt-1`} />
                 </label>
                 {draft.name.trim() && (
-                  <a href={storesSearchUrl(draft.name.trim())} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-mint">
+                  <a href={storesSearchUrl(draft.name.trim())} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 text-sm text-mint">
                     חיפוש בגוגל: איפה מכבדים את {draft.name.trim()} <ExternalLink size={12} aria-hidden />
                   </a>
                 )}
@@ -421,13 +422,13 @@ export default function GiftCardsPage() {
                 <ImageIcon size={20} aria-label="הצגת התמונה" />
               </button>
             ) : null}
-            <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-mint">
+            <label className="tap inline-flex cursor-pointer items-center gap-2 text-sm text-mint">
               <ImageUp size={16} aria-hidden /> {draft.image || draft.image_path ? 'החלפת תמונה' : 'צירוף תמונה / צילום מסך'}
               <input type="file" accept="image/*" className="sr-only" aria-label="תמונת הגיפטקארד"
                 onChange={(e) => onScreenshot(e.target.files?.[0], true)} />
             </label>
             {(draft.image || draft.image_path) && (
-              <button type="button" onClick={() => set({ image: null, image_path: null })} className="text-sm text-bad">הסרה</button>
+              <button type="button" onClick={() => set({ image: null, image_path: null })} className="tap text-sm text-bad">הסרה</button>
             )}
           </div>
           <label className="block">
@@ -446,6 +447,7 @@ export default function GiftCardsPage() {
           )}
         </Card>
       )}
+      <p role="status" className="sr-only">{copiedId ? 'הקוד הועתק' : ''}</p>
       {error && <Notice tone="error">{error}</Notice>}
       {error && retry && (
         <Button variant="secondary" onClick={retry} className="w-full">נסו לקרוא שוב</Button>

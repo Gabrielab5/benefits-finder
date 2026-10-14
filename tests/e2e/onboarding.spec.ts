@@ -50,7 +50,7 @@ test('a new user ticks a card in onboarding and immediately sees its shared bene
     // Cards first, then the birth month (the only required question).
     await page.getByLabel('כרטיס בדיקה E2E').check();
     await page.getByRole('button', { name: 'המשך' }).click();
-    await page.getByLabel('חודש יום ההולדת', { exact: true }).selectOption('5');
+    await page.getByLabel('חודש יום ההולדת שלכם').selectOption('5');
     await page.getByRole('button', { name: 'סיום' }).click();
 
     await page.getByPlaceholder('איפה אתם קונים?').fill('E2E Test Store');

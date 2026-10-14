@@ -22,6 +22,7 @@ export default function AssistantChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [said, setSaid] = useState(''); // the last finished answer, for screen readers
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +36,11 @@ export default function AssistantChat() {
     setMessages([...history, { role: 'assistant', content: '' }]);
     setInput('');
     setBusy(true);
-    const write = (content: string) => setMessages((m) => [...m.slice(0, -1), { role: 'assistant', content }]);
+    let final = '';
+    const write = (content: string) => {
+      final = content;
+      setMessages((m) => [...m.slice(0, -1), { role: 'assistant', content }]);
+    };
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -58,6 +63,7 @@ export default function AssistantChat() {
       write('אין חיבור. נסו שוב כשתהיו מחוברים.');
     } finally {
       setBusy(false);
+      setSaid(final); // announced once, whole, instead of every streamed chunk
     }
   }
 
@@ -71,7 +77,8 @@ export default function AssistantChat() {
         <ChevronDown size={18} className="transition group-open:rotate-180" aria-hidden />
       </summary>
 
-      <div ref={listRef} aria-live="polite" className="max-h-80 space-y-2.5 overflow-y-auto border-t border-line p-4">
+      <p role="status" className="sr-only">{said}</p>
+      <div ref={listRef} className="max-h-80 space-y-2.5 overflow-y-auto border-t border-line p-4">
         {messages.length === 0 ? (
           <div className="flex flex-wrap gap-2">
             {SUGGESTIONS.map((s) => (
@@ -82,7 +89,7 @@ export default function AssistantChat() {
           messages.map((m, i) => (
             <div key={i} className={`pop-in flex ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
               <p className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                m.role === 'user' ? 'rounded-ss-md bg-mint text-mint-ink' : 'rounded-se-md bg-panel-2 text-fg'
+                m.role === 'user' ? 'rounded-ss-md bg-mint/15 text-fg' : 'rounded-se-md bg-panel-2 text-fg'
               }`}>
                 {m.content || (
                   <span className="typing inline-flex gap-1" aria-label="חושב">

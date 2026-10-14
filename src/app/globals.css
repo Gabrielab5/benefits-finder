@@ -38,10 +38,12 @@ body {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6);
 }
 
-/* Panels get a faint glass edge on top. */
-.bg-panel, .bg-panel-2 { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); }
+/* Panels get a faint glass edge on top. Layered, so a text field's `focus:ring-1` (a utility) still wins. */
+@layer components {
+  .bg-panel, .bg-panel-2 { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); }
+}
 
-/* The hoisted answer on the store screen: the one panel that glows mint (after .bg-panel so it wins). */
+/* The hoisted answer on the store screen: the one panel that glows mint (unlayered, so it beats .bg-panel). */
 .answer { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6); }
 
 /* Light sweep across primary buttons and active chips on hover. The stripe slides via background-position,
@@ -59,11 +61,15 @@ body {
 .shiny:hover::after, .shiny:focus-visible::after { background-position: 0 0; }
 
 /* One designed focus ring for keyboard users: 2px Savings Mint, offset from the control.
-   Text fields are left out: they keep their own mint border + ring on focus. */
+   Text fields are left out: they keep their own mint border + ring on focus.
+   The color is set at rest too: `.transition` animates outline-color, so the ring would fade in from currentColor. */
 @layer base {
-  :is(a, button, summary, [role="tab"], [tabindex], input:is([type="checkbox"], [type="radio"], [type="color"])):focus-visible {
-    outline: 2px solid var(--color-mint);
-    outline-offset: 2px;
+  :is(a, button, summary, [role="tab"], [tabindex], input:is([type="checkbox"], [type="radio"], [type="color"])) {
+    outline-color: var(--color-mint);
+    &:focus-visible {
+      outline: 2px solid var(--color-mint);
+      outline-offset: 2px;
+    }
   }
 }
 

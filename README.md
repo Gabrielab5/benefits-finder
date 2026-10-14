@@ -90,7 +90,7 @@ Admins keep one **shared catalog** of programs, stores and benefits that everyon
 <td valign="top">
 
 ### 📶 Works offline
-It's an installable **PWA**. Your last snapshot is stored on the device (IndexedDB plus a service worker), so the app still answers in a basement supermarket with no signal.
+It's an installable **PWA**. Your last snapshot is stored on the device (IndexedDB plus a service worker), so the app still answers in a basement supermarket with no signal. Online, the stored copy is only shown to the account it belongs to, so a shared phone never flashes someone else's wallet.
 
 </td>
 <td valign="top">
@@ -321,7 +321,7 @@ Copy [`.env.example`](.env.example) to `.env.local` and fill it in:
 npm run dev
 ```
 
-Open http://localhost:3000, sign in, and the onboarding flow walks you through two steps: first a three-line "how it works" and your cards and clubs (grouped into credit cards, clubs and store clubs, with a search and a field for anything missing), then your birth month (required) plus an optional anniversary and children's birthdays.
+Open http://localhost:3000, sign in, and the onboarding flow walks you through two steps: first a three-line "how it works" and your cards and clubs (grouped into credit cards, clubs and store clubs, with a search that takes Hebrew or English names and a field for anything missing), then your birth month (required) plus an optional anniversary and children's birthdays.
 
 ### 6. Make yourself admin
 Set `is_admin = true` on your row in the `profile` table once (SQL editor). The **Sources** tab then shows the admin panel for inviting users and the "shared" toggle on imports.
@@ -429,7 +429,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 - ✅ **Instant feedback**: every button shows it was tapped, and longer waits (login, reading a gift card, importing) get a loading screen with a catch-the-shekels mini game 🪙
 - 🔜 **English and Arabic UI** (the search already understands English)
 - 🔜 **Light theme** next to the current dark one
-- ✅ **Accessibility pass**: screen-reader labels (the best card is announced as it changes), contrast (all text at least 4.5:1, card art included), 44px tap targets and a visible focus ring
+- ✅ **Accessibility pass**: screen-reader labels (the best card is announced as it changes), contrast (all text at least 4.5:1, card art included), 44px tap targets, a visible focus ring, and focus that follows the task (a form that opens scrolls into view, a picked store moves you to the amount)
 - ✅ **First run for a stranger**: cards before dates, a three-line "how it works", and empty states that say why and what to do next (empty wallet, no gift cards, no benefits for the current filters)
 - 🔜 **Larger text mode**
 - 💭 **Native app wrapper** for the App Store and Google Play

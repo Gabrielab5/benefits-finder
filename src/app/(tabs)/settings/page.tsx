@@ -74,7 +74,7 @@ export default function SettingsPage() {
               onChange={(e) => write(sb.from('profile').update({ email_reminders: e.target.checked }).eq('user_id', profile.user_id))} />
             תזכורת במייל כשמתחיל חודש של תאריך מיוחד
           </label>
-          <button onClick={logout} className="flex items-center gap-1.5 text-sm text-bad"><LogOut size={15} aria-hidden /> יציאה</button>
+          <button onClick={logout} className="tap flex items-center gap-1.5 text-sm text-bad"><LogOut size={15} aria-hidden /> יציאה</button>
         </section>
       )}
 

@@ -7,6 +7,17 @@ export const field =
   'w-full rounded-xl border border-line bg-panel-2 px-3 py-2.5 text-fg placeholder:text-dim ' +
   'focus:border-mint focus:outline-none focus:ring-1 focus:ring-mint disabled:opacity-50';
 
+/**
+ * Callback ref for the first field of a form that opens below the fold (often under the floating nav):
+ * scrolls it into view and focuses it, once, when it mounts.
+ */
+export function reveal(el: HTMLElement | null) {
+  if (!el) return;
+  const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+  el.focus({ preventScroll: true });
+}
+
 const VARIANTS = {
   primary: 'shiny bg-mint text-mint-ink font-semibold hover:brightness-110',
   secondary: 'border border-line bg-panel-2 text-fg hover:border-mint/60 hover:text-mint',

@@ -158,7 +158,7 @@ export default function ReviewImportPage() {
             </select>
           </div>
         ))}
-        <button onClick={() => setNewStores((ss) => [...ss, EMPTY_STORE])} className="flex items-center gap-1 text-sm text-mint"><Plus size={14} aria-hidden /> חנות חדשה</button>
+        <button onClick={() => setNewStores((ss) => [...ss, EMPTY_STORE])} className="tap flex items-center gap-1 text-sm text-mint"><Plus size={14} aria-hidden /> חנות חדשה</button>
       </section>
 
       <ul className="space-y-3">

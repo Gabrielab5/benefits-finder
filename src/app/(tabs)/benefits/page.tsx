@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { ChevronDown, List, Search, SlidersHorizontal } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
 import { Button, Chip, Loading, PageHeader, field } from '@/components/ui';
@@ -22,6 +23,7 @@ export default function BenefitsPage() {
   const { snapshot } = useSnap();
   const [f, setF] = useState<BrowseFilters>(EMPTY_FILTERS);
   const [limit, setLimit] = useState(PAGE);
+  const list = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     // Read the query string without useSearchParams (which would need a Suspense boundary).
@@ -36,7 +38,19 @@ export default function BenefitsPage() {
     setF((x) => ({ ...x, [key]: value }));
     setLimit(PAGE);
   };
+  // Both "clear" buttons go back to the defaults ("רק שלי" on).
+  const reset = (to = EMPTY_FILTERS) => {
+    setF(to);
+    setLimit(PAGE);
+  };
+  // The empty state's button vanishes with the results it brings back: land on the list (and its new count).
+  const showAll = (to?: BrowseFilters) => {
+    flushSync(() => reset(to));
+    list.current?.focus();
+  };
+  const isDefault = (Object.keys(EMPTY_FILTERS) as (keyof BrowseFilters)[]).every((k) => f[k] === EMPTY_FILTERS[k]);
   const rows = browseBenefits(snapshot, f, israelToday(), new Date());
+  const subtitle = f.onlyMine ? `${rows.length} הטבות בארנק שלכם` : `${rows.length} הטבות`;
   const extraFilters = [f.programId, f.walletItemId, f.category, f.type, f.channel].filter(Boolean).length;
   // What is narrowing the list, in the words of the controls above, for the empty state.
   const narrowing = [
@@ -51,7 +65,7 @@ export default function BenefitsPage() {
 
   return (
     <main className="space-y-4">
-      <PageHeader title="כל ההטבות" subtitle={f.onlyMine ? `${rows.length} הטבות בארנק שלכם` : `${rows.length} הטבות`} icon={List} />
+      <PageHeader title="כל ההטבות" subtitle={subtitle} icon={List} />
 
       <div className="relative">
         <Search size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
@@ -59,7 +73,8 @@ export default function BenefitsPage() {
           aria-label="חיפוש" className={`${field} ps-10`} />
       </div>
 
-      <div className="-mx-4 -mt-1.5 flex gap-2 overflow-x-auto px-4 py-1.5">
+      {/* No scrollbar track; both edges fade over the 1rem gutter, so a chip cut at the edge reads as "scroll for more". */}
+      <div className="-mx-4 -mt-1.5 flex gap-2 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(90deg,transparent,#000_1rem,#000_calc(100%_-_1rem),transparent)]">
         {CHECKS.map(([key, label]) => (
           <Chip key={key} active={f[key]} onClick={() => set(key, !f[key])}>{label}</Chip>
         ))}
@@ -92,11 +107,11 @@ export default function BenefitsPage() {
             <option value="in_store">בחנות</option>
             <option value="online">אונליין</option>
           </select>
-          <Button variant="ghost" onClick={() => { setF(EMPTY_FILTERS); setLimit(PAGE); }}>ניקוי הכל</Button>
+          <Button variant="ghost" onClick={() => reset()}>ניקוי הכל</Button>
         </div>
       </details>
 
-      <ul className="space-y-2">
+      <ul ref={list} tabIndex={-1} aria-label={subtitle} className="space-y-2">
         {rows.slice(0, limit).map((r) => (
           <BenefitCard key={r.benefit.id} benefit={r.benefit} program={r.program} items={r.items} store={r.store}
             savings={null} dateLocked={r.dateLocked} lockedMonths={r.lockedMonths} />
@@ -105,9 +120,10 @@ export default function BenefitsPage() {
       {rows.length === 0 && (
         <div className="space-y-3 py-8 text-center text-sm text-muted">
           <p>{narrowing.length ? `אין הטבות שמתאימות לסינון: ${narrowing.join(' · ')}.` : 'עדיין אין כאן הטבות.'}</p>
-          {narrowing.length > 0 && (
-            <Button variant="secondary" onClick={() => { setF({ ...EMPTY_FILTERS, onlyMine: false }); setLimit(PAGE); }}>ניקוי הסינון</Button>
-          )}
+          {/* Already at the defaults, so only "רק שלי" is narrowing: offer the whole catalog instead of a no-op reset. */}
+          {narrowing.length > 0 && (isDefault
+            ? <Button variant="secondary" onClick={() => showAll({ ...EMPTY_FILTERS, onlyMine: false })}>הצגת כל ההטבות</Button>
+            : <Button variant="secondary" onClick={() => showAll()}>ניקוי הסינון</Button>)}
         </div>
       )}
       {rows.length > limit && (

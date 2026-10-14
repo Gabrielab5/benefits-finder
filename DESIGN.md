@@ -163,7 +163,7 @@ Color comes from the cards themselves. Issuer card art (Max pink, Shufersal red,
 A deep navy night with one money-green voice, a violet haze for atmosphere and a pink reserved for celebrations.
 
 ### Primary
-- **Savings Mint** (#3ee8ad): money saved, the best card, the primary action, active chips, the active tab and links. Mint fills always render as a glossy gradient fading into Horizon Sky, with a top highlight and a soft mint glow.
+- **Savings Mint** (#3ee8ad): money saved, the best card, the primary action, active chips, the active tab and links. Mint fills always render as a glossy gradient fading into Horizon Sky, with a top highlight and a soft mint glow. Quiet markers (step numbers, onboarding progress, your own chat messages) use a flat mint tint instead, with no gloss.
 - **Deep Mint Ink** (#04291b): text and icons sitting on a mint fill. Never used on navy.
 - **Horizon Sky** (#5cc8ff): the far end of every mint gradient. Not used as a standalone fill.
 
@@ -219,7 +219,7 @@ A deep navy night with one money-green voice, a violet haze for atmosphere and a
 
 A single centered column, at most 576px wide (36rem), with a 16px side gutter. The top padding respects the safe-area inset, with an 8px minimum. Each tab screen leaves 112px at the bottom so content clears the floating navigation.
 
-Rhythm is built on a 4px base: 8px between items in a list, 12–16px between groups, 20px inside the login shell. Wallet cards sit in a two-column grid. Lists such as benefits, gift cards and sources stack vertically with 8px gaps. Filter chips scroll horizontally in a single row and never wrap into a block.
+Rhythm is built on a 4px base: 8px between items in a list, 12–16px between groups, 20px inside the login shell. Wallet cards sit in a two-column grid. Lists such as benefits, gift cards and sources stack vertically with 8px gaps. Filter chips scroll horizontally in a single row and never wrap into a block. The row shows no scrollbar track; both edges fade over the 16px gutter, so a chip cut at the edge reads as more to scroll.
 
 The layout is right-to-left at its core: Hebrew text, start and end alignment, logical insets (`end`, `inline-end`), and tab order flowing right to left. Swiping right moves to the next tab. Left-to-right islands (codes, card digits, English store names) are marked `dir="ltr"` or `dir="auto"` locally.
 
@@ -280,6 +280,7 @@ Confident and instantly responsive: every press dips to 98% scale, and a loading
 ### Focus & Targets
 - **Focus ring:** every link, button, chip, tab, `<summary>` and custom control shows a 2px Savings Mint outline with a 2px offset on `:focus-visible`, following its radius. Text fields are the exception: they keep their mint border and ring, so they never get a double ring.
 - **Tap targets:** every control has at least a 44×44px hit area. Small controls (chips, pills, the "פרטים" toggle, icon buttons) keep their visual size and grow the hit area with the `.tap` pseudo-element instead.
+- **Focus follows the task:** a form that opens below the fold scrolls into view and focuses its first field. Picking a store moves focus to the amount, and clearing it returns focus to the search.
 - **Destructive actions** live inside the edit form, behind a confirm, never next to the edit button on a card face.
 
 ### Navigation
@@ -295,7 +296,7 @@ A 40px square icon tile with a 12px radius, a violet-to-mint diagonal tint at 30
 A 12px-radius line of body text in four tones: info (Raised Lining, Fog), warn, error and success. The last three follow the Tinted Status Rule.
 
 ### Benefit Card (signature)
-The answer unit on the store screen and the all-benefits list. A Lining Navy card (16px, 14px padding) with a 44×28px mini card swatch in issuer colors at the start. Next comes the benefit title in Body Strong with the action line beneath ("pay with" / "show" plus the card and program names). The ₪ saving (Shekel Figure Rule) or a value badge sits at the end. The best result is hoisted directly under the amount field as the answer: a mint "הכי משתלם" label with a sparkle icon and why it won, the action first in bold ("הציגו רי-בר", "שלמו עם מקס") with the benefit title beneath, the ₪ figure and its derivation, and the coupon code to copy. It gets a full mint border and the Answer glow. The rest follow under "עוד אפשרויות", without the winner. Long value badges wrap inside a 40% end column so the title keeps most of the row. Date-locked benefits keep full-contrast text: the swatch goes grey, the title drops to Fog and a pink "available in" pill says when it opens. Details expand in a native `<details>` with a rotating chevron, and the source link is in mint.
+The answer unit on the store screen and the all-benefits list. A Lining Navy card (16px, 14px padding) with a 44×28px mini card swatch in issuer colors at the start. Next comes the benefit title in Body Strong with the action line beneath ("pay with" / "show" plus the card and program names). The ₪ saving (Shekel Figure Rule) or a value badge sits at the end. The best result is hoisted directly under the amount field as the answer: a mint "הכי משתלם" label with a sparkle icon and why it won, the action first in bold ("הציגו רי-בר", "שלמו עם מקס") with the benefit title beneath, the ₪ figure and its derivation, and the coupon code to copy. It gets a full mint border and the Answer glow. The rest follow under "עוד אפשרויות", without the winner. Long value badges wrap inside a 40% end column so the title keeps most of the row. Under 360px a value badge moves to its own row under the title; a ₪ figure keeps the end column. Date-locked benefits keep full-contrast text: the swatch goes grey, the title drops to Fog and a pink "available in" pill says when it opens. Details expand in a native `<details>` with a rotating chevron, and the source link is in mint.
 
 ### Wallet Card (signature)
 Each held card or club is drawn as a credit-card shaped tile (1.6:1, 16px radius, Card Lift shadow). The fill is a 140° gradient between two approximate issuer colors. Without a known brand, the user's chosen color fades into the page ink. A black scrim deepens from clear to 40% toward the light end, so white text holds 4.5:1 on every issuer. The top-start corner carries an 11px black-weight wordmark with 0.08em tracking. The card name is in bold with a drop shadow; the program names and the last 4 digits (tracked mono) share the bottom row, so a two-line name never pushes them out. The one on-card action is a 28px edit tile in 25% black with backdrop blur and a 44px hit area; delete lives in the edit form.

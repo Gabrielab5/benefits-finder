@@ -25,8 +25,9 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
   const [copied, setCopied] = useState(false);
   const line = actionLine(benefit.requires, program.name, items.map((i) => i.nickname || i.name), store?.name_he);
   const art = cardArtFor([items[0]?.name ?? '', program.name]);
-  const swatch = items[0]?.color ?? '#5d6782';
-  const swatchBg = art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : `linear-gradient(135deg, ${swatch}, ${swatch}99)`;
+  const swatch = items[0]?.color;
+  const swatchBg = art ? `linear-gradient(135deg, ${art.from}, ${art.to})`
+    : swatch ? `linear-gradient(135deg, ${swatch}, ${swatch}99)` : 'var(--color-panel-2)';
   const met = savings !== null && savings.spendMore === 0 && savings.saved > 0;
   const how = met && amount ? savingsDerivation(benefit, amount, savings) : null;
   const outdated = isOutdated(benefit.last_verified_at, new Date());
@@ -53,7 +54,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
           {amount ? <span className="font-normal text-muted">· החיסכון הגדול ביותר עבור {shekel(amount)}</span> : null}
         </p>
       )}
-      <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
         {/* Locked: the swatch goes grey (with the pink "available in" pill below); the text keeps full contrast. */}
         <span aria-hidden className={`mt-0.5 grid h-7 w-11 shrink-0 place-items-center overflow-hidden rounded-md px-0.5 text-[6px] font-black leading-none tracking-wider text-white/90 ${dateLocked ? 'opacity-40 grayscale' : ''}`}
           style={{ background: swatchBg }}>{art?.mark}</span>
@@ -71,7 +72,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
             </p>
           </div>
         )}
-        <div className="max-w-[40%] shrink-0 text-end">
+        {/* Under 360px a value badge drops to its own row under the title (ps-14 = swatch + gap), so the title keeps the width. */}
+        <div className={`max-w-[40%] shrink-0 text-end ${met ? '' : 'max-[360px]:max-w-none max-[360px]:basis-full max-[360px]:ps-14 max-[360px]:text-start'}`}>
           {met ? (
             <>
               <p className="text-lg font-bold leading-none text-mint">{shekel(savings.saved)}</p>
@@ -102,6 +104,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
               {benefit.coupon_code} {copied ? <Check size={12} aria-label="הועתק" /> : <Copy size={12} aria-label="העתקה" />}
             </button>
           )}
+          {benefit.coupon_code && <span role="status" className="sr-only">{copied ? 'הקוד הועתק' : ''}</span>}
           {isPrivate && <span className="rounded-full border border-line px-2 py-1 text-dim">פרטי</span>}
           {outdated && <span className="rounded-full bg-panel-2 px-2 py-1 text-dim">ייתכן שלא מעודכן</span>}
         </div>
@@ -122,7 +125,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
             {benefit.valid_until ? ` · בתוקף עד ${formatDate(benefit.valid_until)}` : ''}
           </p>
           {benefit.source_url && (
-            <a href={benefit.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-mint">
+            <a href={benefit.source_url} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 text-xs text-mint">
               למקור <ExternalLink size={12} aria-hidden />
             </a>
           )}

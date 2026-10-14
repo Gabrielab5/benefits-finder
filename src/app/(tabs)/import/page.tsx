@@ -158,10 +158,10 @@ export default function ImportPage() {
         </label>
       )}
 
-      <div className="flex rounded-2xl border border-line bg-panel p-1" role="tablist">
+      <div className="flex rounded-2xl border border-line bg-panel p-1" role="group" aria-label="איך להוסיף">
         {MODES.map(([m, label]) => (
-          <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
-            className={`flex-1 rounded-xl p-2 text-sm transition ${mode === m ? 'bg-panel-2 font-semibold text-mint' : 'text-muted'}`}>
+          <button key={m} aria-pressed={mode === m} onClick={() => setMode(m)}
+            className={`tap flex-1 rounded-xl p-2 text-sm transition ${mode === m ? 'bg-panel-2 font-semibold text-mint' : 'text-muted'}`}>
             {label}
           </button>
         ))}
@@ -202,7 +202,7 @@ export default function ImportPage() {
             <div className="flex gap-2">
               {CHATBOTS.map(([name, href]) => (
                 <a key={name} href={href} target="_blank" rel="noreferrer"
-                  className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-line bg-panel-2 p-2 text-sm text-fg hover:border-mint">
+                  className="tap flex flex-1 items-center justify-center gap-1 rounded-xl border border-line bg-panel-2 p-2 text-sm text-fg hover:border-mint">
                   {name} <ExternalLink size={12} className="text-dim" aria-hidden />
                 </a>
               ))}
@@ -247,7 +247,7 @@ export default function ImportPage() {
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <li className="flex gap-3 rounded-2xl border border-line bg-panel p-3">
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mint text-sm font-bold text-mint-ink">{n}</span>
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-mint/15 text-sm font-bold text-mint">{n}</span>
       <div className="min-w-0 flex-1 space-y-1.5">
         <p className="text-sm font-semibold">{title}</p>
         {children}

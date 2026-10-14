@@ -3,12 +3,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, CreditCard, Gift, Pencil, Plus, RefreshCw, Search, Trash2, Wallet } from 'lucide-react';
 import { MONTHS } from '@/components/DatesForm';
-import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field, reveal } from '@/components/ui';
 import { needsCatalogUpdate, walletItemFromProduct } from '@/lib/core/catalog';
-import { cardArtFor } from '@/lib/core/cardArt';
+import { cardArtFor, cardMatches } from '@/lib/core/cardArt';
 import { monthNameHe } from '@/lib/core/dates';
 import { KIND_LABELS, retryHint, shekel } from '@/lib/core/labels';
-import { normalize } from '@/lib/core/normalize';
 import type { CardProduct, WalletItem } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { useSnap } from '@/lib/useSnapshot';
@@ -36,7 +35,6 @@ export default function WalletPage() {
   const programs = new Map(snapshot.programs.map((p) => [p.id, p]));
   const products = snapshot.products ?? [];
   const productById = new Map(products.map((p) => [p.id, p]));
-  const q = normalize(query);
 
   async function run(op: PromiseLike<{ error: unknown }>, fail: string): Promise<boolean> {
     const { error } = await op;
@@ -145,7 +143,7 @@ export default function WalletPage() {
                     </div>
                     {product && needsCatalogUpdate(w, product) && (
                       <button disabled={!online} onClick={() => syncFromCatalog(w, product)}
-                        className="flex w-full items-center justify-center gap-1 rounded-xl border border-mint/40 py-1.5 text-xs text-mint">
+                        className="tap flex w-full items-center justify-center gap-1 rounded-xl border border-mint/40 py-1.5 text-xs text-mint">
                         <RefreshCw size={12} aria-hidden /> עדכון מהקטלוג
                       </button>
                     )}
@@ -171,11 +169,11 @@ export default function WalletPage() {
           <h2 className="font-semibold">מה להוסיף?</h2>
           <div className="relative">
             <Search size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="חיפוש כרטיס או מועדון"
+            <input ref={reveal} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="חיפוש כרטיס או מועדון"
               aria-label="חיפוש כרטיס או מועדון" className={`${field} ps-10`} />
           </div>
           <ul className="max-h-80 space-y-1.5 overflow-y-auto">
-            {products.filter((p) => !q || normalize(p.name).includes(q)).map((p) => {
+            {products.filter((p) => cardMatches(p.name, query)).map((p) => {
               const art = cardArtFor([p.name]);
               return (
                 <li key={p.id}>
@@ -196,11 +194,11 @@ export default function WalletPage() {
       )}
 
       {draft && (
-        <Card className="space-y-4">
+        <Card key={draft.id ?? 'new'} className="space-y-4">
           <h2 className="font-semibold">{draft.id ? 'עריכה' : 'הוספה לארנק'}</h2>
           <label className="block">
             <span className="text-sm text-muted">שם</span>
-            <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={`${field} mt-1`} />
+            <input ref={reveal} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} className={`${field} mt-1`} />
           </label>
           <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="סוג">
             {(['card', 'membership'] as const).map((t) => (
@@ -242,7 +240,7 @@ export default function WalletPage() {
                 const on = draft.program_ids.includes(p.id);
                 return (
                   <button key={p.id} type="button" aria-pressed={on} onClick={() => toggleProgram(p.id)} title={KIND_LABELS[p.kind]}
-                    className={`rounded-full border px-3 py-1.5 text-sm ${on ? 'border-mint bg-mint/10 text-mint' : 'border-line text-muted'}`}>
+                    className={`tap rounded-full border px-3 py-1.5 text-sm ${on ? 'border-mint bg-mint/10 text-mint' : 'border-line text-muted'}`}>
                     {p.name}
                   </button>
                 );

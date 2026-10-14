@@ -5,9 +5,8 @@ import { Plus, Search, X } from 'lucide-react';
 import DatesForm, { datesValid, type DatesValue } from '@/components/DatesForm';
 import { Button, Notice, field } from '@/components/ui';
 import { productGroup, walletItemFromProduct, type ProductGroup } from '@/lib/core/catalog';
-import { cardArtFor } from '@/lib/core/cardArt';
+import { cardArtFor, cardMatches } from '@/lib/core/cardArt';
 import { TRUST_LINES, retryHint } from '@/lib/core/labels';
-import { normalize } from '@/lib/core/normalize';
 import type { CardProduct, ProgramKind } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
@@ -38,8 +37,7 @@ export default function OnboardingPage() {
       .then(({ data }) => setKinds(new Map((data ?? []).map((p) => [p.id as string, p.kind as ProgramKind]))));
   }, []);
 
-  const q = normalize(query);
-  const visible = products.filter((p) => !q || normalize(p.name).includes(q));
+  const visible = products.filter((p) => cardMatches(p.name, query));
   const toggle = (id: string) =>
     setPicked((s) => {
       const next = new Set(s);
@@ -109,8 +107,11 @@ export default function OnboardingPage() {
       <div className="space-y-3">
         <div className="grid h-12 w-12 place-items-center rounded-2xl border border-line bg-panel text-2xl font-bold text-mint">₪</div>
         <h1 className="text-2xl font-bold">ברוכים הבאים</h1>
-        <div className="flex gap-1.5" aria-label={`שלב ${step} מתוך 2`}>
-          {[1, 2].map((n) => <span key={n} className={`h-1.5 flex-1 rounded-full ${n <= step ? 'bg-mint' : 'bg-line'}`} />)}
+        <div className="space-y-1.5">
+          <p className="text-xs text-dim">שלב {step} מתוך 2</p>
+          <div className="flex gap-1.5" aria-hidden>
+            {[1, 2].map((n) => <span key={n} className={`h-1.5 flex-1 rounded-full ${n <= step ? 'bg-mint/60' : 'bg-line'}`} />)}
+          </div>
         </div>
       </div>
 
@@ -119,7 +120,7 @@ export default function OnboardingPage() {
           <section aria-label="איך זה עובד" className="space-y-3">
             <ol className="space-y-1.5">
               {HOW_IT_WORKS.map((t, i) => (
-                <li key={t} className="flex gap-2"><span className="font-semibold text-mint">{i + 1}.</span>{t}</li>
+                <li key={t} className="flex gap-2"><span className="font-semibold text-dim">{i + 1}.</span>{t}</li>
               ))}
             </ol>
             <div className="space-y-1 text-xs text-dim">
@@ -199,9 +200,15 @@ export default function OnboardingPage() {
       <div className="sticky bottom-0 -mx-4 space-y-2 border-t border-line bg-ink px-4 pt-3 pb-[max(env(safe-area-inset-bottom),12px)]">
         {error && <Notice tone="error">{error}</Notice>}
         {step === 1 && <p className="text-sm text-dim">נבחרו {picked.size + extras.length}</p>}
+        {step === 2 && !datesValid(dates) && (
+          <p id="finish-hint" className="text-sm text-dim">
+            {dates.birth_month == null ? 'בחרו חודש יום הולדת כדי לסיים.' : 'השלימו שם וחודש לכל ילד/ה, או הסירו את השורה.'}
+          </p>
+        )}
         <div className="flex gap-2">
           {step > 1 && <Button variant="secondary" onClick={() => setStep(step - 1)}>חזרה</Button>}
-          <Button loading={busy} disabled={step === 2 && !datesValid(dates)} onClick={step === 2 ? finish : () => setStep(step + 1)} className="flex-1 py-3">
+          <Button loading={busy} disabled={step === 2 && !datesValid(dates)} aria-describedby={step === 2 && !datesValid(dates) ? 'finish-hint' : undefined}
+            onClick={step === 2 ? finish : () => setStep(step + 1)} className="flex-1 py-3">
             {step === 2 ? 'סיום' : 'המשך'}
           </Button>
         </div>

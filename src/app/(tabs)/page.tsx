@@ -1,5 +1,6 @@
 'use client';
 import { Suspense, useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, Gift, Search, Store as StoreIcon, WifiOff, X } from 'lucide-react';
@@ -50,6 +51,7 @@ function WhereAmI() {
   const [amountText, setAmountText] = useState(() => initial().get('amount') ?? '');
   const [recentIds, setRecentIds] = useState(readRecent);
   const amountInput = useRef<HTMLInputElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const q = new URLSearchParams();
@@ -84,7 +86,9 @@ function WhereAmI() {
   const recent = recentIds.flatMap((id) => snapshot.stores.find((s) => s.id === id) ?? []);
 
   const pick = (id: string) => {
-    setStoreId(id);
+    // Render the amount field now, so focus moves on to it instead of dropping to the page.
+    flushSync(() => setStoreId(id));
+    amountInput.current?.focus();
     const ids = addRecent(recent.map((s) => s.id), id);
     setRecentIds(ids);
     try {
@@ -156,7 +160,7 @@ function WhereAmI() {
             <p className="font-semibold">{store.name_he}</p>
             <p className="text-xs text-muted">{store.name_en} · {CATEGORY_LABELS[store.category]}</p>
           </div>
-          <button onClick={() => { setStoreId(null); setQuery(''); }} aria-label="החלפת חנות"
+          <button onClick={() => { flushSync(() => { setStoreId(null); setQuery(''); }); searchInput.current?.focus(); }} aria-label="החלפת חנות"
             className="tap grid h-9 w-9 place-items-center rounded-xl text-muted hover:bg-panel-2 hover:text-fg">
             <X size={18} aria-hidden />
           </button>
@@ -165,7 +169,7 @@ function WhereAmI() {
         <div className="space-y-2">
           <div className="relative">
             <Search size={20} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="איפה אתם קונים?"
+            <input ref={searchInput} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="איפה אתם קונים?"
               aria-label="חיפוש חנות" className={`${field} py-3.5 ps-11 text-lg`} />
           </div>
           {query.trim() && (
