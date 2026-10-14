@@ -1,6 +1,7 @@
 'use client';
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, Mail } from 'lucide-react';
+import LoginCollage from '@/components/LoginCollage';
 import { Button, Notice, field } from '@/components/ui';
 import Waiting from '@/components/Waiting';
 import { TRUST_LINES } from '@/lib/core/labels';
@@ -89,54 +90,61 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 px-6 py-10">
-      <div className="text-center">
-        <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-line bg-panel text-3xl font-bold text-mint">₪</div>
-        <h1 className="text-3xl font-bold">ההטבות שלי</h1>
-        <p className="mt-2 text-muted">איזה כרטיס להוציא בקופה — בשנייה.</p>
-      </div>
+    <main className="flex min-h-dvh flex-col md:grid md:grid-cols-2">
+      <LoginCollage />
+      {/* On a phone the form is a sheet pulled up over the collage; on a desktop it is the other half. */}
+      <div className="relative -mt-6 flex-1 rounded-t-3xl border-t border-line bg-ink md:mt-0 md:rounded-none md:border-0 md:bg-transparent">
+        <div className="mx-auto flex max-w-sm flex-col justify-center gap-6 px-6 pb-10 pt-7 md:min-h-dvh md:gap-8 md:py-10">
+          <div className="text-center">
+            <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-line bg-panel text-3xl font-bold text-mint">₪</div>
+            <h1 className="text-3xl font-bold">ההטבות שלי</h1>
+            <p className="mt-2 text-muted">איזה כרטיס להוציא בקופה — בשנייה.</p>
+          </div>
 
-      <div className="space-y-4 rounded-3xl border border-line bg-panel p-5">
-        {!sent ? (
-          <form onSubmit={sendCode} className="space-y-3">
-            <label className="block">
-              <span className="text-sm text-muted">אימייל</span>
-              <div className="relative mt-1">
-                <Mail size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
-                <input type="email" required dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com" autoComplete="email" className={`${field} ps-10 text-start`} />
-              </div>
-            </label>
-            <Button loading={busy} className="w-full py-3">{busy ? 'שולחים קוד…' : 'שלחו לי קוד כניסה'}</Button>
-          </form>
-        ) : (
-          <form onSubmit={verify} className="space-y-4">
-            <p className="text-center text-sm text-muted">
-              שלחנו קוד ל-<span className="text-fg" dir="ltr">{email}</span>
-            </p>
-            <CodeBoxes value={code} onChange={setCode} />
-            <Button loading={busy} disabled={code.length < 6} className="w-full py-3">{busy ? 'בודקים…' : 'כניסה'}</Button>
-            <button type="button" onClick={() => { setSent(false); setCode(''); }}
-              className="mx-auto flex items-center gap-1 text-sm text-mint">
-              <ArrowRight size={14} aria-hidden /> לשלוח שוב / לשנות אימייל
+          <div className="space-y-4 rounded-3xl border border-line bg-panel p-5">
+            {!sent ? (
+              <form onSubmit={sendCode} className="space-y-3">
+                <label className="block">
+                  <span className="text-sm text-muted">אימייל</span>
+                  <div className="relative mt-1">
+                    <Mail size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />
+                    <input type="email" required dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@example.com" autoComplete="email" className={`${field} ps-10 text-start`} />
+                  </div>
+                </label>
+                <Button loading={busy} className="w-full py-3">{busy ? 'שולחים קוד…' : 'שלחו לי קוד כניסה'}</Button>
+              </form>
+            ) : (
+              <form onSubmit={verify} className="space-y-4">
+                <p className="text-center text-sm text-muted">
+                  שלחנו קוד ל-<span className="text-fg" dir="ltr">{email}</span>
+                </p>
+                <CodeBoxes value={code} onChange={setCode} />
+                <Button loading={busy} disabled={code.length < 6} className="w-full py-3">{busy ? 'בודקים…' : 'כניסה'}</Button>
+                <button type="button" onClick={() => { setSent(false); setCode(''); }}
+                  className="mx-auto flex items-center gap-1 text-sm text-mint">
+                  <ArrowRight size={14} aria-hidden /> לשלוח שוב / לשנות אימייל
+                </button>
+              </form>
+            )}
+
+            <div className="flex items-center gap-3 text-xs text-dim">
+              <span className="h-px flex-1 bg-line" /> או <span className="h-px flex-1 bg-line" />
+            </div>
+
+            <button onClick={google} disabled={!!leaving}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 active:scale-[0.98] disabled:opacity-80">
+              {leaving ? <span className="btn-spinner text-gray-500" aria-hidden /> : <GoogleLogo />} המשך עם Google
             </button>
-          </form>
-        )}
+            {error && <Notice tone="error">{error}</Notice>}
+          </div>
 
-        <div className="flex items-center gap-3 text-xs text-dim">
-          <span className="h-px flex-1 bg-line" /> או <span className="h-px flex-1 bg-line" />
+          <div className="space-y-1 text-center text-xs text-dim">
+            {TRUST_LINES.map((t) => <p key={t}>{t}</p>)}
+            <p>הכניסה פתוחה רק למשתמשים שהוזמנו.</p>
+            <p>הלוגואים והכרטיסים שייכים לבעליהם ומוצגים להמחשה בלבד.</p>
+          </div>
         </div>
-
-        <button onClick={google} disabled={!!leaving}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 active:scale-[0.98] disabled:opacity-80">
-          {leaving ? <span className="btn-spinner text-gray-500" aria-hidden /> : <GoogleLogo />} המשך עם Google
-        </button>
-        {error && <Notice tone="error">{error}</Notice>}
-      </div>
-
-      <div className="space-y-1 text-center text-xs text-dim">
-        {TRUST_LINES.map((t) => <p key={t}>{t}</p>)}
-        <p>הכניסה פתוחה רק למשתמשים שהוזמנו.</p>
       </div>
       {leaving && <Waiting overlay label={leaving} />}
     </main>

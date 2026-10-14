@@ -265,6 +265,11 @@
         "name": "card-lift",
         "value": "0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3)",
         "purpose": "Wallet card art only."
+      },
+      {
+        "name": "collage-depth",
+        "value": "filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.35)) | drop-shadow(0 10px 12px rgb(0 0 0 / 0.4)) | drop-shadow(0 18px 24px rgb(0 0 0 / 0.55))",
+        "purpose": "The login collage's pieces only: back, middle and front layers. Follows each cut-out's shape."
       }
     ],
     "motion": [
@@ -287,6 +292,11 @@
         "name": "reduced-motion",
         "value": "animation-duration: 0.01ms; animation-iteration-count: 1",
         "purpose": "Global override under prefers-reduced-motion: reduce."
+      },
+      {
+        "name": "collage-in",
+        "value": "0.9s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The login collage's one-time settle-in, back layer first. Off under reduced motion."
       }
     ],
     "breakpoints": [
@@ -403,7 +413,7 @@
       },
       {
         "name": "The Cards Bring the Color Rule",
-        "body": "Issuer brand colors live only on card art and card swatches, where they help people recognize their own cards. Buttons, banners, chips and headings never use them.",
+        "body": "Issuer brand colors live only on card art and card swatches, where they help people recognize their own cards. Buttons, banners, chips and headings never use them. The one exception is the login collage: real issuer card art, club logos and photos, shown purely as illustration and nowhere else in the app.",
         "section": "colors"
       },
       {
@@ -454,7 +464,7 @@
     ],
     "donts": [
       "**Don't** use issuer brand colors (Max pink, Shufersal red, Rebar green…) on buttons, banners, chips or headings. The app is not affiliated with any issuer.",
-      "**Don't** put drop shadows on panels or cards. Only mint fills, the hoisted answer, wallet card art and the floating nav get real depth.",
+      "**Don't** put drop shadows on panels or cards. Only mint fills, the hoisted answer, wallet card art, the login collage's pieces and the floating nav get real depth.",
       "**Don't** use mint for decoration, headings or non-savings emphasis.",
       "**Don't** introduce a second typeface. Monospace is only for codes and card digits.",
       "**Don't** use physical left/right for layout or icon placement.",

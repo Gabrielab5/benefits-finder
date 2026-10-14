@@ -189,7 +189,7 @@ A deep navy night with one money-green voice, a violet haze for atmosphere and a
 ### Named Rules
 **The Mint Means Money Rule.** Savings Mint marks savings, the winning result and the single primary action in view. If it isn't about saving money or moving forward, it isn't mint.
 
-**The Cards Bring the Color Rule.** Issuer brand colors live only on card art and card swatches, where they help people recognize their own cards. Buttons, banners, chips and headings never use them.
+**The Cards Bring the Color Rule.** Issuer brand colors live only on card art and card swatches, where they help people recognize their own cards. Buttons, banners, chips and headings never use them. The one exception is the login collage: real issuer card art, club logos and photos, shown purely as illustration and nowhere else in the app.
 
 **The Tinted Status Rule.** Warn, error, success and celebration states use the hue as text, a 10% tint as fill and a 30% tint as border. Never a solid saturated fill.
 
@@ -237,6 +237,7 @@ Depth is a hybrid. Tonal layering does most of the work (Midnight Pocket → Lin
 - **Mint gloss** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6)`): every mint fill (primary button, active chip).
 - **Answer glow** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6)`): the hoisted answer on the store screen only, with its mint border (`.answer`).
 - **Card lift** (`box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3)`): wallet card art only.
+- **Collage depth** (`filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.35))` back, `drop-shadow(0 10px 12px rgb(0 0 0 / 0.4))` middle, `drop-shadow(0 18px 24px rgb(0 0 0 / 0.55))` front): the login collage's pieces only. A drop shadow follows each cut-out's shape; the middle step is Card lift in that form.
 
 ### Named Rules
 **The Gloss Is Earned Rule.** Panels stay flat at rest. Gloss, glow and the shine sweep appear only on the primary action, an active chip, or a savings mark. If everything shines, nothing does.
@@ -304,6 +305,15 @@ Each held card or club is drawn as a credit-card shaped tile (1.6:1, 16px radius
 ### Waiting Screen
 Long waits (sign-in, reading a gift card, importing) show a spinning coin with a warn-to-mint gradient and a tap-to-catch shekel coin game, instead of a bare spinner.
 
+### Login Collage
+The login screen's first impression, and the only place the app shows real issuer art. A decorative panel (`aria-hidden`, empty alts) of card cut-outs, club-logo stickers and stock photos, plus ₪ coins in the Waiting Screen's warn-to-mint gradient and three money badges (percent, banknote, gift) on Lining Navy glass tiles.
+- **Layout:** from md up, the collage fills the start half at full height and stays put while the form is centered in the other half. On a phone it is the top 40svh, and the form is a sheet pulled 24px up over it (Midnight Pocket, 24px top radius, Stitch Line top edge), so the email field and the primary button sit above the fold even at 320×568.
+- **Composition:** one square composition, scaled to cover the panel and cropped like a photo, so a wide phone header and a tall desktop half show the same arrangement (the phone zooms 1.25× into its middle). A fan of three cards is the focal point just off center, the photos are large prints at the edges, and most logos are dimmed into the back. Three depth layers: back (72% brightness), middle and front, each with a deeper Collage depth shadow. Rotations stay within ±14°, and pieces bleed off the edges. Every piece is one row of a data array in `LoginCollage.tsx`; pieces hidden on a phone are never downloaded there.
+- **Grade:** a 20% navy wash pulls the art into the app's world, the violet aurora sits in the top-start corner, and the panel fades into the page ink toward the form (the end side on a desktop, the bottom on a phone), so there is no seam.
+- **Caption:** two lines of Body Strong in Fog on the darkened bottom edge, desktop only. On a phone the tagline right below says the same.
+- **Motion:** each piece settles onto the table once (0.9s on `cubic-bezier(0.16, 1, 0.3, 1)`, back layer first, staggered by about half a second). Nothing loops, and nothing moves under reduced motion.
+- **Credit:** under the form, after the trust lines: "הלוגואים והכרטיסים שייכים לבעליהם ומוצגים להמחשה בלבד."
+
 ## Do's and Don'ts
 
 ### Do:
@@ -318,7 +328,7 @@ Long waits (sign-in, reading a gift card, importing) show a spinning coin with a
 
 ### Don't:
 - **Don't** use issuer brand colors (Max pink, Shufersal red, Rebar green…) on buttons, banners, chips or headings. The app is not affiliated with any issuer.
-- **Don't** put drop shadows on panels or cards. Only mint fills, the hoisted answer, wallet card art and the floating nav get real depth.
+- **Don't** put drop shadows on panels or cards. Only mint fills, the hoisted answer, wallet card art, the login collage's pieces and the floating nav get real depth.
 - **Don't** use mint for decoration, headings or non-savings emphasis.
 - **Don't** introduce a second typeface. Monospace is only for codes and card digits.
 - **Don't** use physical left/right for layout or icon placement.
