@@ -1,4 +1,4 @@
-import type { CardProduct, WalletItem } from './types';
+import type { CardProduct, ProgramKind, WalletItem } from './types';
 
 /** A row without an owner belongs to the shared catalog. */
 export const isShared = (row: { user_id?: string | null }): boolean => row.user_id == null;
@@ -17,6 +17,14 @@ export function needsCatalogUpdate(item: Pick<WalletItem, 'program_ids' | 'produ
   if (!product || item.product_id !== product.id) return false;
   const key = (ids: string[]) => [...new Set(ids)].sort().join(',');
   return key(item.program_ids) !== key(product.program_ids);
+}
+
+export type ProductGroup = 'card' | 'club' | 'store_club';
+
+/** Where a catalog product is listed for picking: credit cards, then memberships split by the kind of programs they unlock. */
+export function productGroup(p: Pick<CardProduct, 'type' | 'program_ids'>, kindOf: (programId: string) => ProgramKind | undefined): ProductGroup {
+  if (p.type === 'card') return 'card';
+  return p.program_ids.length > 0 && p.program_ids.every((id) => kindOf(id) === 'store_club') ? 'store_club' : 'club';
 }
 
 export type AdminAction = 'remove' | 'demote';

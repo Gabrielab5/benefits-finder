@@ -54,7 +54,7 @@ Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנ�
 <td width="50%" valign="top">
 
 ### 💳 My wallet
-Pick your cards and clubs from a shared catalog and they appear as **brand-style cards** (Max pink, Shufersal red, Rebar green…). Each card unlocks its benefits immediately. No typing and no setup per user.
+Pick your cards and clubs from a shared catalog and they appear as **brand-style cards** (Max pink, Shufersal red, Rebar green…). Each card unlocks its benefits immediately. No typing and no setup per user. A new user picks cards first, before being asked for anything personal, and only then the birth month.
 
 </td>
 </tr>
@@ -321,7 +321,7 @@ Copy [`.env.example`](.env.example) to `.env.local` and fill it in:
 npm run dev
 ```
 
-Open http://localhost:3000, sign in, and the onboarding flow walks you through your dates and your cards.
+Open http://localhost:3000, sign in, and the onboarding flow walks you through two steps: first a three-line "how it works" and your cards and clubs (grouped into credit cards, clubs and store clubs, with a search and a field for anything missing), then your birth month (required) plus an optional anniversary and children's birthdays.
 
 ### 6. Make yourself admin
 Set `is_admin = true` on your row in the `profile` table once (SQL editor). The **Sources** tab then shows the admin panel for inviting users and the "shared" toggle on imports.
@@ -430,6 +430,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 - 🔜 **English and Arabic UI** (the search already understands English)
 - 🔜 **Light theme** next to the current dark one
 - ✅ **Accessibility pass**: screen-reader labels (the best card is announced as it changes), contrast (all text at least 4.5:1, card art included), 44px tap targets and a visible focus ring
+- ✅ **First run for a stranger**: cards before dates, a three-line "how it works", and empty states that say why and what to do next (empty wallet, no gift cards, no benefits for the current filters)
 - 🔜 **Larger text mode**
 - 💭 **Native app wrapper** for the App Store and Google Play
 - 💭 **Open sign-up** with a waiting list, once the catalog is broad enough

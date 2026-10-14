@@ -129,6 +129,12 @@ function WhereAmI() {
         <Notice tone="warn"><WifiOff size={14} className="me-1 inline" aria-hidden />אין חיבור — מוצגים הנתונים האחרונים שנשמרו.</Notice>
       )}
       {online && error && <Notice tone="error">{error}</Notice>}
+      {snapshot.wallet.length === 0 && (
+        <Notice>
+          החיפוש עובד, אבל כדי לדעת באיזה כרטיס לשלם צריך כרטיסים בארנק.{' '}
+          <Link href="/wallet" className="text-mint underline underline-offset-2">הוספת כרטיס לארנק</Link>
+        </Notice>
+      )}
       {windows.length > 0 && (
         <Link href="/benefits?birthday=1"
           className="flex items-center gap-3 rounded-2xl border border-party/30 bg-party/10 p-3.5 text-party">

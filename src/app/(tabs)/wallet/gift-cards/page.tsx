@@ -231,11 +231,12 @@ export default function GiftCardsPage() {
           {cards.map((c) => {
             const expired = !!c.expires_on && c.expires_on < today;
             const expiring = !expired && !!c.expires_on && c.expires_on <= soon;
+            const spent = expired || c.balance === 0; // muted swatch and balance; the text keeps full contrast
             const where = c.any_store ? 'בכל בית עסק' : c.store_ids.map((id) => storeById.get(id)?.name_he).filter(Boolean).join(' · ');
             return (
-              <li key={c.id} className={`rounded-2xl border border-line bg-panel p-3.5 ${expired || c.balance === 0 ? 'opacity-50' : ''}`}>
+              <li key={c.id} className="rounded-2xl border border-line bg-panel p-3.5">
                 <div className="flex items-start gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-party/30 to-mint/20 text-party">
+                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${spent ? 'bg-panel-2 text-dim' : 'bg-gradient-to-br from-party/30 to-mint/20 text-party'}`}>
                     <Gift size={18} aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -243,11 +244,12 @@ export default function GiftCardsPage() {
                     <p className="line-clamp-2 text-xs text-muted">{where || 'לא נבחרו חנויות'}</p>
                   </div>
                   <div className="shrink-0 text-end">
-                    <p className="text-lg font-bold leading-none text-mint">{shekel(c.balance)}</p>
+                    <p className={`text-lg font-bold leading-none ${spent ? 'text-muted' : 'text-mint'}`}>{shekel(c.balance)}</p>
                     {c.balance !== c.amount && <p className="mt-1 text-[11px] text-dim">מתוך {shekel(c.amount)}</p>}
                   </div>
                 </div>
                 <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+                  {c.balance === 0 && !expired && <span className="rounded-full bg-panel-2 px-2 py-1 text-muted">נוצל במלואו</span>}
                   {c.expires_on && (
                     <span className={`rounded-full px-2 py-1 ${expired ? 'bg-bad/10 text-bad' : expiring ? 'bg-warn/10 text-warn' : 'bg-panel-2 text-dim'}`}>
                       {expired ? 'פג תוקף' : 'בתוקף עד'} {formatDate(c.expires_on)}
@@ -287,6 +289,9 @@ export default function GiftCardsPage() {
         </ul>
       )}
 
+      {cards.length === 0 && !draft && !adding && (
+        <p className="text-sm text-muted">שמרו כאן גיפטקארד, ובקופה נשלב אותו עם ההנחה הכי טובה שלכם. נזכיר לכם גם לפני שהוא פג.</p>
+      )}
       {!draft && !adding && (
         <Button disabled={!online} onClick={() => setAdding('menu')} className="w-full py-3">
           <Plus size={18} aria-hidden /> הוספת גיפטקארד

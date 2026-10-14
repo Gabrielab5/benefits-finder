@@ -29,7 +29,7 @@ The register answer, ranked by real shekels. Type a store in Hebrew or English, 
 ## Operating Context
 
 - Phone-first installable PWA, used in stores, malls and basement supermarkets with no signal.
-- One-time onboarding: special dates, then which cards and clubs you hold, picked from a shared catalog.
+- One-time onboarding: which cards and clubs you hold, picked from a shared catalog, then your special dates.
 - Five bottom tabs: Where am I (store search), All benefits, Wallet (plus gift cards), Import, Sources/settings.
 - Catalog freshness: a monthly research refresh is loaded as pending imports, and a human approves each one before users see it.
 - Private benefits: users add their own through a free-chatbot prompt round trip or by hand. They stay private.

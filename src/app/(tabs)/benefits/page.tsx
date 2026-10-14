@@ -38,6 +38,16 @@ export default function BenefitsPage() {
   };
   const rows = browseBenefits(snapshot, f, israelToday(), new Date());
   const extraFilters = [f.programId, f.walletItemId, f.category, f.type, f.channel].filter(Boolean).length;
+  // What is narrowing the list, in the words of the controls above, for the empty state.
+  const narrowing = [
+    f.q.trim() && `"${f.q.trim()}"`,
+    ...CHECKS.filter(([key]) => f[key]).map(([, label]) => label),
+    f.programId && snapshot.programs.find((p) => p.id === f.programId)?.name,
+    f.walletItemId && snapshot.wallet.filter((w) => w.id === f.walletItemId).map((w) => w.nickname || w.name)[0],
+    f.category && CATEGORY_LABELS[f.category],
+    f.type && TYPE_LABELS[f.type],
+    f.channel && (f.channel === 'online' ? 'אונליין' : 'בחנות'),
+  ].filter(Boolean);
 
   return (
     <main className="space-y-4">
@@ -92,7 +102,14 @@ export default function BenefitsPage() {
             savings={null} dateLocked={r.dateLocked} lockedMonths={r.lockedMonths} />
         ))}
       </ul>
-      {rows.length === 0 && <p className="py-8 text-center text-sm text-dim">לא נמצאו הטבות בסינון הזה.</p>}
+      {rows.length === 0 && (
+        <div className="space-y-3 py-8 text-center text-sm text-muted">
+          <p>{narrowing.length ? `אין הטבות שמתאימות לסינון: ${narrowing.join(' · ')}.` : 'עדיין אין כאן הטבות.'}</p>
+          {narrowing.length > 0 && (
+            <Button variant="secondary" onClick={() => { setF({ ...EMPTY_FILTERS, onlyMine: false }); setLimit(PAGE); }}>ניקוי הסינון</Button>
+          )}
+        </div>
+      )}
       {rows.length > limit && (
         <Button variant="secondary" onClick={() => setLimit(limit + PAGE)} className="w-full">עוד הטבות</Button>
       )}

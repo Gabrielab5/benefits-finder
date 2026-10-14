@@ -157,6 +157,9 @@ export default function WalletPage() {
         );
       })}
 
+      {snapshot.wallet.length === 0 && !draft && !picking && (
+        <p className="text-sm text-muted">הארנק עדיין ריק. הוסיפו את הכרטיס או המועדון הראשון, ונראה לכם בכל חנות באיזה מהם להשתמש.</p>
+      )}
       {!draft && !picking && (
         <Button disabled={!online} onClick={() => setPicking(true)} className="w-full py-3">
           <Plus size={18} aria-hidden /> הוספה לארנק

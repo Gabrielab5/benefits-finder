@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { adminGuard, isShared, needsCatalogUpdate, walletItemFromProduct } from './catalog';
-import type { CardProduct } from './types';
+import { adminGuard, isShared, needsCatalogUpdate, productGroup, walletItemFromProduct } from './catalog';
+import type { CardProduct, ProgramKind } from './types';
 
 const product: CardProduct = { id: 'prod-max-histadrut', user_id: null, name: 'מקס של ביחד בשבילך', type: 'card', program_ids: ['max', 'histadrut'] };
 
@@ -47,5 +47,24 @@ describe('adminGuard', () => {
   it('allows other changes', () => {
     expect(adminGuard('remove', 'me', 'friend', ['me'])).toBeNull();
     expect(adminGuard('demote', 'me', 'other', ['me', 'other'])).toBeNull();
+  });
+});
+
+describe('productGroup', () => {
+  const kinds: Record<string, ProgramKind> = { max: 'card_issuer', hever: 'club', rebar: 'store_club', castro: 'store_club' };
+  const kindOf = (id: string) => kinds[id];
+  const membership = (program_ids: string[]) => ({ type: 'membership' as const, program_ids });
+
+  it('keeps credit cards together, whatever programs they unlock', () => {
+    expect(productGroup({ type: 'card', program_ids: ['rebar'] }, kindOf)).toBe('card');
+  });
+  it('puts a membership whose programs are all store clubs under store clubs', () => {
+    expect(productGroup(membership(['rebar', 'castro']), kindOf)).toBe('store_club');
+  });
+  it('treats any other membership as a club, including mixed or unknown programs', () => {
+    expect(productGroup(membership(['hever']), kindOf)).toBe('club');
+    expect(productGroup(membership(['hever', 'rebar']), kindOf)).toBe('club');
+    expect(productGroup(membership(['gone']), kindOf)).toBe('club');
+    expect(productGroup(membership([]), kindOf)).toBe('club');
   });
 });
