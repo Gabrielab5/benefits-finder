@@ -61,7 +61,7 @@ describe('new benefit alerts', () => {
   it('counts shared benefits for my cards created after the watermark and moves it', () => {
     const r = run(profile(), [fresh, benefit('old'), benefit('private', { user_id: 'u', created_at: '2026-10-08T10:00:00+00:00' }),
       benefit('notMine', { program_id: 'max', created_at: '2026-10-08T10:00:00+00:00' })], MONDAY);
-    expect(r.messages).toEqual([expect.objectContaining({ kind: 'new', title: '✨ הטבה חדשה לכרטיסים שלך', url: '/benefits?recent=1' })]);
+    expect(r.messages).toEqual([expect.objectContaining({ kind: 'new', title: '✨ הטבה חדשה לכרטיסים שלכם', url: '/benefits?recent=1' })]);
     expect(r.newSince).toBe(MONDAY.toISOString());
   });
   it('without a watermark only sets one (no flood of the whole catalog)', () => {

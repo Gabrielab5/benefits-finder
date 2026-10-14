@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Mail, Plus, ShieldCheck, Trash2, UserPlus, X } from 'lucide-react';
 import { Button, Notice, SectionTitle, field } from '@/components/ui';
 import { isShared } from '@/lib/core/catalog';
+import { retryHint } from '@/lib/core/labels';
 import { normalize } from '@/lib/core/normalize';
 import type { CardProduct, Program } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -59,7 +60,7 @@ export default function AdminPanel({ programs, products, onChange }: {
     });
     const result = (await res.json().catch(() => ({}))) as { error?: string };
     if (!res.ok) {
-      setMessage(ERRORS[result.error ?? ''] ?? 'הפעולה נכשלה.');
+      setMessage(ERRORS[result.error ?? ''] ?? `הפעולה לא בוצעה. ${retryHint(navigator.onLine)}`);
       return false;
     }
     setMessage(null);
@@ -78,7 +79,7 @@ export default function AdminPanel({ programs, products, onChange }: {
   const sb = supabaseBrowser();
   async function write(op: PromiseLike<{ error: unknown }>) {
     const { error } = await op;
-    if (error) setMessage('השמירה נכשלה.');
+    if (error) setMessage(`השינוי לא נשמר. ${retryHint(navigator.onLine)}`);
     else {
       setMessage(null);
       await onChange();

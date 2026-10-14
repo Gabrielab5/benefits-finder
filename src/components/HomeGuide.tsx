@@ -49,7 +49,7 @@ export default function HomeGuide() {
       });
       if (!res.ok || !res.body) {
         const { error } = await res.json().catch(() => ({ error: '' }));
-        write(ERRORS[error] ?? 'משהו השתבש. נסו שוב.');
+        write(ERRORS[error] ?? 'הצ׳אט לא הצליח לענות הפעם. נסו לשאול שוב בעוד רגע.');
         return;
       }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();

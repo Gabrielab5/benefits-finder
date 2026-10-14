@@ -28,7 +28,7 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       await idbSet('snapshot', s);
     } catch {
-      setError('לא הצלחנו לטעון נתונים עדכניים.');
+      setError('לא הצלחנו לטעון נתונים עדכניים, אז ייתכן שמה שמוצג ישן. רעננו את הדף כדי לנסות שוב.');
     }
   }, []);
 

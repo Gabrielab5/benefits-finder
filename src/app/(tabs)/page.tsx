@@ -41,7 +41,7 @@ export default function WhereAmIPage() {
         <SectionTitle>{title}</SectionTitle>
         <ul data-testid={testId} className="space-y-2">
           {rows.map((r) => (
-            <BenefitCard key={r.benefit.id} {...r} store={store} best={r.benefit.id === best} />
+            <BenefitCard key={r.benefit.id} {...r} amount={amount} best={r.benefit.id === best} />
           ))}
         </ul>
       </section>
@@ -114,7 +114,12 @@ export default function WhereAmIPage() {
                 </li>
               ))}
               {matches.length === 0 && (
-                <li className="p-3 text-sm text-muted">לא נמצאה חנות. אפשר לייבא את ההטבות שלה בלשונית &quot;ייבוא&quot;.</li>
+                <li className="space-y-1 p-3 text-sm">
+                  <p className="text-fg">לא מצאנו חנות בשם הזה. נסו כתיב אחר או את השם באנגלית.</p>
+                  <p className="text-muted">
+                    עדיין חסרה? אפשר <Link href="/import" className="text-mint underline underline-offset-2">לייבא את ההטבות שלה</Link>.
+                  </p>
+                </li>
               )}
             </ul>
           )}

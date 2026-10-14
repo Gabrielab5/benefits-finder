@@ -18,10 +18,10 @@ const TIMING_OF: Record<DateWindow['kind'], Timing> = {
 /** Your birthday, each club that has a different birthday on file, your anniversary, and each child. */
 export function dateWindows(profile: Profile | null, wallet: WalletItem[]): DateWindow[] {
   const windows: DateWindow[] = [];
-  if (profile?.birth_month) windows.push({ key: 'birthday', kind: 'birthday', label: 'יום ההולדת שלך', month: profile.birth_month });
+  if (profile?.birth_month) windows.push({ key: 'birthday', kind: 'birthday', label: 'יום ההולדת שלכם', month: profile.birth_month });
   for (const item of wallet) {
     if (item.birthday_month && item.birthday_month !== profile?.birth_month) {
-      windows.push({ key: `birthday:${item.id}`, kind: 'birthday', label: `יום ההולדת שלך ב${item.nickname || item.name}`, month: item.birthday_month });
+      windows.push({ key: `birthday:${item.id}`, kind: 'birthday', label: `יום ההולדת שלכם ב${item.nickname || item.name}`, month: item.birthday_month });
     }
   }
   if (profile?.anniversary_month) windows.push({ key: 'anniversary', kind: 'anniversary', label: 'יום הנישואין', month: profile.anniversary_month });

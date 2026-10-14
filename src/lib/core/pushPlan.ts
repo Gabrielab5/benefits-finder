@@ -96,7 +96,7 @@ export function pushMessages(s: Snapshot, today: IsraelDay, now: Date): { messag
   });
   if (!fresh.length) return { messages, newSince: null };
   messages.push({
-    kind: 'new', title: `✨ ${count(fresh.length, 'הטבה חדשה', 'הטבות חדשות')} לכרטיסים שלך`,
+    kind: 'new', title: `✨ ${count(fresh.length, 'הטבה חדשה', 'הטבות חדשות')} לכרטיסים שלכם`,
     body: titles(fresh), url: '/benefits?recent=1', tag: 'new', remindKeys: [],
   });
   return { messages, newSince: now.toISOString() };

@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { ArrowRight, Mail } from 'lucide-react';
 import { Button, Notice, field } from '@/components/ui';
 import Waiting from '@/components/Waiting';
+import { TRUST_LINES } from '@/lib/core/labels';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
 function GoogleLogo() {
@@ -56,7 +57,7 @@ export default function LoginPage() {
       options: { shouldCreateUser: false, emailRedirectTo: `${location.origin}/auth/callback` },
     });
     setBusy(false);
-    if (error) setError('לא ניתן לשלוח קוד לכתובת הזו.');
+    if (error) setError('לא הצלחנו לשלוח קוד לכתובת הזו. הכניסה פתוחה רק לכתובות שהוזמנו: בדקו שזו הכתובת שקיבלה הזמנה, או נסו שוב בעוד דקה.');
     else setSent(true);
   }
 
@@ -67,7 +68,7 @@ export default function LoginPage() {
     const { error } = await supabaseBrowser().auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' });
     if (error) {
       setBusy(false);
-      setError('הקוד שגוי או שפג תוקפו.');
+      setError('הקוד שגוי או שפג תוקפו. בדקו את הספרות, או בקשו קוד חדש.');
       return;
     }
     setLeaving('נכנסים לחשבון');
@@ -83,7 +84,7 @@ export default function LoginPage() {
     });
     if (error) {
       setLeaving(null);
-      setError('הכניסה עם Google עדיין לא הוגדרה.');
+      setError('הכניסה עם Google עדיין לא הוגדרה. היכנסו עם קוד שנשלח לאימייל.');
     }
   }
 
@@ -133,7 +134,10 @@ export default function LoginPage() {
         {error && <Notice tone="error">{error}</Notice>}
       </div>
 
-      <p className="text-center text-xs text-dim">הכניסה פתוחה רק למשתמשים שהוזמנו.</p>
+      <div className="space-y-1 text-center text-xs text-dim">
+        {TRUST_LINES.map((t) => <p key={t}>{t}</p>)}
+        <p>הכניסה פתוחה רק למשתמשים שהוזמנו.</p>
+      </div>
       {leaving && <Waiting overlay label={leaving} />}
     </main>
   );

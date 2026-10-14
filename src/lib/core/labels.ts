@@ -1,4 +1,5 @@
-import { isPerItem } from './savings';
+import { normalize } from './normalize';
+import { isPerItem, type Savings } from './savings';
 import type { Benefit, BenefitType, Category, Channel, ProgramKind, Requires, Timing } from './types';
 
 export const TYPE_LABELS: Record<BenefitType, string> = {
@@ -33,12 +34,23 @@ export const IMPORT_ERRORS: Record<string, string> = {
   too_long: 'התוכן ארוך מדי. ייבאו חלק מהדף בכל פעם.',
   refused: 'לא ניתן לעבד את התוכן הזה.' + OR_MANUAL,
   invalid_output: 'החילוץ נכשל. נסו שוב, ואם הדף ארוך — ייבאו חלק ממנו בכל פעם.' + OR_MANUAL,
-  empty: 'אין תוכן לייבוא.',
+  empty: 'אין תוכן לייבוא. הוסיפו קישור, טקסט או צילום מסך.',
   bad_screenshots: 'בחרו 1–5 צילומי מסך (PNG, JPG או WEBP).',
-  program_not_found: 'התוכנית לא נמצאה.',
+  program_not_found: 'התוכנית לא נמצאה. רעננו את הדף ובחרו אותה שוב.',
   ai_off: 'הייבוא האוטומטי כבוי. השתמשו ב"בעזרת צ׳אט" (חינם) או "ידני".',
-  default: 'הייבוא נכשל. נסו שוב.' + OR_MANUAL,
+  default: 'הייבוא לא התחיל. בדקו את החיבור לאינטרנט ונסו שוב בעוד רגע.' + OR_MANUAL,
 };
+
+/** What to do after a save, delete or load failed. Offline is the usual cause on a phone. */
+export function retryHint(online: boolean): string {
+  return online ? 'נסו שוב בעוד רגע, ואם זה חוזר, רעננו את הדף.' : 'אין חיבור לאינטרנט. נסו שוב כשתתחברו.';
+}
+
+/** Product truths shown on login and the first onboarding screen (PRODUCT.md). */
+export const TRUST_LINES = [
+  'לא מתחברים לבנק או לחשבון האשראי שלכם, ולא מבקשים מספרי כרטיס או סיסמאות.',
+  'לא קשורים לאף חברת אשראי או מועדון, אז לפני שסומכים על הטבה, בדקו את התנאים במקור.',
+];
 
 export function shekel(n: number): string {
   return `₪${n.toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
@@ -61,4 +73,33 @@ export function headlineText(b: Headlined): string {
   if (b.type === 'cashback_percent' && b.value != null) return `${b.value}% החזר`;
   if (b.type === 'points' && b.value != null) return `${b.value}% צבירה`;
   return TYPE_LABELS[b.type];
+}
+
+type Derived = Pick<Benefit, 'type' | 'value' | 'min_spend' | 'max_discount'>;
+
+/** How the ₪ saving was computed for the entered amount: "10% × ₪300, עד ₪50", "₪20 בקנייה מעל ₪100". Null with no saving. */
+export function savingsDerivation(b: Derived, amount: number, s: Savings): string | null {
+  if (s.spendMore > 0 || s.saved <= 0 || b.value == null) return null;
+  if (b.type === 'fixed_off') {
+    if (s.saved < b.value) return `${shekel(b.value)} הנחה, עד גובה הקנייה`;
+    return b.min_spend ? `${shekel(b.value)} בקנייה מעל ${shekel(b.min_spend)}` : `${shekel(b.value)} הנחה קבועה`;
+  }
+  const rate = b.type === 'cashback_percent' ? `${b.value}% החזר` : `${b.value}%`;
+  return `${rate} × ${shekel(amount)}${b.max_discount ? `, עד ${shekel(b.max_discount)}` : ''}`;
+}
+
+/**
+ * The card's "how to use it" line: verb, the wallet items, then the program and store when they add something.
+ * With no wallet item it names the program the benefit needs ("דורש: X").
+ */
+export function actionLine(requires: Requires, program: string, itemNames: string[], store?: string | null) {
+  const where = store ? [store] : [];
+  if (itemNames.length === 0) return { verb: 'דורש:', who: program, more: where };
+  const p = normalize(program);
+  const named = itemNames.some((n) => normalize(n).includes(p));
+  return {
+    verb: requires === 'pay_with_card' ? 'שלמו עם' : 'הציגו',
+    who: itemNames.join(' / '),
+    more: named ? where : [program, ...where],
+  };
 }

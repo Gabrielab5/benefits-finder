@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Bell, BellOff, Send } from 'lucide-react';
 import { Button, Notice } from '@/components/ui';
+import { retryHint } from '@/lib/core/labels';
 import type { Profile } from '@/lib/core/types';
 import { pushSupport, subscribeDevice, syncDevice, testResultMessage, unsubscribeDevice } from '@/lib/push/client';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -41,7 +42,7 @@ export default function PushSettings({ profile, online, onChange }: { profile: P
     } catch (e) {
       setMessage({ tone: 'error', text: (e as Error).message === 'sw_unavailable'
         ? 'ההתראות לא זמינות כרגע. רעננו את הדף ונסו שוב.'
-        : 'הפעולה נכשלה. נסו שוב.' });
+        : `הגדרות ההתראות לא עודכנו. ${retryHint(navigator.onLine)}` });
     } finally {
       setBusy(false);
     }

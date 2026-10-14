@@ -6,7 +6,7 @@ import { Button, Card, Chip, Loading, Notice, PageHeader, SectionTitle, field } 
 import Waiting from '@/components/Waiting';
 import { addDays, israelToday } from '@/lib/core/dates';
 import { GIFT_CARD_PRESETS, storesSearchUrl, type GiftCardPreset } from '@/lib/core/giftcards';
-import { formatDate, shekel } from '@/lib/core/labels';
+import { formatDate, retryHint, shekel } from '@/lib/core/labels';
 import { findStoreByName, searchStores } from '@/lib/core/normalize';
 import { parseAmount } from '@/lib/core/savings';
 import type { GiftCard } from '@/lib/core/types';
@@ -135,7 +135,7 @@ export default function GiftCardsPage() {
     try {
       image = await shrink(file);
     } catch {
-      return setError('לא הצלחנו לקרוא את התמונה.');
+      return setError('לא הצלחנו לקרוא את התמונה. נסו צילום מסך בפורמט PNG או JPG.');
     }
     if (attachOnly) set({ image });
     else await extract({ image });
@@ -144,13 +144,13 @@ export default function GiftCardsPage() {
   async function showImage(path: string) {
     const { data } = await supabaseBrowser().storage.from(BUCKET).createSignedUrl(path, 300);
     if (data) setViewing(data.signedUrl);
-    else setError('לא הצלחנו לפתוח את התמונה.');
+    else setError(`לא הצלחנו לפתוח את התמונה. ${retryHint(navigator.onLine)}`);
   }
 
   async function run(op: PromiseLike<{ error: unknown }>, msg: string): Promise<boolean> {
     const { error } = await op;
     if (error) {
-      setError(msg);
+      setError(`${msg} ${retryHint(navigator.onLine)}`);
       return false;
     }
     setError(null);
@@ -188,10 +188,10 @@ export default function GiftCardsPage() {
       const bytes = Uint8Array.from(atob(d.image.data), (ch) => ch.charCodeAt(0));
       image_path = `${uid}/gift-cards/${crypto.randomUUID()}.jpg`;
       const { error } = await sb.storage.from(BUCKET).upload(image_path, new Blob([bytes], { type: d.image.type }));
-      if (error) return setError('העלאת התמונה נכשלה.');
+      if (error) return setError(`התמונה לא הועלתה, ולכן הגיפטקארד לא נשמר. ${retryHint(navigator.onLine)}`);
     }
     const op = d.id ? sb.from('gift_cards').update({ ...row, image_path }).eq('id', d.id) : sb.from('gift_cards').insert({ ...row, image_path });
-    if (await run(op, 'השמירה נכשלה.')) {
+    if (await run(op, 'הגיפטקארד לא נשמר.')) {
       if (old && old !== image_path) await sb.storage.from(BUCKET).remove([old]);
       setDraft(null);
     }
@@ -200,7 +200,7 @@ export default function GiftCardsPage() {
   async function remove(c: GiftCard) {
     if (!confirm(`למחוק את "${c.name}"?`)) return;
     const sb = supabaseBrowser();
-    if (await run(sb.from('gift_cards').delete().eq('id', c.id), 'המחיקה נכשלה.') && c.image_path) {
+    if (await run(sb.from('gift_cards').delete().eq('id', c.id), 'הגיפטקארד לא נמחק.') && c.image_path) {
       await sb.storage.from(BUCKET).remove([c.image_path]);
     }
   }

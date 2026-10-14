@@ -6,6 +6,7 @@ import DatesForm, { datesValid, type DatesValue } from '@/components/DatesForm';
 import { Button, Notice, field } from '@/components/ui';
 import { walletItemFromProduct } from '@/lib/core/catalog';
 import { cardArtFor } from '@/lib/core/cardArt';
+import { TRUST_LINES, retryHint } from '@/lib/core/labels';
 import { normalize } from '@/lib/core/normalize';
 import type { CardProduct } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -91,7 +92,7 @@ export default function OnboardingPage() {
       if (e2) throw e2;
       router.replace('/');
     } catch {
-      setError('השמירה נכשלה. נסו שוב.');
+      setError(`לא הצלחנו לשמור את הפרטים. ${retryHint(navigator.onLine)}`);
     } finally {
       setBusy(false);
     }
@@ -112,6 +113,9 @@ export default function OnboardingPage() {
           <h2 className="font-semibold">התאריכים שלכם</h2>
           <p className="text-sm text-muted">הטבות לימי הולדת ולימי נישואין תקפות לכל החודש.</p>
           <DatesForm value={dates} onChange={setDates} />
+          <div className="space-y-1 pt-2 text-xs text-dim">
+            {TRUST_LINES.map((t) => <p key={t}>{t}</p>)}
+          </div>
         </section>
       )}
 

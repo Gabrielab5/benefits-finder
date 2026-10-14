@@ -41,7 +41,7 @@ export default function BenefitsPage() {
 
   return (
     <main className="space-y-4">
-      <PageHeader title="כל ההטבות" subtitle={`${rows.length} הטבות`} icon={List} />
+      <PageHeader title="כל ההטבות" subtitle={f.onlyMine ? `${rows.length} הטבות בארנק שלכם` : `${rows.length} הטבות`} icon={List} />
 
       <div className="relative">
         <Search size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" aria-hidden />

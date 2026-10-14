@@ -27,7 +27,7 @@ export default function DatesForm({ value, onChange }: { value: DatesValue; onCh
   return (
     <div className="space-y-5">
       <label className="block">
-        <span className="text-sm text-muted">🎂 חודש יום ההולדת שלך</span>
+        <span className="text-sm text-muted">🎂 חודש יום ההולדת שלכם</span>
         <select aria-label="חודש יום ההולדת" value={value.birth_month ?? ''} onChange={(e) => set({ birth_month: num(e.target.value) })}
           className={`${field} mt-1`}>
           <option value="">בחרו חודש</option>

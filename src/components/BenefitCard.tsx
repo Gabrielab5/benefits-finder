@@ -4,7 +4,7 @@ import { Check, ChevronDown, Copy, ExternalLink, Sparkles } from 'lucide-react';
 import { cardArtFor } from '@/lib/core/cardArt';
 import { isOutdated, monthNameHe } from '@/lib/core/dates';
 import {
-  CHANNEL_LABELS, REQUIRES_LABELS, TIMING_ICON, TIMING_LABELS, formatDate, headlineText, shekel,
+  CHANNEL_LABELS, REQUIRES_LABELS, TIMING_ICON, TIMING_LABELS, actionLine, formatDate, headlineText, savingsDerivation, shekel,
 } from '@/lib/core/labels';
 import type { Savings } from '@/lib/core/savings';
 import type { Benefit, Program, Store, WalletItem } from '@/lib/core/types';
@@ -13,21 +13,22 @@ interface Props {
   benefit: Benefit;
   program: Program;
   items: WalletItem[];
-  store: Store | null;
+  store?: Store | null; // left out inside a store result, where the store is already on screen
   savings: Savings | null;
+  amount?: number | null; // the entered purchase amount the savings were computed for
   dateLocked: boolean;
   lockedMonths: number[];
   best?: boolean;
 }
 
-export default function BenefitCard({ benefit, program, items, store, savings, dateLocked, lockedMonths, best = false }: Props) {
+export default function BenefitCard({ benefit, program, items, store, savings, amount, dateLocked, lockedMonths, best = false }: Props) {
   const [copied, setCopied] = useState(false);
-  const who = items.map((i) => i.nickname || i.name).join(' / ');
-  const action = benefit.requires === 'pay_with_card' ? 'שלמו עם' : 'הציגו';
+  const line = actionLine(benefit.requires, program.name, items.map((i) => i.nickname || i.name), store?.name_he);
   const art = cardArtFor([items[0]?.name ?? '', program.name]);
   const swatch = items[0]?.color ?? '#5d6782';
   const swatchBg = art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : `linear-gradient(135deg, ${swatch}, ${swatch}99)`;
   const met = savings !== null && savings.spendMore === 0 && savings.saved > 0;
+  const how = met && amount ? savingsDerivation(benefit, amount, savings) : null;
   const outdated = isOutdated(benefit.last_verified_at, new Date());
   const isPrivate = Boolean(benefit.user_id);
 
@@ -42,6 +43,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, d
       {best && (
         <p className="mb-2 flex items-center gap-1 text-xs font-semibold text-mint">
           <Sparkles size={14} aria-hidden /> הכי משתלם
+          {amount ? <span className="font-normal text-muted">· החיסכון הגדול ביותר עבור {shekel(amount)}</span> : null}
         </p>
       )}
       <div className="flex items-start gap-3">
@@ -53,8 +55,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, d
             {benefit.title}
           </p>
           <p className="mt-0.5 text-sm text-muted">
-            {action} <span className="text-fg">{who}</span> · {program.name}
-            {store ? ` · ${store.name_he}` : ''}
+            {line.verb} <span className="text-fg">{line.who}</span>
+            {line.more.map((m) => ` · ${m}`).join('')}
           </p>
         </div>
         <div className="shrink-0 text-end">
@@ -68,6 +70,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, d
           )}
         </div>
       </div>
+      {how && <p className="mt-1 text-end text-[11px] text-dim">{how}</p>}
 
       {(dateLocked || (savings && savings.spendMore > 0) || benefit.coupon_code || outdated || isPrivate) && (
         <div className="mt-2.5 flex flex-wrap gap-1.5 text-xs">

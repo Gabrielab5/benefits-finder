@@ -191,6 +191,7 @@ export default function ImportPage() {
             <Button variant="secondary" disabled={!programId} onClick={copyPrompt} className="w-full">
               {copied ? <><Check size={16} aria-hidden /> הועתק</> : <><Copy size={16} aria-hidden /> העתקת הוראות לצ׳אט</>}
             </Button>
+            {!programId && <p className="text-xs text-dim">קודם בחרו תוכנית למעלה, וההוראות יותאמו לה.</p>}
             {promptFallback && (
               <textarea readOnly value={promptFallback} rows={4} aria-label="הוראות להעתקה" onFocus={(e) => e.target.select()}
                 className={`${field} mt-2 text-xs`} dir="ltr" />

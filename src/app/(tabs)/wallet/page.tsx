@@ -7,7 +7,7 @@ import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field } from '
 import { needsCatalogUpdate, walletItemFromProduct } from '@/lib/core/catalog';
 import { cardArtFor } from '@/lib/core/cardArt';
 import { monthNameHe } from '@/lib/core/dates';
-import { KIND_LABELS, shekel } from '@/lib/core/labels';
+import { KIND_LABELS, retryHint, shekel } from '@/lib/core/labels';
 import { normalize } from '@/lib/core/normalize';
 import type { CardProduct, WalletItem } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -41,7 +41,7 @@ export default function WalletPage() {
   async function run(op: PromiseLike<{ error: unknown }>, fail: string): Promise<boolean> {
     const { error } = await op;
     if (error) {
-      setError(fail);
+      setError(`${fail} ${retryHint(navigator.onLine)}`);
       return false;
     }
     setError(null);
@@ -57,12 +57,12 @@ export default function WalletPage() {
       color: d.color, program_ids: d.program_ids, birthday_month: d.birthday_month,
     };
     const sb = supabaseBrowser();
-    const ok = await run(d.id ? sb.from('wallet_items').update(row).eq('id', d.id) : sb.from('wallet_items').insert(row), 'השמירה נכשלה.');
+    const ok = await run(d.id ? sb.from('wallet_items').update(row).eq('id', d.id) : sb.from('wallet_items').insert(row), 'הכרטיס לא נשמר.');
     if (ok) setDraft(null);
   }
 
   async function addProduct(p: CardProduct) {
-    if (await run(supabaseBrowser().from('wallet_items').insert(walletItemFromProduct(p)), 'ההוספה נכשלה.')) {
+    if (await run(supabaseBrowser().from('wallet_items').insert(walletItemFromProduct(p)), 'הכרטיס לא נוסף לארנק.')) {
       setPicking(false);
       setQuery('');
     }
@@ -70,11 +70,11 @@ export default function WalletPage() {
 
   async function remove(item: WalletItem) {
     if (!confirm(`למחוק את "${item.name}" מהארנק?`)) return;
-    await run(supabaseBrowser().from('wallet_items').delete().eq('id', item.id), 'המחיקה נכשלה.');
+    await run(supabaseBrowser().from('wallet_items').delete().eq('id', item.id), 'הכרטיס לא נמחק.');
   }
 
   const syncFromCatalog = (item: WalletItem, product: CardProduct) =>
-    run(supabaseBrowser().from('wallet_items').update({ program_ids: product.program_ids }).eq('id', item.id), 'העדכון נכשל.');
+    run(supabaseBrowser().from('wallet_items').update({ program_ids: product.program_ids }).eq('id', item.id), 'התוכניות של הכרטיס לא עודכנו.');
 
   const edit = (w: WalletItem) =>
     setDraft({

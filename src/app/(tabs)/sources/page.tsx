@@ -5,7 +5,7 @@ import { ChevronDown, Layers, Plus, RefreshCw, Search, Trash2, TriangleAlert } f
 import { Chip, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import Waiting from '@/components/Waiting';
 import { isShared } from '@/lib/core/catalog';
-import { CATEGORY_LABELS, formatDate, KIND_LABELS } from '@/lib/core/labels';
+import { CATEGORY_LABELS, formatDate, KIND_LABELS, retryHint } from '@/lib/core/labels';
 import { listSources, type SourceSort } from '@/lib/core/sources';
 import { CATEGORIES, PROGRAM_KINDS, type Category, type Program, type ProgramKind } from '@/lib/core/types';
 import { startImport } from '@/lib/startImport';
@@ -41,7 +41,7 @@ export default function SourcesPage() {
 
   async function write(op: PromiseLike<{ error: unknown }>) {
     const { error } = await op;
-    if (error) setError('הפעולה נכשלה.');
+    if (error) setError(`השינוי לא נשמר. ${retryHint(navigator.onLine)}`);
     else {
       setError(null);
       await refresh();

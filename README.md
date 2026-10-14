@@ -159,6 +159,8 @@ flowchart LR
 | `fixed_off` | `value`, only if `A ≥ min_spend` |
 | `points`, `bogo`, `gift`, `installments`, `other` | shown but not ranked by ₪, because no honest number exists |
 
+Every ₪ figure carries a one-line "how we got this" under it, for the amount entered: `30% × ₪300`, `10% × ₪300, עד ₪50`, `₪20 בקנייה מעל ₪100`. The best card also says why it won ("החיסכון הגדול ביותר עבור ₪300").
+
 **With gift cards** the app compares two ways to pay and shows the cheaper one:
 - show a club / enter a coupon (discount on the full price), then pay with gift cards;
 - pay with gift cards first, then pay what's left with a card, whose discount applies only to that part.

@@ -35,10 +35,10 @@ export function buildDateEmail(
     .join('');
 
   return {
-    subject: `🎉 ${total} הטבות לתאריכים מיוחדים מחכות לך החודש`,
+    subject: `🎉 ${total} הטבות לתאריכים מיוחדים מחכות לכם החודש`,
     html:
       `<div dir="rtl" style="font-family:Arial,sans-serif">` +
-      `<p>החודש נפתחו הטבות לתאריכים המיוחדים שלך:</p>` +
+      `<p>החודש נפתחו הטבות לתאריכים המיוחדים שלכם:</p>` +
       body +
       `<p><a href="${esc(appUrl)}/benefits?birthday=1">לכל ההטבות באפליקציה</a></p></div>`,
   };
