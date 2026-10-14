@@ -8,7 +8,7 @@
   --color-line: #3d4873;
   --color-fg: #f4f6fc;
   --color-muted: #b0b8d4;
-  --color-dim: #8590b3;
+  --color-dim: #96a2c6; /* ≥4.5:1 on ink, panel and panel-2 */
   --color-mint: #3ee8ad;
   --color-mint-ink: #04291b;
   --color-sky: #5cc8ff;
@@ -44,18 +44,34 @@ body {
 /* The hoisted answer on the store screen: the one panel that glows mint (after .bg-panel so it wins). */
 .answer { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6); }
 
-/* Light sweep across primary buttons and active chips on hover. */
-.shiny { position: relative; overflow: hidden; isolation: isolate; }
+/* Light sweep across primary buttons and active chips on hover. The stripe slides via background-position,
+   so the control needs no overflow clipping and a .tap hit area can reach past its edge. */
+.shiny { position: relative; isolation: isolate; }
 .shiny::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform 0.7s ease;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 43%, rgb(255 255 255 / 0.55) 50%, transparent 57%) 100% 0 / 300% 100% no-repeat;
+  transition: background-position 0.7s ease;
 }
-.shiny:hover::after, .shiny:focus-visible::after { transform: translateX(120%); }
+.shiny:hover::after, .shiny:focus-visible::after { background-position: 0 0; }
+
+/* One designed focus ring for keyboard users: 2px Savings Mint, offset from the control.
+   Text fields are left out: they keep their own mint border + ring on focus. */
+@layer base {
+  :is(a, button, summary, [role="tab"], [tabindex], input:is([type="checkbox"], [type="radio"], [type="color"])):focus-visible {
+    outline: 2px solid var(--color-mint);
+    outline-offset: 2px;
+  }
+}
+
+/* Grows a small control's hit area to at least 44×44px without changing how it looks. */
+@layer components {
+  .tap { position: relative; }
+  .tap::before { content: ""; position: absolute; inset: min(0px, calc((100% - 2.75rem) / 2)); }
+}
 
 /* Keep native date / select pickers readable on the dark theme. */
 input,

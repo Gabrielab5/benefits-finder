@@ -33,7 +33,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
   const isPrivate = Boolean(benefit.user_id);
   const title = (
     <>
-      {benefit.timing !== 'always' && <span aria-label={TIMING_LABELS[benefit.timing]}>{TIMING_ICON[benefit.timing]} </span>}
+      {benefit.timing !== 'always' && <><span role="img" aria-label={TIMING_LABELS[benefit.timing]}>{TIMING_ICON[benefit.timing]}</span> </>}
       {benefit.title}
     </>
   );
@@ -46,7 +46,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
   }
 
   return (
-    <li className={`rounded-2xl border bg-panel p-3.5 transition ${best ? 'answer border-mint' : 'border-line'} ${dateLocked ? 'opacity-50' : ''}`}>
+    <li className={`rounded-2xl border bg-panel p-3.5 transition ${best ? 'answer border-mint' : 'border-line'}`}>
       {best && (
         <p className="mb-2 flex items-center gap-1 text-xs font-semibold text-mint">
           <Sparkles size={14} aria-hidden /> הכי משתלם
@@ -54,7 +54,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
         </p>
       )}
       <div className="flex items-start gap-3">
-        <span aria-hidden className="mt-0.5 grid h-7 w-11 shrink-0 place-items-center overflow-hidden rounded-md px-0.5 text-[6px] font-black leading-none tracking-wider text-white/90"
+        {/* Locked: the swatch goes grey (with the pink "available in" pill below); the text keeps full contrast. */}
+        <span aria-hidden className={`mt-0.5 grid h-7 w-11 shrink-0 place-items-center overflow-hidden rounded-md px-0.5 text-[6px] font-black leading-none tracking-wider text-white/90 ${dateLocked ? 'opacity-40 grayscale' : ''}`}
           style={{ background: swatchBg }}>{art?.mark}</span>
         {best ? (
           <div className="min-w-0 flex-1">
@@ -63,7 +64,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
           </div>
         ) : (
           <div className="min-w-0 flex-1">
-            <p className="font-semibold leading-snug text-fg">{title}</p>
+            <p className={`font-semibold leading-snug ${dateLocked ? 'text-muted' : 'text-fg'}`}>{title}</p>
             <p className="mt-0.5 text-sm text-muted">
               {line.verb} <span className="text-fg">{line.who}</span>
               {more}
@@ -97,7 +98,7 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
           )}
           {benefit.coupon_code && (
             <button onClick={copyCode} dir="ltr"
-              className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
+              className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
               {benefit.coupon_code} {copied ? <Check size={12} aria-label="הועתק" /> : <Copy size={12} aria-label="העתקה" />}
             </button>
           )}
@@ -107,7 +108,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
       )}
 
       <details className="group mt-2 text-sm">
-        <summary className="flex cursor-pointer list-none items-center gap-1 text-xs text-dim hover:text-muted">
+        {/* py-1.5 + .tap give a 44px target; -mb-1.5 keeps the card's bottom spacing as it was. */}
+        <summary className="tap -mb-1.5 flex cursor-pointer list-none items-center gap-1 py-1.5 text-xs text-dim hover:text-muted">
           פרטים <ChevronDown size={14} className="transition group-open:rotate-180" aria-hidden />
         </summary>
         <div className="mt-2 space-y-1.5 border-t border-line pt-2 text-muted">

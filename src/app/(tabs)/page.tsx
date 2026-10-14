@@ -8,7 +8,7 @@ import HomeGuide from '@/components/HomeGuide';
 import { Chip, Loading, Notice, SectionTitle, field } from '@/components/ui';
 import { addDays, israelToday } from '@/lib/core/dates';
 import { giftCardPlan } from '@/lib/core/giftcards';
-import { CATEGORY_LABELS, WINDOW_ICON, formatDate, shekel } from '@/lib/core/labels';
+import { CATEGORY_LABELS, WINDOW_ICON, actionLine, formatDate, shekel } from '@/lib/core/labels';
 import { searchStores } from '@/lib/core/normalize';
 import { bestRowId, eligibleItems, rankForStore, type Row } from '@/lib/core/rank';
 import { parseAmount } from '@/lib/core/savings';
@@ -58,6 +58,11 @@ function WhereAmI() {
   const best = result ? bestRowId(result) : null;
   const bestRow = result && best ? [...result.pay, ...result.show].find((r) => r.benefit.id === best) ?? null : null;
   const others = result ? result.pay.length + result.show.length + result.other.length - (bestRow ? 1 : 0) : 0;
+  const bestLine = bestRow && actionLine(bestRow.benefit.requires, bestRow.program.name, bestRow.items.map((i) => i.nickname || i.name));
+  const bestSaved = bestRow?.savings && bestRow.savings.spendMore === 0 && bestRow.savings.saved > 0 ? bestRow.savings.saved : 0;
+  const summary = bestRow && bestLine
+    ? `הכי משתלם: ${bestLine.verb} ${bestLine.who}${bestSaved ? `, חיסכון ${shekel(bestSaved)}` : ` · ${bestRow.benefit.title}`}`
+    : '';
   const plan = store && amount ? giftCardPlan(snapshot, store, amount, today) : null;
   const windows = activeDateBenefits(snapshot, today);
   const monthAhead = addDays(today.iso, 30);
@@ -92,6 +97,7 @@ function WhereAmI() {
         <p className="text-sm text-muted">שלום 👋</p>
         <h1 className="text-2xl font-bold">איפה אני?</h1>
       </header>
+      <Announce text={summary} />
 
       {!online && (
         <Notice tone="warn"><WifiOff size={14} className="me-1 inline" aria-hidden />אין חיבור — מוצגים הנתונים האחרונים שנשמרו.</Notice>
@@ -131,7 +137,7 @@ function WhereAmI() {
             <p className="text-xs text-muted">{store.name_en} · {CATEGORY_LABELS[store.category]}</p>
           </div>
           <button onClick={() => { setStoreId(null); setQuery(''); }} aria-label="החלפת חנות"
-            className="grid h-9 w-9 place-items-center rounded-xl text-muted hover:bg-panel-2 hover:text-fg">
+            className="tap grid h-9 w-9 place-items-center rounded-xl text-muted hover:bg-panel-2 hover:text-fg">
             <X size={18} aria-hidden />
           </button>
         </div>
@@ -174,9 +180,10 @@ function WhereAmI() {
         <div className="space-y-2">
           <label className="block">
             <span className="text-sm text-muted">כמה אתם מוציאים? (₪)</span>
+            {/* Digits stay LTR, but sit on the end side (right) under the Hebrew label instead of far left. */}
             <input ref={amountInput} inputMode="decimal" enterKeyHint="done" value={amountText} dir="ltr"
               onChange={(e) => setAmountText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-              placeholder="0" className={`${field} mt-1 text-lg`} />
+              placeholder="0" className={`${field} mt-1 text-end text-lg`} />
           </label>
           <div className="flex gap-2">
             {QUICK_AMOUNTS.map((n) => (
@@ -233,4 +240,14 @@ function WhereAmI() {
       )}
     </main>
   );
+}
+
+/** Screen readers hear the answer once typing pauses, instead of the whole list on every keystroke. */
+function Announce({ text }: { text: string }) {
+  const [said, setSaid] = useState(text);
+  useEffect(() => {
+    const t = setTimeout(() => setSaid(text), 700);
+    return () => clearTimeout(t);
+  }, [text]);
+  return <p role="status" className="sr-only">{said}</p>;
 }

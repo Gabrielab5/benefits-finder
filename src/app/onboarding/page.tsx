@@ -141,7 +141,7 @@ export default function OnboardingPage() {
                     <label key={p.id} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${on ? 'border-mint bg-mint/10' : 'border-line bg-panel'}`}>
                       <input type="checkbox" className="h-4 w-4 accent-mint" checked={on} onChange={() => toggle(p.id)} />
                       <span aria-hidden className="h-6 w-10 shrink-0 rounded"
-                        style={{ background: art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : '#2a3550' }} />
+                        style={{ background: art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : 'var(--color-panel-2)' }} />
                       <span className="flex-1">{p.name}</span>
                     </label>
                   );

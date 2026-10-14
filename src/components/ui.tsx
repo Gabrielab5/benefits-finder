@@ -50,7 +50,7 @@ export function Chip({
       type="button"
       aria-pressed={active}
       {...props}
-      className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm transition ${
+      className={`tap shrink-0 rounded-full px-3.5 py-1.5 text-sm transition ${
         active ? 'shiny bg-mint font-semibold text-mint-ink' : 'border border-line bg-panel/60 text-muted hover:border-violet/60 hover:text-fg'
       } ${className}`}
     />

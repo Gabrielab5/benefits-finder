@@ -78,7 +78,7 @@ export default function SourcesPage() {
 
       <div role="tablist" aria-label="סוג" className="grid grid-cols-3 gap-1.5">
         {TABS.map((k) => (
-          <Chip key={k} role="tab" aria-selected={kind === k} active={kind === k} className="px-1! text-[13px]!"
+          <Chip key={k} role="tab" aria-selected={kind === k} active={kind === k} className="px-1! text-xs!"
             onClick={() => { setKind(k); setCategory(null); }}>
             {TAB_LABELS[k]} <span className="opacity-70">{kindCount(k)}</span>
           </Chip>
@@ -114,7 +114,7 @@ export default function SourcesPage() {
               <span className="flex min-w-0 flex-1 items-center gap-1.5">
                 {p.last_refresh_status === 'failed' && <TriangleAlert size={14} className="shrink-0 text-warn" aria-label="הרענון האחרון נכשל" />}
                 <span className="truncate font-medium">{p.name}</span>
-                {!isShared(p) && <span className="shrink-0 rounded-full border border-line px-1.5 text-[10px] text-dim">פרטי</span>}
+                {!isShared(p) && <span className="shrink-0 rounded-full border border-line px-1.5 text-[11px] text-dim">פרטי</span>}
               </span>
             );
             const info = (

@@ -49,7 +49,7 @@ export default function BenefitsPage() {
           aria-label="חיפוש" className={`${field} ps-10`} />
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <div className="-mx-4 -mt-1.5 flex gap-2 overflow-x-auto px-4 py-1.5">
         {CHECKS.map(([key, label]) => (
           <Chip key={key} active={f[key]} onClick={() => set(key, !f[key])}>{label}</Chip>
         ))}

@@ -200,9 +200,9 @@ export default function GiftCardsPage() {
   async function remove(c: GiftCard) {
     if (!confirm(`למחוק את "${c.name}"?`)) return;
     const sb = supabaseBrowser();
-    if (await run(sb.from('gift_cards').delete().eq('id', c.id), 'הגיפטקארד לא נמחק.') && c.image_path) {
-      await sb.storage.from(BUCKET).remove([c.image_path]);
-    }
+    if (!(await run(sb.from('gift_cards').delete().eq('id', c.id), 'הגיפטקארד לא נמחק.'))) return;
+    setDraft(null);
+    if (c.image_path) await sb.storage.from(BUCKET).remove([c.image_path]);
   }
 
   const edit = (c: GiftCard) => {
@@ -255,33 +255,29 @@ export default function GiftCardsPage() {
                   )}
                   {c.code && (
                     <button onClick={() => navigator.clipboard.writeText(c.code!)} dir="ltr"
-                      className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
+                      className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
                       {c.code} <Copy size={12} aria-label="העתקה" />
                     </button>
                   )}
                   {c.image_path && (
-                    <button onClick={() => showImage(c.image_path!)} className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
+                    <button onClick={() => showImage(c.image_path!)} className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
                       <ImageIcon size={12} aria-hidden /> תמונה
                     </button>
                   )}
                   {c.link && (
-                    <a href={c.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
+                    <a href={c.link} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
                       לשובר <ExternalLink size={12} aria-hidden />
                     </a>
                   )}
                   {c.stores_url && (
-                    <a href={c.stores_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
+                    <a href={c.stores_url} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
                       איפה מכבדים <ExternalLink size={12} aria-hidden />
                     </a>
                   )}
                   <span className="flex-1" />
                   <button disabled={!online} onClick={() => edit(c)} aria-label={`עריכת ${c.name}`}
-                    className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-panel-2 disabled:opacity-40">
+                    className="tap grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-panel-2 disabled:opacity-40">
                     <Pencil size={14} aria-hidden />
-                  </button>
-                  <button disabled={!online} onClick={() => remove(c)} aria-label={`מחיקת ${c.name}`}
-                    className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-panel-2 disabled:opacity-40">
-                    <Trash2 size={14} aria-hidden />
                   </button>
                 </div>
                 {c.notes && <p className="mt-2 text-xs text-muted">{c.notes}</p>}
@@ -336,12 +332,12 @@ export default function GiftCardsPage() {
           <div className="grid grid-cols-2 gap-2">
             <label>
               <span className="text-sm text-muted">סכום (₪)</span>
-              <input inputMode="decimal" dir="ltr" value={draft.amount} onChange={(e) => set({ amount: e.target.value })} className={`${field} mt-1`} />
+              <input inputMode="decimal" dir="ltr" value={draft.amount} onChange={(e) => set({ amount: e.target.value })} className={`${field} mt-1 text-end`} />
             </label>
             <label>
               <span className="text-sm text-muted">נשאר (₪)</span>
               <input inputMode="decimal" dir="ltr" value={draft.balance} placeholder={draft.amount || 'כמו הסכום'}
-                onChange={(e) => set({ balance: e.target.value })} className={`${field} mt-1`} />
+                onChange={(e) => set({ balance: e.target.value })} className={`${field} mt-1 text-end`} />
             </label>
             <label>
               <span className="text-sm text-muted">תאריך קבלה</span>
@@ -437,6 +433,12 @@ export default function GiftCardsPage() {
             <Button onClick={() => save(draft)} className="flex-1">שמירה</Button>
             <Button variant="secondary" onClick={() => { setDraft(null); setError(null); }}>ביטול</Button>
           </div>
+          {/* Delete lives here, not on the card face, so a tap meant for edit can't hit it. */}
+          {draft.id && (
+            <Button variant="danger" disabled={!online} onClick={() => { const c = cards.find((x) => x.id === draft.id); if (c) remove(c); }} className="w-full">
+              <Trash2 size={16} aria-hidden /> מחיקת הגיפטקארד
+            </Button>
+          )}
         </Card>
       )}
       {error && <Notice tone="error">{error}</Notice>}

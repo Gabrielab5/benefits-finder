@@ -70,7 +70,7 @@ export default function WalletPage() {
 
   async function remove(item: WalletItem) {
     if (!confirm(`למחוק את "${item.name}" מהארנק?`)) return;
-    await run(supabaseBrowser().from('wallet_items').delete().eq('id', item.id), 'הכרטיס לא נמחק.');
+    if (await run(supabaseBrowser().from('wallet_items').delete().eq('id', item.id), 'הכרטיס לא נמחק.')) setDraft(null);
   }
 
   const syncFromCatalog = (item: WalletItem, product: CardProduct) =>
@@ -113,9 +113,10 @@ export default function WalletPage() {
               {list.map((w) => {
                 const color = w.color ?? '#3b5bdb';
                 const art = cardArtFor([w.name, ...w.program_ids.map((id) => programs.get(id)?.name ?? '')]);
-                const background = art
+                // A black scrim deepens toward the light end of the gradient so white text stays ≥4.5:1 on every issuer.
+                const background = `linear-gradient(140deg, transparent, rgb(0 0 0 / 0.4)), ${art
                   ? `linear-gradient(140deg, ${art.from}, ${art.to})`
-                  : `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)`;
+                  : `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)`}`;
                 const product = w.product_id ? productById.get(w.product_id) : undefined;
                 return (
                   <li key={w.id} className="space-y-1.5">
@@ -123,27 +124,22 @@ export default function WalletPage() {
                       <div className="flex h-full flex-col">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            {art && <p className="whitespace-nowrap text-[10px] font-black tracking-[0.08em] opacity-90" dir="auto">{art.mark}</p>}
+                            {art && <p className="whitespace-nowrap text-[11px] font-black tracking-[0.08em] text-white/90" dir="auto">{art.mark}</p>}
                             <p className="line-clamp-2 text-sm font-bold drop-shadow">{w.nickname || w.name}</p>
                           </div>
-                          <div className="flex shrink-0 gap-1">
-                            <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
-                              className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
-                              <Pencil size={13} aria-hidden />
-                            </button>
-                            <button disabled={!online} onClick={() => remove(w)} aria-label={`מחיקת ${w.name}`}
-                              className="grid h-7 w-7 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
-                              <Trash2 size={13} aria-hidden />
-                            </button>
-                          </div>
+                          <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
+                            className="tap grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
+                            <Pencil size={13} aria-hidden />
+                          </button>
                         </div>
-                        <p className="mt-auto line-clamp-1 text-[11px] opacity-80">
-                          {w.birthday_month ? `🎂 ${monthNameHe(w.birthday_month)} · ` : ''}
-                          {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          {type === 'card' ? <CreditCard size={16} className="opacity-70" aria-hidden /> : <span />}
-                          <p className="font-mono text-xs tracking-widest opacity-90" dir="ltr">{w.last4 ? `•••• ${w.last4}` : ''}</p>
+                        {/* Programs and digits share the last row, so a two-line name can't push the programs out of the card. */}
+                        <div className="mt-auto flex items-center gap-2">
+                          <p className="min-w-0 flex-1 truncate text-[11px] text-white/90">
+                            {w.birthday_month ? `🎂 ${monthNameHe(w.birthday_month)} · ` : ''}
+                            {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
+                          </p>
+                          {type === 'card' && <CreditCard size={16} className="shrink-0 opacity-70" aria-hidden />}
+                          {w.last4 && <p className="shrink-0 font-mono text-xs tracking-widest text-white/90" dir="ltr">•••• {w.last4}</p>}
                         </div>
                       </div>
                     </div>
@@ -181,7 +177,7 @@ export default function WalletPage() {
               return (
                 <li key={p.id}>
                   <button onClick={() => addProduct(p)} className="flex w-full items-center gap-3 rounded-xl border border-line bg-panel-2 p-2.5 text-start hover:border-mint">
-                    <span aria-hidden className="h-6 w-10 shrink-0 rounded" style={{ background: art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : '#2a3550' }} />
+                    <span aria-hidden className="h-6 w-10 shrink-0 rounded" style={{ background: art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : 'var(--color-panel-2)' }} />
                     <span className="flex-1">{p.name}</span>
                     <span className="text-xs text-dim">{p.type === 'card' ? 'כרטיס' : 'מועדון'}</span>
                   </button>
@@ -219,7 +215,7 @@ export default function WalletPage() {
             <label className="w-28">
               <span className="text-sm text-muted">4 ספרות</span>
               <input inputMode="numeric" maxLength={4} dir="ltr" value={draft.last4}
-                onChange={(e) => setDraft({ ...draft, last4: e.target.value.replace(/\D/g, '') })} className={`${field} mt-1`} />
+                onChange={(e) => setDraft({ ...draft, last4: e.target.value.replace(/\D/g, '') })} className={`${field} mt-1 text-end`} />
             </label>
             <label className="w-16">
               <span className="text-sm text-muted">צבע</span>
@@ -254,6 +250,12 @@ export default function WalletPage() {
             <Button onClick={() => save(draft)} className="flex-1">שמירה</Button>
             <Button variant="secondary" onClick={() => { setDraft(null); setError(null); }}>ביטול</Button>
           </div>
+          {/* Delete lives here, not on the card face, so a tap meant for edit can't hit it. */}
+          {draft.id && (
+            <Button variant="danger" disabled={!online} onClick={() => { const w = snapshot.wallet.find((x) => x.id === draft.id); if (w) remove(w); }} className="w-full">
+              <Trash2 size={16} aria-hidden /> מחיקה מהארנק
+            </Button>
+          )}
         </Card>
       )}
       {error && <Notice tone="error">{error}</Notice>}

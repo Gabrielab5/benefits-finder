@@ -13,7 +13,7 @@ colors:
   line: "#3d4873"
   fg: "#f4f6fc"
   muted: "#b0b8d4"
-  dim: "#8590b3"
+  dim: "#96a2c6"
   warn: "#fcc93a"
   bad: "#ff7a93"
 typography:
@@ -180,7 +180,7 @@ A deep navy night with one money-green voice, a violet haze for atmosphere and a
 - **Stitch Line** (#3d4873): every 1px border and divider.
 - **Receipt White** (#f4f6fc): primary text and headings.
 - **Fog** (#b0b8d4): secondary text, subtitles, inactive chip labels.
-- **Dusk** (#8590b3): tertiary text. Section titles, placeholders, captions, inactive tab labels.
+- **Dusk** (#96a2c6): tertiary text. Section titles, placeholders, captions, inactive tab labels. It holds at least 4.5:1 on Midnight Pocket, Lining Navy and Raised Lining (6.5, 5.4 and 4.6:1), and stays a clear step below Fog.
 
 ### Status
 - **Nudge Amber** (#fcc93a): "spend ₪X more to save ₪Y" nudges and warning notices. Used as text over a 10% tint.
@@ -264,6 +264,7 @@ Confident and instantly responsive: every press dips to 98% scale, and a loading
 - **Style:** full pill, 6px × 14px, 0.875rem. Inactive chips have a 60% Lining Navy fill, a Stitch Line border and Fog text.
 - **State:** inactive chips get a violet border and white text on hover. Active chips get the full glossy mint fill with Deep Mint Ink text at 600 and the shine sweep. Chips are toggle buttons (`aria-pressed`).
 - **Status pills** (inside cards): 12px text with a 10% tint fill in party, warn or panel-2, or a hairline border for "private" and coupon codes.
+- **Hit area:** chips and tappable pills keep their size but reach 44px with an invisible `.tap` hit area (see Focus & Targets).
 
 ### Cards / Containers
 - **Corner Style:** 16px. Hero and login shells use 24px.
@@ -277,6 +278,11 @@ Confident and instantly responsive: every press dips to 98% scale, and a loading
 - **Focus:** the border turns Savings Mint and gains a 1px mint ring. No outline glow beyond that.
 - **Disabled:** 50% opacity.
 
+### Focus & Targets
+- **Focus ring:** every link, button, chip, tab, `<summary>` and custom control shows a 2px Savings Mint outline with a 2px offset on `:focus-visible`, following its radius. Text fields are the exception: they keep their mint border and ring, so they never get a double ring.
+- **Tap targets:** every control has at least a 44×44px hit area. Small controls (chips, pills, the "פרטים" toggle, icon buttons) keep their visual size and grow the hit area with the `.tap` pseudo-element instead.
+- **Destructive actions** live inside the edit form, behind a confirm, never next to the edit button on a card face.
+
 ### Navigation
 A floating bottom bar: inset 12px from the screen edges and above the safe area, 576px max, Lining Navy at 95% with backdrop blur, a 16px radius, a Stitch Line border and 6px inner padding. Six equal tabs, each a stacked 20px Lucide icon over an 11px label. Inactive tabs are Dusk (hover Fog) at a 1.8 stroke. The active tab sits on a Raised Lining pill, turns mint, and uses a 600 label and a 2.4 stroke. Tabs carry `aria-current="page"`. Horizontal swipes move between tabs, unless the gesture starts inside an input or a horizontal scroller.
 
@@ -287,10 +293,10 @@ A 40px square icon tile with a 12px radius, a violet-to-mint diagonal tint at 30
 A 12px-radius line of body text in four tones: info (Raised Lining, Fog), warn, error and success. The last three follow the Tinted Status Rule.
 
 ### Benefit Card (signature)
-The answer unit on the store screen and the all-benefits list. A Lining Navy card (16px, 14px padding) with a 44×28px mini card swatch in issuer colors at the start. Next comes the benefit title in Body Strong with the action line beneath ("pay with" / "show" plus the card and program names). The ₪ saving (Shekel Figure Rule) or a value badge sits at the end. The best result is hoisted directly under the amount field as the answer: a mint "הכי משתלם" label with a sparkle icon and why it won, the action first in bold ("הציגו רי-בר", "שלמו עם מקס") with the benefit title beneath, the ₪ figure and its derivation, and the coupon code to copy. It gets a full mint border and the Answer glow. The rest follow under "עוד אפשרויות", without the winner. Long value badges wrap inside a 40% end column so the title keeps most of the row. Date-locked benefits drop to 50% opacity with a pink "available in" pill. Details expand in a native `<details>` with a rotating chevron, and the source link is in mint.
+The answer unit on the store screen and the all-benefits list. A Lining Navy card (16px, 14px padding) with a 44×28px mini card swatch in issuer colors at the start. Next comes the benefit title in Body Strong with the action line beneath ("pay with" / "show" plus the card and program names). The ₪ saving (Shekel Figure Rule) or a value badge sits at the end. The best result is hoisted directly under the amount field as the answer: a mint "הכי משתלם" label with a sparkle icon and why it won, the action first in bold ("הציגו רי-בר", "שלמו עם מקס") with the benefit title beneath, the ₪ figure and its derivation, and the coupon code to copy. It gets a full mint border and the Answer glow. The rest follow under "עוד אפשרויות", without the winner. Long value badges wrap inside a 40% end column so the title keeps most of the row. Date-locked benefits keep full-contrast text: the swatch goes grey, the title drops to Fog and a pink "available in" pill says when it opens. Details expand in a native `<details>` with a rotating chevron, and the source link is in mint.
 
 ### Wallet Card (signature)
-Each held card or club is drawn as a credit-card shaped tile (1.6:1, 16px radius, Card Lift shadow). The fill is a 140° gradient between two approximate issuer colors. Without a known brand, the user's chosen color fades into the page ink. The top-start corner carries a 10px black-weight wordmark with 0.08em tracking. The card name is in bold with a drop shadow, the program names sit at the bottom, and the last 4 digits are in tracked mono. On-card actions are 28px icon tiles in 25% black with backdrop blur.
+Each held card or club is drawn as a credit-card shaped tile (1.6:1, 16px radius, Card Lift shadow). The fill is a 140° gradient between two approximate issuer colors. Without a known brand, the user's chosen color fades into the page ink. A black scrim deepens from clear to 40% toward the light end, so white text holds 4.5:1 on every issuer. The top-start corner carries an 11px black-weight wordmark with 0.08em tracking. The card name is in bold with a drop shadow; the program names and the last 4 digits (tracked mono) share the bottom row, so a two-line name never pushes them out. The one on-card action is a 28px edit tile in 25% black with backdrop blur and a 44px hit area; delete lives in the edit form.
 
 ### Waiting Screen
 Long waits (sign-in, reading a gift card, importing) show a spinning coin with a warn-to-mint gradient and a tap-to-catch shekel coin game, instead of a bare spinner.
@@ -303,6 +309,7 @@ Long waits (sign-in, reading a gift card, importing) show a spinning coin with a
 - **Do** draw issuer cards as two-stop gradients with a wordmark, at 1.6:1. Brand colors stay on card art and swatches.
 - **Do** use logical start/end properties everywhere, and mark LTR islands (codes, digits, English names) locally.
 - **Do** give every tap immediate feedback: 0.98 press scale, a spinner on loading buttons, and the coin-game waiting screen for long operations.
+- **Do** give every control a 44px hit area and the 2px mint `:focus-visible` ring (see Focus & Targets), and keep text at 11px or larger.
 - **Do** enter new content with `fade-up` (0.6s) or `pop-in` (0.35s) on `cubic-bezier(0.2, 0.8, 0.2, 1)`, and keep the global reduced-motion override intact.
 - **Do** use Celebration Pink for special dates and gift cards, Nudge Amber for "spend more" nudges and Alert Coral for errors, all as tinted pills or notices.
 

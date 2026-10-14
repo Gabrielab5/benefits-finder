@@ -146,7 +146,7 @@ export default function AdminPanel({ programs, products, onChange }: {
                   <button onClick={() => setSelectedId(selectedId === p.id ? null : p.id)} aria-pressed={selectedId === p.id}
                     className={`flex h-16 w-full flex-col justify-between rounded-xl border p-2 text-start ${selectedId === p.id ? 'border-mint bg-mint/10' : 'border-line bg-panel-2'}`}>
                     <span className="line-clamp-2 text-xs leading-tight">{p.name}</span>
-                    <span className="text-[10px] text-dim">{p.type === 'card' ? 'כרטיס' : 'מועדון'} · {p.program_ids.length === 1 ? 'תוכנית אחת' : `${p.program_ids.length} תוכניות`}</span>
+                    <span className="text-[11px] text-dim">{p.type === 'card' ? 'כרטיס' : 'מועדון'} · {p.program_ids.length === 1 ? 'תוכנית אחת' : `${p.program_ids.length} תוכניות`}</span>
                   </button>
                 </li>
               ))}
