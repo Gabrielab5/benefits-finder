@@ -51,6 +51,7 @@ export default function SettingsPage() {
     await unsubscribeDevice(sb); // the next person on this device must not get this user's alerts
     await sb.auth.signOut();
     await idbClear();
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload drops the signed-out user's in-memory state
     location.href = '/login';
   }
 

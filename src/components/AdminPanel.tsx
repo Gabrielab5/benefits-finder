@@ -47,10 +47,9 @@ export default function AdminPanel({ programs, products, onChange }: {
   const [page, setPage] = useState(0);
   const pager = useRef<HTMLDivElement>(null);
 
-  const load = useCallback(async () => {
-    const res = await fetch('/api/admin/users');
+  const load = useCallback(() => fetch('/api/admin/users').then(async (res) => {
     if (res.ok) setUsers(((await res.json()) as { users: AdminUser[] }).users);
-  }, []);
+  }), []);
   useEffect(() => { load(); }, [load]);
 
   async function call(method: string, body?: object, query = ''): Promise<boolean> {

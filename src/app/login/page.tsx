@@ -71,6 +71,7 @@ export default function LoginPage() {
       return;
     }
     setLeaving('נכנסים לחשבון');
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the server sees the new session
     location.href = '/';
   }
 

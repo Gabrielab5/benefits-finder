@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, ChevronLeft, Copy, ExternalLink, Plus } from 'lucide-react';
 import { Button, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import Waiting from '@/components/Waiting';
@@ -26,17 +26,25 @@ const MODES: [Mode, string][] = [
 const CHATBOTS = [['Claude', 'https://claude.ai/new'], ['ChatGPT', 'https://chatgpt.com'], ['Gemini', 'https://gemini.google.com']];
 
 export default function ImportPage() {
+  // useSearchParams needs a Suspense boundary so the rest of the route can still be prerendered.
+  return <Suspense fallback={<Loading />}><Import /></Suspense>;
+}
+
+function Import() {
   const { snapshot, online } = useSnap();
   const router = useRouter();
-  const [programId, setProgramId] = useState('');
-  const [mode, setMode] = useState<Mode>(AI_ON ? 'link' : 'chat');
-  const [url, setUrl] = useState('');
+  // "Refresh" from Sources opens this page as /import?program=…&url=…&refresh=1
+  const params = useSearchParams();
+  const refreshOf = params.get('program');
+  const [programId, setProgramId] = useState(refreshOf ?? '');
+  const [mode, setMode] = useState<Mode>(AI_ON && !refreshOf ? 'link' : 'chat');
+  const [url, setUrl] = useState(refreshOf ? params.get('url') ?? '' : '');
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [answer, setAnswer] = useState('');
   const [copied, setCopied] = useState(false);
   const [promptFallback, setPromptFallback] = useState<string | null>(null);
-  const [isRefresh, setIsRefresh] = useState(false);
+  const [isRefresh] = useState(!!refreshOf && params.get('refresh') === '1');
   const [shareChoice, setShareChoice] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,14 +54,6 @@ export default function ImportPage() {
     supabaseBrowser().from('imports').select('id,program_id,created_at').eq('status', 'pending_review')
       .order('created_at', { ascending: false }).limit(10)
       .then(({ data }) => setPending(data ?? []));
-    // "Refresh" from Sources opens this page as /import?program=…&url=…&refresh=1
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('program')) {
-      setProgramId(params.get('program')!);
-      setUrl(params.get('url') ?? '');
-      setIsRefresh(params.get('refresh') === '1');
-      setMode('chat');
-    }
   }, []);
 
   if (!snapshot) return <Loading />;
@@ -99,6 +99,7 @@ export default function ImportPage() {
   async function startManual() {
     const { data, error } = await supabaseBrowser().from('imports').insert({
       program_id: programId, source: 'manual', shared: toShared, raw_input: { url: null, text: null, paths: null },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- drops `approved`, which isn't part of the stored row
       extracted: { new_stores: [], benefits: [(({ approved: _a, ...rest }) => rest)(blankRow())] },
       status: 'pending_review',
     }).select('id').single();

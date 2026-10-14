@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ChevronDown, List, Search, SlidersHorizontal } from 'lucide-react';
 import BenefitCard from '@/components/BenefitCard';
 import { Button, Chip, Loading, PageHeader, field } from '@/components/ui';
@@ -19,16 +20,16 @@ const CHECKS: [BoolKey, string][] = [
 ];
 
 export default function BenefitsPage() {
-  const { snapshot } = useSnap();
-  const [f, setF] = useState<BrowseFilters>(EMPTY_FILTERS);
-  const [limit, setLimit] = useState(PAGE);
+  // useSearchParams needs a Suspense boundary so the rest of the route can still be prerendered.
+  return <Suspense fallback={<Loading />}><Benefits /></Suspense>;
+}
 
-  useEffect(() => {
-    // Read the query string without useSearchParams (which would need a Suspense boundary).
-    const q = new URLSearchParams(window.location.search);
-    setF((x) => ({ ...x, birthday: x.birthday || q.has('birthday'), expiringThisWeek: x.expiringThisWeek || q.has('expiring'),
-      recent: x.recent || q.has('recent') }));
-  }, []);
+function Benefits() {
+  const { snapshot } = useSnap();
+  const q = useSearchParams();
+  const [f, setF] = useState<BrowseFilters>(() => ({ ...EMPTY_FILTERS, birthday: q.has('birthday'),
+    expiringThisWeek: q.has('expiring'), recent: q.has('recent') }));
+  const [limit, setLimit] = useState(PAGE);
 
   if (!snapshot) return <Loading />;
 

@@ -20,17 +20,18 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
   const [online, setOnline] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    try {
-      const s = await fetchSnapshot(supabaseBrowser());
+  // State is set in .then callbacks, after the fetch, so calling this from an effect is not a synchronous setState.
+  const refresh = useCallback(() => Promise.resolve()
+    .then(() => fetchSnapshot(supabaseBrowser()))
+    .then(async (s) => {
       setSnapshot(s);
       setFresh(true);
       setError(null);
       await idbSet('snapshot', s);
-    } catch {
+    })
+    .catch(() => {
       setError('לא הצלחנו לטעון נתונים עדכניים.');
-    }
-  }, []);
+    }), []);
 
   useEffect(() => {
     // Show the cached copy immediately (works offline), then replace it with fresh data.
