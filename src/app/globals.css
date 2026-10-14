@@ -8,7 +8,7 @@
   --color-line: #3d4873;
   --color-fg: #f4f6fc;
   --color-muted: #b0b8d4;
-  --color-dim: #8590b3;
+  --color-dim: #96a2c6; /* ≥4.5:1 on ink, panel and panel-2 */
   --color-mint: #3ee8ad;
   --color-mint-ink: #04291b;
   --color-sky: #5cc8ff;
@@ -38,21 +38,46 @@ body {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6);
 }
 
-/* Panels get a faint glass edge on top. */
-.bg-panel, .bg-panel-2 { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); }
+/* Panels get a faint glass edge on top. Layered, so a text field's `focus:ring-1` (a utility) still wins. */
+@layer components {
+  .bg-panel, .bg-panel-2 { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); }
+}
 
-/* Light sweep across primary buttons and active chips on hover. */
-.shiny { position: relative; overflow: hidden; isolation: isolate; }
+/* The hoisted answer on the store screen: the one panel that glows mint (unlayered, so it beats .bg-panel). */
+.answer { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 4px 18px -6px rgb(62 232 173 / 0.6); }
+
+/* Light sweep across primary buttons and active chips on hover. The stripe slides via background-position,
+   so the control needs no overflow clipping and a .tap hit area can reach past its edge. */
+.shiny { position: relative; isolation: isolate; }
 .shiny::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
-  transform: translateX(-120%);
-  transition: transform 0.7s ease;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 43%, rgb(255 255 255 / 0.55) 50%, transparent 57%) 100% 0 / 300% 100% no-repeat;
+  transition: background-position 0.7s ease;
 }
-.shiny:hover::after, .shiny:focus-visible::after { transform: translateX(120%); }
+.shiny:hover::after, .shiny:focus-visible::after { background-position: 0 0; }
+
+/* One designed focus ring for keyboard users: 2px Savings Mint, offset from the control.
+   Text fields are left out: they keep their own mint border + ring on focus.
+   The color is set at rest too: `.transition` animates outline-color, so the ring would fade in from currentColor. */
+@layer base {
+  :is(a, button, summary, [role="tab"], [tabindex], input:is([type="checkbox"], [type="radio"], [type="color"])) {
+    outline-color: var(--color-mint);
+    &:focus-visible {
+      outline: 2px solid var(--color-mint);
+      outline-offset: 2px;
+    }
+  }
+}
+
+/* Grows a small control's hit area to at least 44×44px without changing how it looks. */
+@layer components {
+  .tap { position: relative; }
+  .tap::before { content: ""; position: absolute; inset: min(0px, calc((100% - 2.75rem) / 2)); }
+}
 
 /* Keep native date / select pickers readable on the dark theme. */
 input,
@@ -61,9 +86,7 @@ textarea {
   color-scheme: dark;
 }
 
-/* ---------- Home guide animations ---------- */
-@property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
-
+/* ---------- Entrances + the chat's typing dots ---------- */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
@@ -72,14 +95,6 @@ textarea {
   from { opacity: 0; transform: scale(0.92) translateY(6px); }
   to { opacity: 1; transform: none; }
 }
-@keyframes shimmer { to { background-position: -200% center; } }
-@keyframes float { 50% { transform: translateY(-10px) rotate(-6deg); } }
-@keyframes glow-move { 50% { transform: translate(-30%, 20%); } }
-@keyframes spin-border { to { --angle: 360deg; } }
-@keyframes ring {
-  0% { box-shadow: 0 0 0 0 rgb(62 232 173 / 0.45); }
-  100% { box-shadow: 0 0 0 12px rgb(62 232 173 / 0); }
-}
 @keyframes dot {
   0%, 80%, 100% { opacity: 0.25; transform: none; }
   40% { opacity: 1; transform: translateY(-3px); }
@@ -87,36 +102,6 @@ textarea {
 
 .fade-up { animation: fade-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .pop-in { animation: pop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.float-slow { animation: float 6s ease-in-out infinite; }
-.pulse-ring { animation: ring 2s ease-out infinite; }
-
-.shimmer-text {
-  background: linear-gradient(90deg, var(--color-mint), #60a5fa, var(--color-party), var(--color-mint));
-  background-size: 200% auto;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 4s linear infinite;
-}
-
-.hero-glow { background: linear-gradient(135deg, var(--color-panel), var(--color-ink)); }
-.hero-glow::before {
-  content: "";
-  position: absolute;
-  inset: -40% -20% auto auto;
-  width: 70%;
-  aspect-ratio: 1;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgb(62 232 173 / 0.28), transparent 65%);
-  animation: glow-move 9s ease-in-out infinite;
-}
-
-.gradient-border {
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--color-panel), var(--color-panel)) padding-box,
-    conic-gradient(from var(--angle), var(--color-line), var(--color-mint), #60a5fa, var(--color-line) 40%) border-box;
-  animation: fade-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both, spin-border 6s linear infinite;
-}
 
 .typing span {
   width: 6px;

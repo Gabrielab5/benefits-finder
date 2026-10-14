@@ -22,6 +22,15 @@ const BRANDS: { names: string[]; art: CardArt }[] = [
   { names: ['חבר', 'hever'], art: { from: '#064e3b', to: '#10b981', mark: 'HEVER' } },
 ];
 
+/** Card search: the card's own name, or any Hebrew/English name of its brand, so "max" finds "מקס". */
+export function cardMatches(name: string, query: string): boolean {
+  const q = normalize(query);
+  const n = normalize(name);
+  if (!q || n.includes(q)) return true;
+  const brand = BRANDS.find((b) => b.names.some((x) => n.includes(normalize(x))));
+  return Boolean(brand?.names.some((x) => normalize(x).includes(q)));
+}
+
 /** First name that matches a known brand wins: pass the wallet item name first, then its programs. */
 export function cardArtFor(names: string[]): CardArt | null {
   for (const name of names) {

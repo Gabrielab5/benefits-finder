@@ -5,7 +5,7 @@ import { ChevronDown, Layers, Plus, RefreshCw, Search, Trash2, TriangleAlert } f
 import { Chip, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
 import Waiting from '@/components/Waiting';
 import { isShared } from '@/lib/core/catalog';
-import { CATEGORY_LABELS, formatDate, KIND_LABELS } from '@/lib/core/labels';
+import { CATEGORY_LABELS, formatDate, KIND_LABELS, retryHint } from '@/lib/core/labels';
 import { listSources, type SourceSort } from '@/lib/core/sources';
 import { CATEGORIES, PROGRAM_KINDS, type Category, type Program, type ProgramKind } from '@/lib/core/types';
 import { startImport } from '@/lib/startImport';
@@ -41,7 +41,7 @@ export default function SourcesPage() {
 
   async function write(op: PromiseLike<{ error: unknown }>) {
     const { error } = await op;
-    if (error) setError('הפעולה נכשלה.');
+    if (error) setError(`השינוי לא נשמר. ${retryHint(navigator.onLine)}`);
     else {
       setError(null);
       await refresh();
@@ -72,24 +72,24 @@ export default function SourcesPage() {
 
   return (
     <main className="space-y-4">
-      <PageHeader title="מקורות" subtitle="מאיפה מגיעות ההטבות" icon={Layers} />
+      <PageHeader title="הקטלוג" subtitle="מאיפה מגיעות ההטבות" icon={Layers} />
       {!online && <Notice tone="warn">אין חיבור — אפשר רק לצפות.</Notice>}
       {error && <Notice tone="error">{error}</Notice>}
 
-      <div role="tablist" aria-label="סוג" className="grid grid-cols-3 gap-1.5">
+      {/* A pressed-button group, not ARIA tabs: the list below just re-filters, there are no panels to switch. */}
+      <div role="group" aria-label="סוג" className="grid grid-cols-3 gap-1.5">
         {TABS.map((k) => (
-          <Chip key={k} role="tab" aria-selected={kind === k} active={kind === k} className="px-1! text-[13px]!"
-            onClick={() => { setKind(k); setCategory(null); }}>
-            {TAB_LABELS[k]} <span className="opacity-70">{kindCount(k)}</span>
+          <Chip key={k} active={kind === k} className="px-1! text-xs!" onClick={() => { setKind(k); setCategory(null); }}>
+            {TAB_LABELS[k]} <span className="font-normal">{kindCount(k)}</span>
           </Chip>
         ))}
       </div>
 
       <div className="space-y-2">
         <label className="relative block">
-          <Search size={16} aria-hidden className="pointer-events-none absolute inset-y-0 right-3 my-auto text-dim" />
+          <Search size={16} aria-hidden className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-dim" />
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="חיפוש לפי שם"
-            aria-label="חיפוש מקור" className={`${field} pr-9`} />
+            aria-label="חיפוש בקטלוג" className={`${field} ps-9`} />
         </label>
         <div className="flex gap-2">
           <select value={category ?? ''} onChange={(e) => setCategory((e.target.value || null) as Category | null)}
@@ -105,7 +105,7 @@ export default function SourcesPage() {
       </div>
 
       {rows.length === 0 ? (
-        <p className="py-6 text-center text-sm text-dim">לא נמצאו מקורות.</p>
+        <p className="py-6 text-center text-sm text-dim">לא נמצאו תוכניות.</p>
       ) : (
         <ul className="divide-y divide-line rounded-2xl border border-line bg-panel">
           {rows.map(({ program: p, count, category: cat }) => {
@@ -114,7 +114,7 @@ export default function SourcesPage() {
               <span className="flex min-w-0 flex-1 items-center gap-1.5">
                 {p.last_refresh_status === 'failed' && <TriangleAlert size={14} className="shrink-0 text-warn" aria-label="הרענון האחרון נכשל" />}
                 <span className="truncate font-medium">{p.name}</span>
-                {!isShared(p) && <span className="shrink-0 rounded-full border border-line px-1.5 text-[10px] text-dim">פרטי</span>}
+                {!isShared(p) && <span className="shrink-0 rounded-full border border-line px-1.5 text-[11px] text-dim">פרטי</span>}
               </span>
             );
             const info = (
@@ -151,7 +151,7 @@ export default function SourcesPage() {
                         onClick={() => {
                           if (confirm(`למחוק את ${p.name} וכל ההטבות שלה?`)) write(sb.from('programs').delete().eq('id', p.id));
                         }}
-                        aria-label={`מחיקת ${p.name}`} className="grid w-10 place-items-center rounded-xl border border-line text-bad disabled:opacity-40">
+                        aria-label={`מחיקת ${p.name}`} className="tap grid w-10 place-items-center rounded-xl border border-line text-bad disabled:opacity-40">
                         <Trash2 size={15} aria-hidden />
                       </button>
                     </div>
@@ -197,9 +197,9 @@ export default function SourcesPage() {
               <li key={b.id} className="flex items-center gap-3 rounded-2xl border border-line bg-panel p-3">
                 <p className="min-w-0 flex-1 text-sm">{b.title} · {programName.get(b.program_id)}</p>
                 <button disabled={!online} onClick={() => write(sb.from('benefits').update({ status: 'archived' }).eq('id', b.id))}
-                  className="text-sm text-bad">הסרה</button>
+                  className="tap text-sm text-bad">הסרה</button>
                 <button disabled={!online} onClick={() => write(sb.from('benefits').update({ status: 'active' }).eq('id', b.id))}
-                  className="text-sm text-mint">עדיין קיימת</button>
+                  className="tap text-sm text-mint">עדיין קיימת</button>
               </li>
             ))}
           </ul>

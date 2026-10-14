@@ -47,18 +47,19 @@ test('a new user ticks a card in onboarding and immediately sees its shared bene
 
     await page.goto('/');
     await expect(page).toHaveURL(/\/onboarding/, { timeout: 30_000 });
-    await page.getByLabel('חודש יום ההולדת', { exact: true }).selectOption('5');
-    await page.getByRole('button', { name: 'המשך' }).click();
+    // Cards first, then the birth month (the only required question).
     await page.getByLabel('כרטיס בדיקה E2E').check();
     await page.getByRole('button', { name: 'המשך' }).click();
+    await page.getByLabel('חודש יום ההולדת שלכם').selectOption('5');
     await page.getByRole('button', { name: 'סיום' }).click();
 
     await page.getByPlaceholder('איפה אתם קונים?').fill('E2E Test Store');
     await page.getByRole('button', { name: /חנות בדיקה/ }).click();
     await page.getByLabel('כמה אתם מוציאים? (₪)').fill('100');
-    const first = page.getByTestId('pay-results').getByRole('listitem').first();
-    await expect(first).toContainText('כרטיס בדיקה E2E');
-    await expect(first).toContainText('₪20');
+    // Its only benefit wins, so it's shown as the hoisted answer rather than in the pay-with list.
+    const answer = page.getByTestId('answer');
+    await expect(answer).toContainText('כרטיס בדיקה E2E');
+    await expect(answer).toContainText('₪20');
   } finally {
     for (const { table, id } of created.reverse()) await admin.from(table).delete().eq('id', id);
     await deleteUser();

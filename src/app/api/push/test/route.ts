@@ -11,7 +11,7 @@ export async function POST() {
   if (!pushConfigured()) return NextResponse.json({ error: 'push_off' }, { status: 503 });
   const { data: subs } = await sb.from('push_subscriptions').select('*'); // RLS: only this user's devices
   const delivered = await sendToDevices(supabaseAdmin(), (subs ?? []) as PushSub[], {
-    title: '🔔 התראת בדיקה', body: 'ההתראות עובדות! כך ייראו התזכורות שלך.', url: '/', tag: 'test',
+    title: '🔔 התראת בדיקה', body: 'ההתראות עובדות! כך ייראו התזכורות שלכם.', url: '/', tag: 'test',
   });
   return NextResponse.json({ delivered });
 }

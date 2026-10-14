@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Copy, ExternalLink, Gift, Image as ImageIcon, ImageUp, Link2, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
-import { Button, Card, Chip, Loading, Notice, PageHeader, SectionTitle, field } from '@/components/ui';
+import { Check, ChevronRight, Copy, ExternalLink, Gift, Image as ImageIcon, ImageUp, Link2, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { Button, Card, Chip, Loading, Notice, PageHeader, SectionTitle, field, reveal } from '@/components/ui';
 import Waiting from '@/components/Waiting';
 import { addDays, israelToday } from '@/lib/core/dates';
 import { GIFT_CARD_PRESETS, storesSearchUrl, type GiftCardPreset } from '@/lib/core/giftcards';
-import { formatDate, shekel } from '@/lib/core/labels';
+import { formatDate, retryHint, shekel } from '@/lib/core/labels';
 import { findStoreByName, searchStores } from '@/lib/core/normalize';
 import { parseAmount } from '@/lib/core/savings';
 import type { GiftCard } from '@/lib/core/types';
@@ -80,6 +80,7 @@ export default function GiftCardsPage() {
   const [viewing, setViewing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [retry, setRetry] = useState<(() => void) | null>(null); // last failed extraction, same input
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   if (!snapshot) return <Loading />;
 
   const cards = snapshot.giftCards ?? [];
@@ -135,7 +136,7 @@ export default function GiftCardsPage() {
     try {
       image = await shrink(file);
     } catch {
-      return setError('לא הצלחנו לקרוא את התמונה.');
+      return setError('לא הצלחנו לקרוא את התמונה. נסו צילום מסך בפורמט PNG או JPG.');
     }
     if (attachOnly) set({ image });
     else await extract({ image });
@@ -144,13 +145,13 @@ export default function GiftCardsPage() {
   async function showImage(path: string) {
     const { data } = await supabaseBrowser().storage.from(BUCKET).createSignedUrl(path, 300);
     if (data) setViewing(data.signedUrl);
-    else setError('לא הצלחנו לפתוח את התמונה.');
+    else setError(`לא הצלחנו לפתוח את התמונה. ${retryHint(navigator.onLine)}`);
   }
 
   async function run(op: PromiseLike<{ error: unknown }>, msg: string): Promise<boolean> {
     const { error } = await op;
     if (error) {
-      setError(msg);
+      setError(`${msg} ${retryHint(navigator.onLine)}`);
       return false;
     }
     setError(null);
@@ -188,10 +189,10 @@ export default function GiftCardsPage() {
       const bytes = Uint8Array.from(atob(d.image.data), (ch) => ch.charCodeAt(0));
       image_path = `${uid}/gift-cards/${crypto.randomUUID()}.jpg`;
       const { error } = await sb.storage.from(BUCKET).upload(image_path, new Blob([bytes], { type: d.image.type }));
-      if (error) return setError('העלאת התמונה נכשלה.');
+      if (error) return setError(`התמונה לא הועלתה, ולכן הגיפטקארד לא נשמר. ${retryHint(navigator.onLine)}`);
     }
     const op = d.id ? sb.from('gift_cards').update({ ...row, image_path }).eq('id', d.id) : sb.from('gift_cards').insert({ ...row, image_path });
-    if (await run(op, 'השמירה נכשלה.')) {
+    if (await run(op, 'הגיפטקארד לא נשמר.')) {
       if (old && old !== image_path) await sb.storage.from(BUCKET).remove([old]);
       setDraft(null);
     }
@@ -200,9 +201,9 @@ export default function GiftCardsPage() {
   async function remove(c: GiftCard) {
     if (!confirm(`למחוק את "${c.name}"?`)) return;
     const sb = supabaseBrowser();
-    if (await run(sb.from('gift_cards').delete().eq('id', c.id), 'המחיקה נכשלה.') && c.image_path) {
-      await sb.storage.from(BUCKET).remove([c.image_path]);
-    }
+    if (!(await run(sb.from('gift_cards').delete().eq('id', c.id), 'הגיפטקארד לא נמחק.'))) return;
+    setDraft(null);
+    if (c.image_path) await sb.storage.from(BUCKET).remove([c.image_path]);
   }
 
   const edit = (c: GiftCard) => {
@@ -220,7 +221,7 @@ export default function GiftCardsPage() {
 
   return (
     <main className="space-y-6">
-      <Link href="/wallet" className="inline-flex items-center gap-1 pt-2 text-sm text-muted hover:text-fg">
+      <Link href="/wallet" className="tap inline-flex items-center gap-1 pt-2 text-sm text-muted hover:text-fg">
         <ChevronRight size={16} aria-hidden /> לארנק
       </Link>
       <PageHeader title="גיפטקארדים" subtitle={cards.length ? `${shekel(total)} זמינים לשימוש` : 'שוברים ותווי קנייה שלכם'} icon={Gift} />
@@ -231,11 +232,12 @@ export default function GiftCardsPage() {
           {cards.map((c) => {
             const expired = !!c.expires_on && c.expires_on < today;
             const expiring = !expired && !!c.expires_on && c.expires_on <= soon;
+            const spent = expired || c.balance === 0; // muted swatch and balance; the text keeps full contrast
             const where = c.any_store ? 'בכל בית עסק' : c.store_ids.map((id) => storeById.get(id)?.name_he).filter(Boolean).join(' · ');
             return (
-              <li key={c.id} className={`rounded-2xl border border-line bg-panel p-3.5 ${expired || c.balance === 0 ? 'opacity-50' : ''}`}>
+              <li key={c.id} className="rounded-2xl border border-line bg-panel p-3.5">
                 <div className="flex items-start gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-party/30 to-mint/20 text-party">
+                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${spent ? 'bg-panel-2 text-dim' : 'bg-gradient-to-br from-party/30 to-mint/20 text-party'}`}>
                     <Gift size={18} aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -243,45 +245,42 @@ export default function GiftCardsPage() {
                     <p className="line-clamp-2 text-xs text-muted">{where || 'לא נבחרו חנויות'}</p>
                   </div>
                   <div className="shrink-0 text-end">
-                    <p className="text-lg font-bold leading-none text-mint">{shekel(c.balance)}</p>
+                    <p className={`text-lg font-bold leading-none ${spent ? 'text-muted' : 'text-mint'}`}>{shekel(c.balance)}</p>
                     {c.balance !== c.amount && <p className="mt-1 text-[11px] text-dim">מתוך {shekel(c.amount)}</p>}
                   </div>
                 </div>
                 <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+                  {c.balance === 0 && !expired && <span className="rounded-full bg-panel-2 px-2 py-1 text-muted">נוצל במלואו</span>}
                   {c.expires_on && (
                     <span className={`rounded-full px-2 py-1 ${expired ? 'bg-bad/10 text-bad' : expiring ? 'bg-warn/10 text-warn' : 'bg-panel-2 text-dim'}`}>
                       {expired ? 'פג תוקף' : 'בתוקף עד'} {formatDate(c.expires_on)}
                     </span>
                   )}
                   {c.code && (
-                    <button onClick={() => navigator.clipboard.writeText(c.code!)} dir="ltr"
-                      className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
-                      {c.code} <Copy size={12} aria-label="העתקה" />
+                    <button onClick={() => navigator.clipboard.writeText(c.code!).then(() => setCopiedId(c.id))} dir="ltr"
+                      className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 font-mono text-fg">
+                      {c.code} {copiedId === c.id ? <Check size={12} aria-label="הועתק" /> : <Copy size={12} aria-label="העתקה" />}
                     </button>
                   )}
                   {c.image_path && (
-                    <button onClick={() => showImage(c.image_path!)} className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
+                    <button onClick={() => showImage(c.image_path!)} className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
                       <ImageIcon size={12} aria-hidden /> תמונה
                     </button>
                   )}
                   {c.link && (
-                    <a href={c.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
+                    <a href={c.link} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
                       לשובר <ExternalLink size={12} aria-hidden />
                     </a>
                   )}
                   {c.stores_url && (
-                    <a href={c.stores_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
+                    <a href={c.stores_url} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-mint">
                       איפה מכבדים <ExternalLink size={12} aria-hidden />
                     </a>
                   )}
                   <span className="flex-1" />
                   <button disabled={!online} onClick={() => edit(c)} aria-label={`עריכת ${c.name}`}
-                    className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-panel-2 disabled:opacity-40">
+                    className="tap grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-panel-2 disabled:opacity-40">
                     <Pencil size={14} aria-hidden />
-                  </button>
-                  <button disabled={!online} onClick={() => remove(c)} aria-label={`מחיקת ${c.name}`}
-                    className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-panel-2 disabled:opacity-40">
-                    <Trash2 size={14} aria-hidden />
                   </button>
                 </div>
                 {c.notes && <p className="mt-2 text-xs text-muted">{c.notes}</p>}
@@ -291,6 +290,9 @@ export default function GiftCardsPage() {
         </ul>
       )}
 
+      {cards.length === 0 && !draft && !adding && (
+        <p className="text-sm text-muted">שמרו כאן גיפטקארד, ובקופה נשלב אותו עם ההנחה הכי טובה שלכם. נזכיר לכם גם לפני שהוא פג.</p>
+      )}
       {!draft && !adding && (
         <Button disabled={!online} onClick={() => setAdding('menu')} className="w-full py-3">
           <Plus size={18} aria-hidden /> הוספת גיפטקארד
@@ -311,7 +313,7 @@ export default function GiftCardsPage() {
           </div>
           {adding === 'link' && (
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (url.trim()) extract({ url: url.trim() }); }}>
-              <input type="url" required value={url} onChange={(e) => setUrl(e.target.value)} dir="ltr" placeholder="https://buyme.co.il/..."
+              <input ref={reveal} type="url" required value={url} onChange={(e) => setUrl(e.target.value)} dir="ltr" placeholder="https://buyme.co.il/..."
                 aria-label="קישור לגיפטקארד" className={field} />
               <Button type="submit" loading={busy}>חילוץ</Button>
             </form>
@@ -327,21 +329,21 @@ export default function GiftCardsPage() {
       )}
 
       {draft && (
-        <Card className="space-y-4">
+        <Card key={draft.id ?? 'new'} className="space-y-4">
           <h2 className="font-semibold">{draft.id ? 'עריכת גיפטקארד' : 'גיפטקארד חדש'}</h2>
           <label className="block">
             <span className="text-sm text-muted">שם</span>
-            <input value={draft.name} onChange={(e) => set({ name: e.target.value })} placeholder="BuyMe, תו הזהב…" className={`${field} mt-1`} />
+            <input ref={reveal} value={draft.name} onChange={(e) => set({ name: e.target.value })} placeholder="BuyMe, תו הזהב…" className={`${field} mt-1`} />
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label>
               <span className="text-sm text-muted">סכום (₪)</span>
-              <input inputMode="decimal" dir="ltr" value={draft.amount} onChange={(e) => set({ amount: e.target.value })} className={`${field} mt-1`} />
+              <input inputMode="decimal" dir="ltr" value={draft.amount} onChange={(e) => set({ amount: e.target.value })} className={`${field} mt-1 text-end`} />
             </label>
             <label>
               <span className="text-sm text-muted">נשאר (₪)</span>
               <input inputMode="decimal" dir="ltr" value={draft.balance} placeholder={draft.amount || 'כמו הסכום'}
-                onChange={(e) => set({ balance: e.target.value })} className={`${field} mt-1`} />
+                onChange={(e) => set({ balance: e.target.value })} className={`${field} mt-1 text-end`} />
             </label>
             <label>
               <span className="text-sm text-muted">תאריך קבלה</span>
@@ -373,7 +375,7 @@ export default function GiftCardsPage() {
                   <div className="flex flex-wrap gap-1.5">
                     {draft.store_ids.map((id) => (
                       <button key={id} type="button" onClick={() => set({ store_ids: draft.store_ids.filter((x) => x !== id) })}
-                        className="inline-flex items-center gap-1 rounded-full border border-mint bg-mint/10 px-2.5 py-1 text-sm text-mint">
+                        className="tap inline-flex items-center gap-1 rounded-full border border-mint bg-mint/10 px-2.5 py-1 text-sm text-mint">
                         {storeById.get(id)?.name_he ?? id} <X size={12} aria-label="הסרה" />
                       </button>
                     ))}
@@ -404,7 +406,7 @@ export default function GiftCardsPage() {
                   <input type="url" dir="ltr" value={draft.stores_url} onChange={(e) => set({ stores_url: e.target.value })} className={`${field} mt-1`} />
                 </label>
                 {draft.name.trim() && (
-                  <a href={storesSearchUrl(draft.name.trim())} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-mint">
+                  <a href={storesSearchUrl(draft.name.trim())} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 text-sm text-mint">
                     חיפוש בגוגל: איפה מכבדים את {draft.name.trim()} <ExternalLink size={12} aria-hidden />
                   </a>
                 )}
@@ -420,13 +422,13 @@ export default function GiftCardsPage() {
                 <ImageIcon size={20} aria-label="הצגת התמונה" />
               </button>
             ) : null}
-            <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-mint">
+            <label className="tap inline-flex cursor-pointer items-center gap-2 text-sm text-mint">
               <ImageUp size={16} aria-hidden /> {draft.image || draft.image_path ? 'החלפת תמונה' : 'צירוף תמונה / צילום מסך'}
               <input type="file" accept="image/*" className="sr-only" aria-label="תמונת הגיפטקארד"
                 onChange={(e) => onScreenshot(e.target.files?.[0], true)} />
             </label>
             {(draft.image || draft.image_path) && (
-              <button type="button" onClick={() => set({ image: null, image_path: null })} className="text-sm text-bad">הסרה</button>
+              <button type="button" onClick={() => set({ image: null, image_path: null })} className="tap text-sm text-bad">הסרה</button>
             )}
           </div>
           <label className="block">
@@ -437,8 +439,15 @@ export default function GiftCardsPage() {
             <Button onClick={() => save(draft)} className="flex-1">שמירה</Button>
             <Button variant="secondary" onClick={() => { setDraft(null); setError(null); }}>ביטול</Button>
           </div>
+          {/* Delete lives here, not on the card face, so a tap meant for edit can't hit it. */}
+          {draft.id && (
+            <Button variant="danger" disabled={!online} onClick={() => { const c = cards.find((x) => x.id === draft.id); if (c) remove(c); }} className="w-full">
+              <Trash2 size={16} aria-hidden /> מחיקת הגיפטקארד
+            </Button>
+          )}
         </Card>
       )}
+      <p role="status" className="sr-only">{copiedId ? 'הקוד הועתק' : ''}</p>
       {error && <Notice tone="error">{error}</Notice>}
       {error && retry && (
         <Button variant="secondary" onClick={retry} className="w-full">נסו לקרוא שוב</Button>

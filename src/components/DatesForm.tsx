@@ -1,4 +1,5 @@
 'use client';
+import { useId } from 'react';
 import { Plus, X } from 'lucide-react';
 import { field } from '@/components/ui';
 import { monthNameHe } from '@/lib/core/dates';
@@ -20,20 +21,22 @@ export function datesValid(v: DatesValue): boolean {
 const num = (v: string) => (v ? Number(v) : null);
 
 export default function DatesForm({ value, onChange }: { value: DatesValue; onChange: (v: DatesValue) => void }) {
+  const birthId = useId();
   const set = (patch: Partial<DatesValue>) => onChange({ ...value, ...patch });
   const setChild = (i: number, patch: Partial<Child>) =>
     set({ children: value.children.map((c, j) => (j === i ? { ...c, ...patch } : c)) });
 
   return (
     <div className="space-y-5">
-      <label className="block">
-        <span className="text-sm text-muted">🎂 חודש יום ההולדת שלך</span>
-        <select aria-label="חודש יום ההולדת" value={value.birth_month ?? ''} onChange={(e) => set({ birth_month: num(e.target.value) })}
+      {/* A label beside the select, not around it, so its name is just the visible label (no option text mixed in). */}
+      <div>
+        <label htmlFor={birthId} className="text-sm text-muted"><span aria-hidden>🎂 </span>חודש יום ההולדת שלכם</label>
+        <select id={birthId} required value={value.birth_month ?? ''} onChange={(e) => set({ birth_month: num(e.target.value) })}
           className={`${field} mt-1`}>
           <option value="">בחרו חודש</option>
           {MONTHS.map((m) => <option key={m} value={m}>{monthNameHe(m)}</option>)}
         </select>
-      </label>
+      </div>
 
       <fieldset>
         <legend className="text-sm text-muted">💍 יום נישואין (לא חובה)</legend>
@@ -66,13 +69,13 @@ export default function DatesForm({ value, onChange }: { value: DatesValue; onCh
               {MONTHS.map((m) => <option key={m} value={m}>{monthNameHe(m)}</option>)}
             </select>
             <button type="button" aria-label={`הסרת ילד/ה ${i + 1}`} onClick={() => set({ children: value.children.filter((_, j) => j !== i) })}
-              className="grid w-10 shrink-0 place-items-center rounded-xl border border-line text-dim hover:text-bad">
+              className="tap grid w-10 shrink-0 place-items-center rounded-xl border border-line text-dim hover:text-bad">
               <X size={16} aria-hidden />
             </button>
           </div>
         ))}
         <button type="button" onClick={() => set({ children: [...value.children, { name: '', birth_month: 0 }] })}
-          className="flex items-center gap-1 text-sm text-mint">
+          className="tap flex items-center gap-1 text-sm text-mint">
           <Plus size={14} aria-hidden /> הוספת ילד/ה
         </button>
       </fieldset>

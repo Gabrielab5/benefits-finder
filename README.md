@@ -48,13 +48,13 @@ So at the register you guess. You pay with whatever card is on top and walk away
 <td width="50%" valign="top">
 
 ### 🔍 "Where am I?"
-Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנגו`, `מקדונלדס` and `McDonald's` all work. Enter what you're spending and every benefit you hold is ranked by **real ₪ savings**. The winner gets a glowing **"הכי משתלם"** (best value) badge.
+Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנגו`, `מקדונלדס` and `McDonald's` all work. Enter what you're spending (a quick ₪100/300/500 chip or Enter drops the keyboard) and every benefit you hold is ranked by **real ₪ savings**. The winner is lifted to the top as **one answer**: "show your Rebar card" or "pay with Max", the ₪ saved and how, and the coupon code to copy. Everything else follows under "עוד אפשרויות". The store and amount live in the URL (`/?store=…&amount=…`), so switching tabs keeps them and a link opens straight to that store. Before you pick a store, home shows **your own things**: your last 5 stores as one-tap chips, gift cards about to expire, and a small "שאלו את העוזר" row that opens the AI chat.
 
 </td>
 <td width="50%" valign="top">
 
 ### 💳 My wallet
-Pick your cards and clubs from a shared catalog and they appear as **brand-style cards** (Max pink, Shufersal red, Rebar green…). Each card unlocks its benefits immediately. No typing and no setup per user.
+Pick your cards and clubs from a shared catalog and they appear as **brand-style cards** (Max pink, Shufersal red, Rebar green…). Each card unlocks its benefits immediately. No typing and no setup per user. A new user picks cards first, before being asked for anything personal, and only then the birth month.
 
 </td>
 </tr>
@@ -90,7 +90,7 @@ Admins keep one **shared catalog** of programs, stores and benefits that everyon
 <td valign="top">
 
 ### 📶 Works offline
-It's an installable **PWA**. Your last snapshot is stored on the device (IndexedDB plus a service worker), so the app still answers in a basement supermarket with no signal.
+It's an installable **PWA**. Your last snapshot is stored on the device (IndexedDB plus a service worker), so the app still answers in a basement supermarket with no signal. Online, the stored copy is only shown to the account it belongs to, so a shared phone never flashes someone else's wallet.
 
 </td>
 <td valign="top">
@@ -133,6 +133,7 @@ At a store, enter the amount and the app tells you **which gift card to use** an
 <td align="center"><img src="docs/screenshots/login.png" width="230" alt="Login" /><br/><sub><b>Sign in</b><br/>Google or email code</sub></td>
 </tr>
 </table>
+<sub>Screenshots predate the focused home and the 4-tab nav.</sub>
 </div>
 
 ---
@@ -158,6 +159,8 @@ flowchart LR
 | a % on **one item** ("30% on a drink or bowl") | shown as "30% על פריט אחד" (plus "עד ₪X" when capped) but not ranked by ₪ and never "best", because a basket-wide number would be made up; spotted from the benefit's wording, and flagged in import review |
 | `fixed_off` | `value`, only if `A ≥ min_spend` |
 | `points`, `bogo`, `gift`, `installments`, `other` | shown but not ranked by ₪, because no honest number exists |
+
+Every ₪ figure carries a one-line "how we got this" under it, for the amount entered: `30% × ₪300`, `10% × ₪300, עד ₪50`, `₪20 בקנייה מעל ₪100`. The best card also says why it won ("החיסכון הגדול ביותר עבור ₪300").
 
 **With gift cards** the app compares two ways to pay and shows the cheaper one:
 - show a club / enter a coupon (discount on the full price), then pay with gift cards;
@@ -318,7 +321,7 @@ Copy [`.env.example`](.env.example) to `.env.local` and fill it in:
 npm run dev
 ```
 
-Open http://localhost:3000, sign in, and the onboarding flow walks you through your dates and your cards.
+Open http://localhost:3000, sign in, and the onboarding flow walks you through two steps: first a three-line "how it works" and your cards and clubs (grouped into credit cards, clubs and store clubs, with a search that takes Hebrew or English names and a field for anything missing), then your birth month (required) plus an optional anniversary and children's birthdays.
 
 ### 6. Make yourself admin
 Set `is_admin = true` on your row in the `profile` table once (SQL editor). The **Sources** tab then shows the admin panel for inviting users and the "shared" toggle on imports.
@@ -331,7 +334,7 @@ Set `is_admin = true` on your row in the `profile` table once (SQL editor). The 
 |---|---|
 | `npm test` | ~150 unit tests: search, ranking, savings, dates, merge, import parsing, catalog rules |
 | `npm run test:db` | Row-level security against a real Supabase: users can't see or edit each other's data, and only admins can write to the shared catalog |
-| `npm run e2e` | Playwright: the full "search a store → best card first" flow and new-user onboarding |
+| `npm run e2e` | Playwright: the full "search a store → best card first" flow (kept across a tab switch) and new-user onboarding |
 | `npm run test:ai` | Regression tests for the optional paid AI extraction |
 | `npm run lint` | ESLint |
 
@@ -357,12 +360,14 @@ Benefits change all the time. [`scripts/monthly-refresh.md`](scripts/monthly-ref
 ```text
 src/
 ├─ app/
-│  ├─ (tabs)/            # the 5 bottom-nav screens
+│  ├─ (tabs)/            # 4 bottom-nav tabs: איפה אני · הטבות · ארנק · עוד
 │  │  ├─ page.tsx        # 🔍 Where am I?
 │  │  ├─ benefits/       # 📋 All benefits
 │  │  ├─ wallet/         # 💳 My wallet (+ gift-cards/)
-│  │  ├─ import/         # ➕ Import + review
-│  │  └─ sources/        # ⚙️ Sources, dates, admin
+│  │  ├─ more/           # ⋯ "עוד": links to the three screens below
+│  │  ├─ import/         # ➕ Add benefits (import + review)
+│  │  ├─ sources/        # 📚 The catalog: programs and their benefits
+│  │  └─ settings/       # ⚙️ Dates, notifications, sign-out, admin
 │  ├─ login/ onboarding/ auth/
 │  └─ api/               # import · giftcards/extract · chat · admin/users · cron/birthday
 ├─ components/           # BenefitCard, DatesForm, AdminPanel, ui
@@ -384,6 +389,7 @@ tests/                   # db (RLS) + e2e (Playwright)
 Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 🔜 = next up, 💭 = exploring.
 
 ### 🛒 At the register
+- ✅ **Focused home and 4-tab nav**: recent stores and expiring gift cards instead of a landing page, the AI chat one tap away, and Import, Catalog and Settings under "עוד"
 - 🔜 **Near me**: open the app inside a mall and the stores around you are suggested automatically (geolocation, on-device only)
 - 🔜 **Home-screen shortcut and widget**: one tap from the lock screen to the store search
 - 🔜 **Voice search**: say "שופרסל" and get the answer hands-free
@@ -423,7 +429,9 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 - ✅ **Instant feedback**: every button shows it was tapped, and longer waits (login, reading a gift card, importing) get a loading screen with a catch-the-shekels mini game 🪙
 - 🔜 **English and Arabic UI** (the search already understands English)
 - 🔜 **Light theme** next to the current dark one
-- 🔜 **Accessibility pass**: screen-reader labels, larger text mode, contrast
+- ✅ **Accessibility pass**: screen-reader labels (the best card is announced as it changes), contrast (all text at least 4.5:1, card art included), 44px tap targets, a visible focus ring, and focus that follows the task (a form that opens scrolls into view, a picked store moves you to the amount)
+- ✅ **First run for a stranger**: cards before dates, a three-line "how it works", and empty states that say why and what to do next (empty wallet, no gift cards, no benefits for the current filters)
+- 🔜 **Larger text mode**
 - 💭 **Native app wrapper** for the App Store and Google Play
 - 💭 **Open sign-up** with a waiting list, once the catalog is broad enough
 

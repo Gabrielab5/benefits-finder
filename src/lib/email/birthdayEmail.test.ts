@@ -13,7 +13,7 @@ const data = {
 
 describe('buildDateEmail', () => {
   const email = buildDateEmail([
-    { window: win('birthday', 'birthday', 'יום ההולדת שלך'), benefits: [benefit('a', 'p1', 'שייק חינם'), benefit('c', 'p1', '<script>x</script>')] },
+    { window: win('birthday', 'birthday', 'יום ההולדת שלכם'), benefits: [benefit('a', 'p1', 'שייק חינם'), benefit('c', 'p1', '<script>x</script>')] },
     { window: win('child:נועה', 'child', 'יום ההולדת של נועה'), benefits: [benefit('b', 'p2', '20% הנחה', 's1')] },
   ], data, 'https://app.example');
 
@@ -21,7 +21,7 @@ describe('buildDateEmail', () => {
     expect(email.subject).toContain('3 הטבות');
   });
   it('has a section per date with its icon', () => {
-    expect(email.html).toContain('🎂 יום ההולדת שלך');
+    expect(email.html).toContain('🎂 יום ההולדת שלכם');
     expect(email.html).toContain('🎈 יום ההולדת של נועה');
   });
   it('groups by program and names the store', () => {

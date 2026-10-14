@@ -5,6 +5,7 @@ import AdminPanel from '@/components/AdminPanel';
 import DatesForm, { datesValid, type DatesValue } from '@/components/DatesForm';
 import PushSettings from '@/components/PushSettings';
 import { Button, Loading, Notice, PageHeader } from '@/components/ui';
+import { retryHint } from '@/lib/core/labels';
 import { unsubscribeDevice } from '@/lib/push/client';
 import { idbClear } from '@/lib/snapshot';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -28,7 +29,7 @@ export default function SettingsPage() {
 
   async function write(op: PromiseLike<{ error: unknown }>) {
     const { error } = await op;
-    if (error) setError('הפעולה נכשלה.');
+    if (error) setError(`השינוי לא נשמר. ${retryHint(navigator.onLine)}`);
     else {
       setError(null);
       await refresh();
@@ -73,7 +74,7 @@ export default function SettingsPage() {
               onChange={(e) => write(sb.from('profile').update({ email_reminders: e.target.checked }).eq('user_id', profile.user_id))} />
             תזכורת במייל כשמתחיל חודש של תאריך מיוחד
           </label>
-          <button onClick={logout} className="flex items-center gap-1.5 text-sm text-bad"><LogOut size={15} aria-hidden /> יציאה</button>
+          <button onClick={logout} className="tap flex items-center gap-1.5 text-sm text-bad"><LogOut size={15} aria-hidden /> יציאה</button>
         </section>
       )}
 
