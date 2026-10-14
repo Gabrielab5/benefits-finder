@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blankRow, existingForImport, planNewStores, rowProblems, scopePatch, scopeValue, toIncoming, type NewStoreDraft, type ReviewRow } from './review';
+import { blankRow, existingForImport, planNewStores, rowProblems, rowWarning, scopePatch, scopeValue, toIncoming, type NewStoreDraft, type ReviewRow } from './review';
 import type { Benefit, Store } from './types';
 
 const row = (o: Partial<ReviewRow> = {}): ReviewRow => ({
@@ -109,5 +109,21 @@ describe('storesForImport', () => {
   });
   it('a private import prefers shared stores, then your own', () => {
     expect(storesForImport(all, false).map((s) => s.id)).toEqual(['shared', 'mine']);
+  });
+});
+
+describe('rowWarning', () => {
+  it('asks to check a percent without a cap covers the whole purchase', () => {
+    expect(rowWarning(row())).toBe('אין תקרת הנחה. בדקו שההנחה חלה על כל הקנייה ולא על פריט אחד.');
+    expect(rowWarning(row({ type: 'cashback_percent' }))).toBe('אין תקרת הנחה. בדקו שההנחה חלה על כל הקנייה ולא על פריט אחד.');
+  });
+  it('says when the single-item rule matched', () => {
+    expect(rowWarning(row({ title: '30% הנחה על משקה או קערה' })))
+      .toBe('אין תקרת הנחה, וזיהינו הנחה על פריט אחד: לא נחשב לה חיסכון בשקלים. בדקו שזה נכון.');
+  });
+  it('stays quiet with a cap, for other types and for rows not being saved', () => {
+    expect(rowWarning(row({ max_discount: 50 }))).toBeNull();
+    expect(rowWarning(row({ type: 'fixed_off', value: 50 }))).toBeNull();
+    expect(rowWarning(row({ approved: false }))).toBeNull();
   });
 });

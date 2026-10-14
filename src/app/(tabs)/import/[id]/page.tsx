@@ -1,13 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ClipboardCheck, Plus, TriangleAlert } from 'lucide-react';
+import { ClipboardCheck, Info, Plus, TriangleAlert } from 'lucide-react';
 import { Button, Loading, Notice, PageHeader, SectionTitle, field as baseField } from '@/components/ui';
 import { israelToday } from '@/lib/core/dates';
 import { CATEGORY_LABELS, REQUIRES_LABELS, TIMING_LABELS, TYPE_LABELS } from '@/lib/core/labels';
 import { mergeImport } from '@/lib/core/merge';
 import {
-  blankRow, existingForImport, planNewStores, storesForImport, rowProblems, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
+  blankRow, existingForImport, planNewStores, storesForImport, rowProblems, rowWarning, scopePatch, scopeValue, toIncoming, type ImportRow, type NewStoreDraft, type ReviewRow,
 } from '@/lib/core/review';
 import {
   BENEFIT_TYPES, CATEGORIES, REQUIRES, TIMINGS,
@@ -47,6 +47,7 @@ export default function ReviewImportPage() {
   const program = snapshot.programs.find((p) => p.id === imp.program_id);
   const ctx = { storeIds: new Set(snapshot.stores.map((s) => s.id)), newStores, todayIso: israelToday().iso };
   const problems = rows.map((r) => (r.approved ? rowProblems(r, ctx) : []));
+  const warnings = rows.map(rowWarning); // shown, never block saving
   const approvedCount = rows.filter((r) => r.approved).length;
   const canSave = imp.status === 'pending_review' && approvedCount > 0 && problems.every((p) => p.length === 0) && !busy;
   const stores = storesForImport(snapshot.stores, Boolean(imp.shared)).sort((a, b) => a.name_he.localeCompare(b.name_he, 'he'));
@@ -207,6 +208,9 @@ export default function ReviewImportPage() {
               onChange={(e) => update(i, { conditions: e.target.value || null })} className={field} />
             {problems[i].length > 0 && (
               <ul className="space-y-0.5 text-sm text-bad">{problems[i].map((p) => <li key={p} className="flex items-center gap-1"><TriangleAlert size={14} aria-hidden /> {p}</li>)}</ul>
+            )}
+            {warnings[i] && (
+              <p className="flex items-start gap-1 text-sm text-warn"><Info size={14} className="mt-0.5 shrink-0" aria-hidden /> {warnings[i]}</p>
             )}
           </li>
         ))}

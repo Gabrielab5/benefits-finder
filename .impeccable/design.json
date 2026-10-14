@@ -1,0 +1,464 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-14T09:30:29.690Z",
+  "title": "Design System: ההטבות שלי (Benefits Finder)",
+  "extensions": {
+    "colorMeta": {
+      "mint": {
+        "role": "primary",
+        "displayName": "Savings Mint",
+        "canonical": "#3ee8ad",
+        "tonalRamp": [
+          "oklch(15% 0.032 164.7)",
+          "oklch(26% 0.103 164.7)",
+          "oklch(37% 0.16 164.7)",
+          "oklch(48% 0.16 164.7)",
+          "oklch(60% 0.16 164.7)",
+          "oklch(71% 0.16 164.7)",
+          "oklch(83% 0.109 164.7)",
+          "oklch(95% 0.032 164.7)"
+        ]
+      },
+      "mint-ink": {
+        "role": "primary",
+        "displayName": "Deep Mint Ink",
+        "canonical": "#04291b",
+        "tonalRamp": [
+          "oklch(15% 0.01 163.5)",
+          "oklch(26% 0.032 163.5)",
+          "oklch(37% 0.049 163.5)",
+          "oklch(48% 0.049 163.5)",
+          "oklch(60% 0.049 163.5)",
+          "oklch(71% 0.049 163.5)",
+          "oklch(83% 0.034 163.5)",
+          "oklch(95% 0.01 163.5)"
+        ]
+      },
+      "sky": {
+        "role": "primary",
+        "displayName": "Horizon Sky",
+        "canonical": "#5cc8ff",
+        "tonalRamp": [
+          "oklch(15% 0.025 233.7)",
+          "oklch(26% 0.081 233.7)",
+          "oklch(37% 0.126 233.7)",
+          "oklch(48% 0.126 233.7)",
+          "oklch(60% 0.126 233.7)",
+          "oklch(71% 0.126 233.7)",
+          "oklch(83% 0.086 233.7)",
+          "oklch(95% 0.025 233.7)"
+        ]
+      },
+      "violet": {
+        "role": "secondary",
+        "displayName": "Aurora Violet",
+        "canonical": "#9b8cff",
+        "tonalRamp": [
+          "oklch(15% 0.033 287.4)",
+          "oklch(26% 0.105 287.4)",
+          "oklch(37% 0.164 287.4)",
+          "oklch(48% 0.164 287.4)",
+          "oklch(60% 0.164 287.4)",
+          "oklch(71% 0.164 287.4)",
+          "oklch(83% 0.112 287.4)",
+          "oklch(95% 0.033 287.4)"
+        ]
+      },
+      "party": {
+        "role": "tertiary",
+        "displayName": "Celebration Pink",
+        "canonical": "#f77ac0",
+        "tonalRamp": [
+          "oklch(15% 0.034 347.3)",
+          "oklch(26% 0.11 347.3)",
+          "oklch(37% 0.171 347.3)",
+          "oklch(48% 0.171 347.3)",
+          "oklch(60% 0.171 347.3)",
+          "oklch(71% 0.171 347.3)",
+          "oklch(83% 0.116 347.3)",
+          "oklch(95% 0.034 347.3)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Midnight Pocket",
+        "canonical": "#161d38",
+        "tonalRamp": [
+          "oklch(15% 0.011 271)",
+          "oklch(26% 0.034 271)",
+          "oklch(37% 0.053 271)",
+          "oklch(48% 0.053 271)",
+          "oklch(60% 0.053 271)",
+          "oklch(71% 0.053 271)",
+          "oklch(83% 0.036 271)",
+          "oklch(95% 0.011 271)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Lining Navy",
+        "canonical": "#222b4d",
+        "tonalRamp": [
+          "oklch(15% 0.013 271)",
+          "oklch(26% 0.04 271)",
+          "oklch(37% 0.063 271)",
+          "oklch(48% 0.063 271)",
+          "oklch(60% 0.063 271)",
+          "oklch(71% 0.063 271)",
+          "oklch(83% 0.043 271)",
+          "oklch(95% 0.013 271)"
+        ]
+      },
+      "panel-2": {
+        "role": "neutral",
+        "displayName": "Raised Lining",
+        "canonical": "#2c365c",
+        "tonalRamp": [
+          "oklch(15% 0.014 271.3)",
+          "oklch(26% 0.044 271.3)",
+          "oklch(37% 0.068 271.3)",
+          "oklch(48% 0.068 271.3)",
+          "oklch(60% 0.068 271.3)",
+          "oklch(71% 0.068 271.3)",
+          "oklch(83% 0.046 271.3)",
+          "oklch(95% 0.014 271.3)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Stitch Line",
+        "canonical": "#3d4873",
+        "tonalRamp": [
+          "oklch(15% 0.015 271.9)",
+          "oklch(26% 0.047 271.9)",
+          "oklch(37% 0.074 271.9)",
+          "oklch(48% 0.074 271.9)",
+          "oklch(60% 0.074 271.9)",
+          "oklch(71% 0.074 271.9)",
+          "oklch(83% 0.05 271.9)",
+          "oklch(95% 0.015 271.9)"
+        ]
+      },
+      "fg": {
+        "role": "neutral",
+        "displayName": "Receipt White",
+        "canonical": "#f4f6fc",
+        "tonalRamp": [
+          "oklch(15% 0.002 271.3)",
+          "oklch(26% 0.005 271.3)",
+          "oklch(37% 0.008 271.3)",
+          "oklch(48% 0.008 271.3)",
+          "oklch(60% 0.008 271.3)",
+          "oklch(71% 0.008 271.3)",
+          "oklch(83% 0.006 271.3)",
+          "oklch(95% 0.002 271.3)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Fog",
+        "canonical": "#b0b8d4",
+        "tonalRamp": [
+          "oklch(15% 0.008 272.8)",
+          "oklch(26% 0.026 272.8)",
+          "oklch(37% 0.041 272.8)",
+          "oklch(48% 0.041 272.8)",
+          "oklch(60% 0.041 272.8)",
+          "oklch(71% 0.041 272.8)",
+          "oklch(83% 0.028 272.8)",
+          "oklch(95% 0.008 272.8)"
+        ]
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dusk",
+        "canonical": "#8590b3",
+        "tonalRamp": [
+          "oklch(15% 0.011 271.2)",
+          "oklch(26% 0.034 271.2)",
+          "oklch(37% 0.054 271.2)",
+          "oklch(48% 0.054 271.2)",
+          "oklch(60% 0.054 271.2)",
+          "oklch(71% 0.054 271.2)",
+          "oklch(83% 0.037 271.2)",
+          "oklch(95% 0.011 271.2)"
+        ]
+      },
+      "warn": {
+        "role": "status",
+        "displayName": "Nudge Amber",
+        "canonical": "#fcc93a",
+        "tonalRamp": [
+          "oklch(15% 0.032 87.8)",
+          "oklch(26% 0.102 87.8)",
+          "oklch(37% 0.159 87.8)",
+          "oklch(48% 0.159 87.8)",
+          "oklch(60% 0.159 87.8)",
+          "oklch(71% 0.159 87.8)",
+          "oklch(83% 0.108 87.8)",
+          "oklch(95% 0.032 87.8)"
+        ]
+      },
+      "bad": {
+        "role": "status",
+        "displayName": "Alert Coral",
+        "canonical": "#ff7a93",
+        "tonalRamp": [
+          "oklch(15% 0.033 10.2)",
+          "oklch(26% 0.104 10.2)",
+          "oklch(37% 0.163 10.2)",
+          "oklch(48% 0.163 10.2)",
+          "oklch(60% 0.163 10.2)",
+          "oklch(71% 0.163 10.2)",
+          "oklch(83% 0.111 10.2)",
+          "oklch(95% 0.033 10.2)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The app name on the login screen only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Screen titles and the home-guide hero (800, tight leading)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Page headers beside their icon tile."
+      },
+      "body-strong": {
+        "displayName": "Body Strong",
+        "purpose": "Benefit titles and card names; the thing you scan for."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "The workhorse: descriptions, buttons, chips, notices, forms."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Section titles in Dusk, the best-value badge, pills and meta rows."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Tab labels, the caption under a ₪ figure, small hints."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glass-edge",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.05)",
+        "purpose": "Every panel surface; light catching the top edge."
+      },
+      {
+        "name": "mint-gloss",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6)",
+        "purpose": "Every mint fill: primary button, active chip, step badges."
+      },
+      {
+        "name": "card-lift",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3)",
+        "purpose": "Wallet card art only."
+      },
+      {
+        "name": "pulse-ring",
+        "value": "0 0 0 12px rgb(62 232 173 / 0)",
+        "purpose": "Animated 2s attention ring on a guided first action."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-soft",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Entrances: fade-up 0.6s, pop-in 0.35s."
+      },
+      {
+        "name": "press",
+        "value": "transform: scale(0.98)",
+        "purpose": "Every button press, so a tap always registers."
+      },
+      {
+        "name": "shine-sweep",
+        "value": "transform 0.7s ease",
+        "purpose": "White sheen across primary buttons and active chips on hover/focus."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation-duration: 0.01ms; animation-iteration-count: 1",
+        "purpose": "Global override under prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "column",
+        "value": "36rem",
+        "purpose": "Max content and nav width; the app is a single phone-width column at every size."
+      }
+    ],
+    "background": {
+      "value": "radial-gradient(60rem 40rem at 100% -10%, rgb(155 140 255 / 0.18), transparent 60%), radial-gradient(50rem 35rem at -10% 110%, rgb(62 232 173 / 0.12), transparent 60%), #161d38",
+      "attachment": "fixed",
+      "purpose": "The aurora behind every screen."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one forward action in view. Glossy Savings Mint with a shine sweep; dips on press.",
+      "html": "<button class=\"ds-btn-primary\" dir=\"rtl\">הוספה לארנק</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 10px 16px; font-size: 0.875rem; line-height: 1.25rem; font-family: Heebo, system-ui, sans-serif; border: 1px solid transparent; cursor: pointer; transition: transform 0.15s, filter 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s; background: linear-gradient(135deg, var(--color-mint, #3ee8ad), var(--color-sky, #5cc8ff)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6); color: var(--color-mint-ink, #04291b); font-weight: 600; } .ds-btn-primary:hover { filter: brightness(1.1); } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-mint, #3ee8ad); outline-offset: 2px; } .ds-btn-primary { position: relative; overflow: hidden; isolation: isolate; } .ds-btn-primary::after { content: \"\"; position: absolute; inset: 0; z-index: -1; background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%); transform: translateX(-120%); transition: transform 0.7s ease; } .ds-btn-primary:hover::after, .ds-btn-primary:focus-visible::after { transform: translateX(120%); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Alternative actions. Raised Lining with a hairline border that turns mint on hover.",
+      "html": "<button class=\"ds-btn-secondary\" dir=\"rtl\">ביטול</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 10px 16px; font-size: 0.875rem; line-height: 1.25rem; font-family: Heebo, system-ui, sans-serif; border: 1px solid transparent; cursor: pointer; transition: transform 0.15s, filter 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s; background: var(--color-panel-2, #2c365c); border-color: var(--color-line, #3d4873); color: var(--color-fg, #f4f6fc); } .ds-btn-secondary:hover { border-color: rgb(62 232 173 / 0.6); color: var(--color-mint, #3ee8ad); } .ds-btn-secondary:active { transform: scale(0.98); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-mint, #3ee8ad); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Low-emphasis inline actions. Mint text that gains a Raised Lining fill on hover.",
+      "html": "<button class=\"ds-btn-ghost\" dir=\"rtl\">עוד הטבות</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 10px 16px; font-size: 0.875rem; line-height: 1.25rem; font-family: Heebo, system-ui, sans-serif; border: 1px solid transparent; cursor: pointer; transition: transform 0.15s, filter 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s; background: transparent; color: var(--color-mint, #3ee8ad); } .ds-btn-ghost:hover { background: var(--color-panel-2, #2c365c); } .ds-btn-ghost:active { transform: scale(0.98); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--color-mint, #3ee8ad); outline-offset: 2px; }"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Toggle filters in a single scrolling row. Active chips take the full mint gloss.",
+      "html": "<div class=\"ds-chip-row\" dir=\"rtl\"><button class=\"ds-chip ds-chip-active\" aria-pressed=\"true\">רק שלי</button><button class=\"ds-chip\" aria-pressed=\"false\">מסעדות</button><button class=\"ds-chip\" aria-pressed=\"false\">אונליין</button></div>",
+      "css": ".ds-chip-row { display: flex; gap: 8px; } .ds-chip { flex-shrink: 0; border-radius: 9999px; padding: 6px 14px; font-size: 0.875rem; font-family: Heebo, system-ui, sans-serif; border: 1px solid var(--color-line, #3d4873); background: rgb(34 43 77 / 0.6); color: var(--color-muted, #b0b8d4); cursor: pointer; transition: border-color 0.15s, color 0.15s; } .ds-chip:hover { border-color: rgb(155 140 255 / 0.6); color: var(--color-fg, #f4f6fc); } .ds-chip:focus-visible { outline: 2px solid var(--color-mint, #3ee8ad); outline-offset: 2px; } .ds-chip-active, .ds-chip-active:hover { background: linear-gradient(135deg, var(--color-mint, #3ee8ad), var(--color-sky, #5cc8ff)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 18px -6px rgb(62 232 173 / 0.6); border-color: transparent; color: var(--color-mint-ink, #04291b); font-weight: 600; } .ds-chip-active { position: relative; overflow: hidden; isolation: isolate; } .ds-chip-active::after { content: \"\"; position: absolute; inset: 0; z-index: -1; background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%); transform: translateX(-120%); transition: transform 0.7s ease; } .ds-chip-active:hover::after, .ds-chip-active:focus-visible::after { transform: translateX(120%); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Inputs, selects and textareas. Raised Lining with a mint border and ring on focus.",
+      "html": "<label class=\"ds-field-wrap\" dir=\"rtl\"><span class=\"ds-field-label\">כמה אתם מוציאים? (₪)</span><input class=\"ds-field\" inputmode=\"numeric\" placeholder=\"300\" /></label>",
+      "css": ".ds-field-wrap { display: grid; gap: 6px; font-family: Heebo, system-ui, sans-serif; } .ds-field-label { font-size: 0.875rem; color: var(--color-muted, #b0b8d4); } .ds-field { width: 100%; border-radius: 12px; border: 1px solid var(--color-line, #3d4873); background: var(--color-panel-2, #2c365c); padding: 10px 12px; font-size: 1rem; color: var(--color-fg, #f4f6fc); color-scheme: dark; font-family: Heebo, system-ui, sans-serif; transition: border-color 0.15s, box-shadow 0.15s; } .ds-field::placeholder { color: var(--color-dim, #8590b3); } .ds-field:focus { outline: none; border-color: var(--color-mint, #3ee8ad); box-shadow: 0 0 0 1px var(--color-mint, #3ee8ad); } .ds-field:disabled { opacity: 0.5; }"
+    },
+    {
+      "name": "Bottom Navigation",
+      "kind": "nav",
+      "refersTo": "nav-bar",
+      "description": "Floating tab bar above the safe area. Active tab sits on a Raised Lining pill in mint.",
+      "html": "<nav class=\"ds-nav\" dir=\"rtl\"><a class=\"ds-nav-item ds-nav-active\" aria-current=\"page\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg>איפה אני</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12h.01\"/><path d=\"M3 18h.01\"/><path d=\"M3 6h.01\"/><path d=\"M8 12h13\"/><path d=\"M8 18h13\"/><path d=\"M8 6h13\"/></svg>כל ההטבות</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1\"/><path d=\"M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/></svg>הארנק</a><a class=\"ds-nav-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>ייבוא</a></nav>",
+      "css": ".ds-nav { display: flex; max-width: 36rem; border-radius: 16px; border: 1px solid var(--color-line, #3d4873); background: rgb(34 43 77 / 0.95); backdrop-filter: blur(8px); padding: 6px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); font-family: Heebo, system-ui, sans-serif; } .ds-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; border-radius: 12px; padding: 6px 0; font-size: 11px; color: var(--color-dim, #8590b3); text-decoration: none; transition: color 0.15s, background-color 0.15s; } .ds-nav-item:hover { color: var(--color-muted, #b0b8d4); } .ds-nav-item:focus-visible { outline: 2px solid var(--color-mint, #3ee8ad); outline-offset: 1px; } .ds-nav-active, .ds-nav-active:hover { background: var(--color-panel-2, #2c365c); color: var(--color-mint, #3ee8ad); font-weight: 600; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The default container. Lining Navy, hairline border, glass edge, no drop shadow.",
+      "html": "<div class=\"ds-card\" dir=\"rtl\"><h2 class=\"ds-card-label\">כרטיסי אשראי</h2><p class=\"ds-card-body\">בחרו את הכרטיסים והמועדונים שלכם, וההטבות שלהם יופיעו מיד.</p></div>",
+      "css": ".ds-card { border-radius: 16px; border: 1px solid var(--color-line, #3d4873); background: var(--color-panel, #222b4d); padding: 16px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); font-family: Heebo, system-ui, sans-serif; } .ds-card-label { margin: 0 0 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.025em; color: var(--color-dim, #8590b3); } .ds-card-body { margin: 0; font-size: 0.875rem; line-height: 1.43; color: var(--color-muted, #b0b8d4); }"
+    },
+    {
+      "name": "Benefit Card (best)",
+      "kind": "custom",
+      "refersTo": "benefit-card",
+      "description": "The answer unit: issuer swatch, title, pay-with line, and the ₪ saving in mint. The best result gets a mint border.",
+      "html": "<div class=\"ds-benefit ds-benefit-best\" dir=\"rtl\"><p class=\"ds-benefit-badge\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z\"/></svg> הכי משתלם</p><div class=\"ds-benefit-row\"><span class=\"ds-benefit-swatch\" aria-hidden=\"true\">REBAR</span><div class=\"ds-benefit-main\"><p class=\"ds-benefit-title\">30% הנחה על משקה או קערה ביום ההולדת</p><p class=\"ds-benefit-meta\">הציגו <span>רי-בר</span> · רי-בר</p></div><div class=\"ds-benefit-save\"><p class=\"ds-benefit-amount\">₪90</p><p class=\"ds-benefit-caption\">חיסכון</p></div></div><details class=\"ds-benefit-details\"><summary>פרטים <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></summary><p>בתוקף לאורך כל חודש יום ההולדת.</p></details></div>",
+      "css": ".ds-benefit { border-radius: 16px; border: 1px solid var(--color-line, #3d4873); background: var(--color-panel, #222b4d); padding: 14px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05); color: var(--color-fg, #f4f6fc); font-family: Heebo, system-ui, sans-serif; } .ds-benefit-best { border-color: var(--color-mint, #3ee8ad); } .ds-benefit-badge { margin: 0 0 8px; display: flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600; color: var(--color-mint, #3ee8ad); } .ds-benefit-row { display: flex; align-items: flex-start; gap: 12px; } .ds-benefit-swatch { margin-top: 2px; display: grid; place-items: center; width: 44px; height: 28px; flex-shrink: 0; border-radius: 6px; background: linear-gradient(135deg, #14532d, #65a30d); font-size: 6px; font-weight: 900; letter-spacing: 0.05em; color: rgb(255 255 255 / 0.9); } .ds-benefit-main { min-width: 0; flex: 1; } .ds-benefit-title { margin: 0; font-weight: 600; line-height: 1.375; } .ds-benefit-meta { margin: 2px 0 0; font-size: 0.875rem; color: var(--color-muted, #b0b8d4); } .ds-benefit-meta span { color: var(--color-fg, #f4f6fc); } .ds-benefit-save { flex-shrink: 0; text-align: end; } .ds-benefit-amount { margin: 0; font-size: 1.125rem; font-weight: 700; line-height: 1; color: var(--color-mint, #3ee8ad); } .ds-benefit-caption { margin: 4px 0 0; font-size: 11px; color: var(--color-dim, #8590b3); } .ds-benefit-details { margin-top: 8px; font-size: 0.875rem; } .ds-benefit-details summary { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; list-style: none; font-size: 0.75rem; color: var(--color-dim, #8590b3); } .ds-benefit-details summary:hover { color: var(--color-muted, #b0b8d4); } .ds-benefit-details summary svg { transition: transform 0.15s; } .ds-benefit-details[open] summary svg { transform: rotate(180deg); } .ds-benefit-details p { margin: 8px 0 0; border-top: 1px solid var(--color-line, #3d4873); padding-top: 8px; color: var(--color-muted, #b0b8d4); }"
+    },
+    {
+      "name": "Wallet Card",
+      "kind": "custom",
+      "refersTo": "wallet-card",
+      "description": "A held card drawn as credit-card art: issuer gradient, wordmark, name, digits. The only lifted surface.",
+      "html": "<div class=\"ds-wallet-card\" dir=\"rtl\"><p class=\"ds-wallet-mark\" dir=\"auto\">max</p><p class=\"ds-wallet-name\">מקס – כרטיס אשראי</p><p class=\"ds-wallet-programs\">מקס</p><p class=\"ds-wallet-digits\" dir=\"ltr\">•••• 4821</p></div>",
+      "css": ".ds-wallet-card { display: flex; flex-direction: column; width: 220px; aspect-ratio: 1.6; overflow: hidden; border-radius: 16px; padding: 12px; color: #fff; background: linear-gradient(140deg, #831843, #ec4899); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3); font-family: Heebo, system-ui, sans-serif; transition: transform 0.15s; } .ds-wallet-card:hover { transform: translateY(-2px); } .ds-wallet-mark { margin: 0; white-space: nowrap; font-size: 10px; font-weight: 900; letter-spacing: 0.08em; opacity: 0.9; } .ds-wallet-name { margin: 2px 0 0; font-size: 0.875rem; font-weight: 700; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05)); } .ds-wallet-programs { margin: auto 0 0; font-size: 11px; opacity: 0.8; } .ds-wallet-digits { margin: 2px 0 0; font-family: ui-monospace, monospace; font-size: 0.75rem; letter-spacing: 0.1em; opacity: 0.9; text-align: end; }"
+    },
+    {
+      "name": "Celebration Banner",
+      "kind": "custom",
+      "refersTo": "notice",
+      "description": "Special-date entry point: Celebration Pink as text over a 10% tint with a 30% border.",
+      "html": "<a class=\"ds-party\" href=\"#\" dir=\"rtl\"><span aria-hidden=\"true\">🎂</span><span class=\"ds-party-text\">יום ההולדת שלך — 29 הטבות פעילות החודש</span></a>",
+      "css": ".ds-party { display: flex; align-items: center; gap: 12px; border-radius: 16px; border: 1px solid rgb(247 122 192 / 0.3); background: rgb(247 122 192 / 0.1); padding: 14px; color: var(--color-party, #f77ac0); font-weight: 600; text-decoration: none; font-family: Heebo, system-ui, sans-serif; transition: border-color 0.15s; } .ds-party:hover { border-color: rgb(247 122 192 / 0.6); } .ds-party:focus-visible { outline: 2px solid var(--color-party, #f77ac0); outline-offset: 2px; } .ds-party-text { flex: 1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Pocket Concierge",
+    "overview": "A premium, attentive companion in your pocket. The world is a dark, lined wallet interior: deep navy layers, a soft aurora drifting behind them, and glass-edged panels that sit quietly until something is worth your attention. When an answer arrives (the best card, the shekels saved, the one action to take), it is lit in glossy Savings Mint. The concierge is calm by default and confident when it speaks.\n\nDensity is phone-first and compact: one centered column, readable at arm's length in a noisy store, built for one thumb. Hebrew leads and the layout is right-to-left at its core, not mirrored after the fact. The concierge also has manners and a little warmth: birthday banners in Celebration Pink, a shimmering headline on the home guide, and a catch-the-shekels coin game while you wait. A small luxury on a free app.\n\nColor comes from the cards themselves. Issuer card art (Max pink, Shufersal red, Rebar green) supplies the vivid color. The chrome around it stays navy so your own cards are the brightest thing in the wallet.",
+    "keyCharacteristics": [
+      "Dark only: deep navy tonal layers over a fixed violet and mint aurora.",
+      "Calm panels, glossy answer: flat bordered surfaces, with gloss and glow saved for the primary action, the active chip and savings.",
+      "Issuer card art is the color source. UI chrome never borrows brand colors.",
+      "One type family (Heebo) for Hebrew and Latin, with mono only for codes and card digits.",
+      "Soft, nested rounding from 24px hero shells down to full pills.",
+      "Every tap answers instantly: a press-down scale, a spinner, a fade-up entrance. Reduced motion is respected globally."
+    ],
+    "rules": [
+      {
+        "name": "The Mint Means Money Rule",
+        "body": "Savings Mint marks savings, the winning result and the single primary action in view. If it isn't about saving money or moving forward, it isn't mint.",
+        "section": "colors"
+      },
+      {
+        "name": "The Cards Bring the Color Rule",
+        "body": "Issuer brand colors live only on card art and card swatches, where they help people recognize their own cards. Buttons, banners, chips and headings never use them.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tinted Status Rule",
+        "body": "Warn, error, success and celebration states use the hue as text, a 10% tint as fill and a 30% tint as border. Never a solid saturated fill.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Heebo everywhere. Monospace appears only for strings a person types or reads out at the register (coupon codes, card digits), set left-to-right inside the RTL flow.",
+        "section": "typography"
+      },
+      {
+        "name": "The Shekel Figure Rule",
+        "body": "A computed saving is the loudest number on its card: 1.125rem, 700, in Savings Mint, aligned to the end edge, with a caption beneath.",
+        "section": "typography"
+      },
+      {
+        "name": "The Start Side Rule",
+        "body": "Use logical properties (start/end, inline-start/inline-end) for every inset, alignment and icon position. Physical left and right are a bug in an RTL-first app.",
+        "section": "layout"
+      },
+      {
+        "name": "The Thumb Reach Rule",
+        "body": "Navigation floats at the bottom inside the safe area, and the main input sits near the top of its screen. On a phone, nothing important lives only in the top corners.",
+        "section": "layout"
+      },
+      {
+        "name": "The Gloss Is Earned Rule",
+        "body": "Panels stay flat at rest. Gloss, glow and the shine sweep appear only on the primary action, an active chip, or a savings mark. If everything shines, nothing does.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Nested Radius Rule",
+        "body": "An inner element never has a larger radius than its container. Step down 24 → 16 → 12 → 8 → full pills only for free-standing tags.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** reserve the glossy mint gradient for the primary action, active chips and savings marks (The Mint Means Money Rule).",
+      "**Do** build depth with tone (#161d38 → #222b4d → #2c365c), a 1px #3d4873 border and the 5% white top highlight, before reaching for a shadow.",
+      "**Do** draw issuer cards as two-stop gradients with a wordmark, at 1.6:1. Brand colors stay on card art and swatches.",
+      "**Do** use logical start/end properties everywhere, and mark LTR islands (codes, digits, English names) locally.",
+      "**Do** give every tap immediate feedback: 0.98 press scale, a spinner on loading buttons, and the coin-game waiting screen for long operations.",
+      "**Do** enter new content with `fade-up` (0.6s) or `pop-in` (0.35s) on `cubic-bezier(0.2, 0.8, 0.2, 1)`, and keep the global reduced-motion override intact.",
+      "**Do** use Celebration Pink for special dates and gift cards, Nudge Amber for \"spend more\" nudges and Alert Coral for errors, all as tinted pills or notices."
+    ],
+    "donts": [
+      "**Don't** use issuer brand colors (Max pink, Shufersal red, Rebar green…) on buttons, banners, chips or headings. The app is not affiliated with any issuer.",
+      "**Don't** put drop shadows on panels or cards. Only mint fills, wallet card art and the floating nav get real depth.",
+      "**Don't** use mint for decoration, headings or non-savings emphasis.",
+      "**Don't** introduce a second typeface. Monospace is only for codes and card digits.",
+      "**Don't** use physical left/right for layout or icon placement.",
+      "**Don't** ship a light surface or light-only component. The app is dark-only until a light theme is designed as a whole.",
+      "**Don't** use solid saturated fills for status. Use the hue as text over a 10% tint."
+    ]
+  }
+}

@@ -120,3 +120,40 @@ describe('bestRowId', () => {
     expect(bestRowId(rankForStore(snapshot, mango, null, OCT))).toBeNull();
   });
 });
+
+describe('single-item percent benefits', () => {
+  const rebar: Store = { id: 'rebar', name_he: 'רי-בר', name_en: 'Rebar', aliases: [], category: 'restaurants', channel: 'both' };
+  const drink = benefit({
+    id: 'rebarDrink', program_id: 'hever', store_id: 'rebar', title: '30% הנחה על משקה או קערה ביום ההולדת', value: 30, requires: 'membership',
+  });
+  const whole = benefit({ id: 'rebarWhole', program_id: 'hever', store_id: 'rebar', title: '10% הנחה על כל הקנייה', value: 10, requires: 'membership' });
+  const fixed = benefit({ id: 'rebarFixed', program_id: 'hever', store_id: 'rebar', type: 'fixed_off', value: 20, requires: 'membership' });
+  const s = { ...snapshot, stores: [rebar], benefits: [drink, whole] };
+
+  it('get no ₪ figure and never win best (Rebar, ₪300, 30% on a drink, no cap)', () => {
+    const r = rankForStore(s, rebar, 300, OCT);
+    expect(r.show.find((x) => x.benefit.id === 'rebarDrink')?.savings).toBeNull();
+    expect(r.show.find((x) => x.benefit.id === 'rebarWhole')?.savings?.saved).toBe(30);
+    expect(ids(r.show)).toEqual(['rebarWhole', 'rebarDrink']);
+    expect(bestRowId(r)).toBe('rebarWhole');
+  });
+  it('alone, leave no best at all', () => {
+    expect(bestRowId(rankForStore({ ...s, benefits: [drink] }, rebar, 300, OCT))).toBeNull();
+  });
+  it('get no ₪ figure even with a cap', () => {
+    const capped = { ...drink, max_discount: 20 };
+    const r = rankForStore({ ...s, benefits: [capped] }, rebar, 300, OCT);
+    expect(r.show[0].savings).toBeNull();
+    expect(bestRowId(r)).toBeNull();
+  });
+  it('paid by card, sit with the other unrankable benefits', () => {
+    const r = rankForStore({ ...s, benefits: [{ ...drink, requires: 'pay_with_card' }] }, rebar, 300, OCT);
+    expect(ids(r.pay)).toEqual([]);
+    expect(ids(r.other)).toEqual(['rebarDrink']);
+  });
+  it('without an amount sort below whole-purchase percents and fixed discounts', () => {
+    const r = rankForStore({ ...s, benefits: [drink, fixed, whole] }, rebar, null, OCT);
+    expect(ids(r.show)).toEqual(['rebarWhole', 'rebarFixed', 'rebarDrink']);
+    expect(bestRowId(r)).toBeNull();
+  });
+});

@@ -155,6 +155,7 @@ flowchart LR
 | Benefit type | How the ₪ saving is computed (for amount **A**) |
 |---|---|
 | `percent_off`, `cashback_percent` | `A × value%`, capped by `max_discount` |
+| a % on **one item** ("30% on a drink or bowl") | shown as "30% על פריט אחד" (plus "עד ₪X" when capped) but not ranked by ₪ and never "best", because a basket-wide number would be made up; spotted from the benefit's wording, and flagged in import review |
 | `fixed_off` | `value`, only if `A ≥ min_spend` |
 | `points`, `bogo`, `gift`, `installments`, `other` | shown but not ranked by ₪, because no honest number exists |
 
