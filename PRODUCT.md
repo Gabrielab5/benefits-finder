@@ -10,7 +10,7 @@ web
 
 Israeli shoppers who carry several credit cards, clubs and store memberships (Max, Cal, Shufersal, Rebar, Histadrut, workplace programs…) and don't know which one to use. They use it on a phone, standing at the register or at an online checkout, and need the answer in seconds.
 
-Access is invite-only today (the owner plus invited friends and family), but the product is heading to public use. Design for a stranger who doesn't know the owner: first-run, trust and catalog breadth matter.
+Anyone can sign up (email and password, Google or an email code); it started as invite-only for the owner's friends and family. Design for a stranger who doesn't know the owner: first-run, trust and catalog breadth matter.
 
 Admins are a second audience: they curate the shared catalog, review imports and invite users from the Sources tab.
 
@@ -57,7 +57,7 @@ The register answer, ranked by real shekels. Type a store in Hebrew or English, 
 
 - A real shared catalog of Israeli programs, stores and benefits in Supabase, seeded from `src/lib/seedPrograms.ts` and `src/lib/seedStores.ts`, each benefit with a source link.
 - App screenshots in `docs/screenshots/` (store, wallet, benefits, home, import, login) and the README banner `docs/banner.svg`.
-- Live app: https://benefits-finder-swart.vercel.app (invite-only).
+- Live app: https://benefits-finder-swart.vercel.app (open sign-up).
 - None exist yet: testimonials, user counts, total savings figures, press or reviews. Do not fabricate them.
 
 ## Product Principles

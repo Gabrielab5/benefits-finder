@@ -6,7 +6,7 @@
 
 <p>
   <a href="https://benefits-finder-swart.vercel.app"><img alt="Live app" src="https://img.shields.io/badge/live-benefits--finder-34d399?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0b1020" /></a>
-  <img alt="Invite only" src="https://img.shields.io/badge/access-invite%20only-f472b6?style=for-the-badge&labelColor=0b1020" />
+  <img alt="Open sign-up" src="https://img.shields.io/badge/access-open%20sign--up-f472b6?style=for-the-badge&labelColor=0b1020" />
   <img alt="Cost" src="https://img.shields.io/badge/running%20cost-%E2%82%AA0-94a3c4?style=for-the-badge&labelColor=0b1020" />
 </p>
 
@@ -82,7 +82,7 @@ Got a card the catalog doesn't cover? The app writes a ready-made prompt. Paste 
 <td valign="top">
 
 ### 👥 Shared catalog + private extras
-Admins keep one **shared catalog** of programs, stores and benefits that everyone sees. Each user can add **private** benefits that only they see. Access is **invite-only**, managed from an in-app admin screen.
+Admins keep one **shared catalog** of programs, stores and benefits that everyone sees. Each user can add **private** benefits that only they see. Anyone can **sign up**; admins can also add people from an in-app admin screen.
 
 </td>
 </tr>
@@ -96,7 +96,7 @@ It's an installable **PWA**. Your last snapshot is stored on the device (Indexed
 <td valign="top">
 
 ### 🔐 Easy, safe sign-in
-**Google** sign-in or a **6-digit email code**, next to a collage of real cards, club logos and ₪ coins (half the screen on a desktop, a header on a phone). Postgres **row-level security** means users can never read each other's private data. Only admins can write to the shared catalog, and the database enforces that too.
+Sign up or sign in with **email and password**, **Google** or a **6-digit email code** (which doubles as "forgot password"; a password can be set later in Settings), next to a collage of real cards, club logos and ₪ coins (half the screen on a desktop, a header on a phone). The form works with a screen reader and a keyboard alone: labelled fields, a show-password toggle, errors announced as they appear. Postgres **row-level security** means users can never read each other's private data. Only admins can write to the shared catalog, and the database enforces that too.
 
 </td>
 </tr>
@@ -130,7 +130,7 @@ At a store, enter the amount and the app tells you **which gift card to use** an
 <tr>
 <td align="center"><img src="docs/screenshots/home.png" width="230" alt="Home with birthday banner" /><br/><sub><b>Home</b><br/>birthday month banner 🎂</sub></td>
 <td align="center"><img src="docs/screenshots/import.png" width="230" alt="Free chatbot import" /><br/><sub><b>Import</b><br/>free chatbot or manual</sub></td>
-<td align="center"><img src="docs/screenshots/login.png" width="230" alt="Login" /><br/><sub><b>Sign in</b><br/>Google or email code</sub></td>
+<td align="center"><img src="docs/screenshots/login.png" width="230" alt="Login" /><br/><sub><b>Sign in</b><br/>password, Google or email code</sub></td>
 </tr>
 </table>
 <sub>Screenshots predate the focused home, the 4-tab nav and the login collage.</sub>
@@ -187,7 +187,7 @@ flowchart TB
         Cron["⏰ Cron 06:00<br/>/api/cron/birthday"]
     end
     subgraph Supabase["🟢 Supabase"]
-        Auth["Auth<br/>Google · email OTP"]
+        Auth["Auth<br/>password · Google · email OTP"]
         DB[("Postgres + RLS<br/>shared rows: user_id = null")]
         Store["Storage<br/>imports bucket"]
     end
@@ -295,7 +295,10 @@ In the Supabase SQL editor, run every file in [`supabase/migrations`](supabase/m
 3. `20261011000000_push.sql` adds push notification devices and settings
 4. `20261013000000_gift_cards.sql` and `20261013000001_gift_card_image.sql` add gift cards and their photos
 
-Then in **Authentication → Providers**, enable Email and, optionally, Google.
+Then in **Authentication**:
+- **Sign In / Providers**: turn on **Allow new users to sign up** (turn it off to go back to invite-only; the login page follows on its own) and enable **Email**, keeping *Confirm email* on.
+- *(optional)* enable **Google**. The login page only shows the Google button while it is switched on.
+- **Emails**: make sure both **Confirm signup** and **Magic link** include `{{ .Token }}`, so the email carries the 6-digit code the login page asks for.
 
 ### 4. Environment
 Copy [`.env.example`](.env.example) to `.env.local` and fill it in:
@@ -432,6 +435,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 
 ### 🌍 Reach & polish
 - ✅ **Instant feedback**: every button shows it was tapped, and longer waits (login, reading a gift card, importing) get a loading screen with a catch-the-shekels mini game 🪙
+- ✅ **Open sign-up**: email and password, Google or an email code, and a password can be added later in Settings
 - ✅ **A sign-in page that shows what the app is about**: a collage of real cards, club logos and ₪ coins beside the form, which settles in once on load
 - 🔜 **English and Arabic UI** (the search already understands English)
 - 🔜 **Light theme** next to the current dark one
@@ -474,7 +478,7 @@ No. Issuers change terms without notice. Treat the app as a smart reminder, and 
 <details>
 <summary><b>Why does it cost nothing to run?</b></summary>
 <br/>
-Supabase and Vercel free tiers cover a small invited group comfortably, and the import uses whatever free chatbot you already have instead of a paid AI API.
+Supabase and Vercel free tiers cover a small group comfortably, and the import uses whatever free chatbot you already have instead of a paid AI API.
 </details>
 
 <details>
@@ -486,7 +490,7 @@ Yes. In <b>Wallet → Add → "משהו אחר (פרטי)"</b> ("something else,
 <details>
 <summary><b>How do I get access?</b></summary>
 <br/>
-The app is invite-only. Ask an admin to add your email in the admin panel, then sign in with Google or an email code.
+Open the app and create an account with your email and a password, or continue with Google.
 </details>
 
 ---

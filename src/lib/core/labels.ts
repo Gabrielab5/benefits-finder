@@ -48,7 +48,7 @@ export function retryHint(online: boolean): string {
 
 /** Product truths shown on login and the first onboarding screen (PRODUCT.md). */
 export const TRUST_LINES = [
-  'לא מתחברים לבנק או לחשבון האשראי שלכם, ולא מבקשים מספרי כרטיס או סיסמאות.',
+  'לא מתחברים לבנק או לחשבון האשראי שלכם, ולא מבקשים מספרי כרטיס או סיסמאות לבנק.',
   'לא קשורים לאף חברת אשראי או מועדון, אז לפני שסומכים על הטבה, בדקו את התנאים במקור.',
 ];
 

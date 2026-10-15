@@ -1,10 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { LogOut, Settings } from 'lucide-react';
 import AdminPanel from '@/components/AdminPanel';
 import DatesForm, { datesValid, type DatesValue } from '@/components/DatesForm';
 import PushSettings from '@/components/PushSettings';
-import { Button, Loading, Notice, PageHeader } from '@/components/ui';
+import { Button, Loading, Notice, PageHeader, field } from '@/components/ui';
 import { retryHint } from '@/lib/core/labels';
 import { unsubscribeDevice } from '@/lib/push/client';
 import { idbClear } from '@/lib/snapshot';
@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [dates, setDates] = useState<DatesValue | null>(null);
   const [saved, setSaved] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
   if (!snapshot) return <Loading />;
 
   const sb = supabaseBrowser();
@@ -48,6 +49,20 @@ export default function SettingsPage() {
     setSaved(true);
   }
 
+  /** Lets someone who came in with Google or an e-mail code sign in with a password next time. */
+  async function savePassword(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const { error } = await sb.auth.updateUser({ password: String(new FormData(form).get('password')) });
+    if (error) {
+      setError(error.code === 'weak_password' ? 'הסיסמה קלה מדי לניחוש. נסו סיסמה ארוכה יותר.' : `הסיסמה לא נשמרה. ${retryHint(navigator.onLine)}`);
+      return;
+    }
+    setError(null);
+    form.reset();
+    setPasswordSaved(true);
+  }
+
   async function logout() {
     await unsubscribeDevice(sb); // the next person on this device must not get this user's alerts
     await sb.auth.signOut();
@@ -74,6 +89,16 @@ export default function SettingsPage() {
               onChange={(e) => write(sb.from('profile').update({ email_reminders: e.target.checked }).eq('user_id', profile.user_id))} />
             תזכורת במייל כשמתחיל חודש של תאריך מיוחד
           </label>
+          <form onSubmit={savePassword} className="space-y-2">
+            <label className="block">
+              <span className="text-sm text-muted">סיסמה לכניסה עם אימייל</span>
+              <input name="password" type="password" required minLength={8} dir="ltr" autoComplete="new-password"
+                aria-describedby="password-hint" onChange={() => setPasswordSaved(false)} className={`${field} mt-1 text-start`} />
+            </label>
+            <p id="password-hint" className="text-xs text-dim">לפחות 8 תווים. מחליפה סיסמה קודמת, אם הייתה.</p>
+            <Button variant="secondary" disabled={!online} className="w-full">שמירת הסיסמה</Button>
+          </form>
+          {passwordSaved && <Notice tone="success">הסיסמה נשמרה. מעכשיו אפשר להיכנס גם איתה.</Notice>}
           <button onClick={logout} className="tap flex items-center gap-1.5 text-sm text-bad"><LogOut size={15} aria-hidden /> יציאה</button>
         </section>
       )}
