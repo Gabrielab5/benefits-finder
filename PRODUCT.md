@@ -10,7 +10,7 @@ web
 
 Israeli shoppers who carry several credit cards, clubs and store memberships (Max, Cal, Shufersal, Rebar, Histadrut, workplace programs…) and don't know which one to use. They use it on a phone, standing at the register or at an online checkout, and need the answer in seconds.
 
-Anyone can sign up (email and password, Google, Facebook or an email code); it started as invite-only for the owner's friends and family. Design for a stranger who doesn't know the owner: first-run, trust and catalog breadth matter.
+Anyone can sign up (email and password, Google or an email code); it started as invite-only for the owner's friends and family. Design for a stranger who doesn't know the owner: first-run, trust and catalog breadth matter.
 
 Admins are a second audience: they curate the shared catalog, review imports and invite users from the Sources tab.
 

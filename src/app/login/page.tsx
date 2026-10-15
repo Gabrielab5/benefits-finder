@@ -18,19 +18,6 @@ function GoogleLogo() {
   );
 }
 
-function FacebookLogo() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-      <path fill="#0866FF" d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07" />
-    </svg>
-  );
-}
-
-const OAUTH = [
-  { id: 'google', name: 'Google', Logo: GoogleLogo },
-  { id: 'facebook', name: 'Facebook', Logo: FacebookLogo },
-] as const;
-
 /** What the Supabase project has switched on (Authentication → Sign In / Providers), so the page never offers a way in that fails. */
 type AuthSettings = { external: Record<string, boolean>; disable_signup: boolean };
 
@@ -58,7 +45,7 @@ function CodeBoxes({ value, onChange, label }: { value: string; onChange: (v: st
 }
 
 export default function LoginPage({ searchParams }: { searchParams: Promise<{ failed?: string }> }) {
-  const failed = use(searchParams).failed; // set by /auth/callback when a Google/Facebook/e-mail link didn't sign in
+  const failed = use(searchParams).failed; // set by /auth/callback when a Google or e-mail link didn't sign in
   const [signup, setSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -74,10 +61,9 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ fa
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
       headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! },
-    }).then((r) => r.json()).then(setAuth, () => {}); // offline: no OAuth buttons, which couldn't work anyway
+    }).then((r) => r.json()).then(setAuth, () => {}); // offline: no Google button, which couldn't work anyway
   }, []);
   const signupOpen = auth ? !auth.disable_signup : false;
-  const providers = OAUTH.filter((p) => auth?.external[p.id]);
 
   function enter() {
     setLeaving('נכנסים לחשבון');
@@ -137,16 +123,16 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ fa
     setError('הקוד שגוי או שפג תוקפו. בדקו את הספרות, או בקשו קוד חדש.');
   }
 
-  async function oauth(provider: (typeof OAUTH)[number]['id'], name: string) {
+  async function google() {
     setError(null);
-    setLeaving(`מעבירים אתכם ל-${name}`); // shows at once; the redirect itself can take a few seconds
+    setLeaving('מעבירים אתכם ל-Google'); // shows at once; the redirect itself can take a few seconds
     const { error } = await supabaseBrowser().auth.signInWithOAuth({
-      provider,
+      provider: 'google',
       options: { redirectTo: `${location.origin}/auth/callback` },
     });
     if (error) {
       setLeaving(null);
-      setError(`הכניסה עם ${name} לא זמינה כרגע. היכנסו עם אימייל.`);
+      setError('הכניסה עם Google לא זמינה כרגע. היכנסו עם אימייל.');
     }
   }
 
@@ -220,17 +206,15 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ fa
               </form>
             )}
 
-            {providers.length > 0 && (
+            {auth?.external.google && (
               <>
                 <div className="flex items-center gap-3 text-xs text-dim">
                   <span className="h-px flex-1 bg-line" aria-hidden /> או <span className="h-px flex-1 bg-line" aria-hidden />
                 </div>
-                {providers.map(({ id, name, Logo }) => (
-                  <button key={id} type="button" onClick={() => oauth(id, name)} disabled={!!leaving}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 active:scale-[0.98] disabled:opacity-80">
-                    <Logo /> המשך עם {name}
-                  </button>
-                ))}
+                <button type="button" onClick={google} disabled={!!leaving}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 active:scale-[0.98] disabled:opacity-80">
+                  <GoogleLogo /> המשך עם Google
+                </button>
               </>
             )}
             {error && <Notice tone="error">{error}</Notice>}

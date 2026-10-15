@@ -49,7 +49,7 @@ export default function SettingsPage() {
     setSaved(true);
   }
 
-  /** Lets someone who came in with Google, Facebook or an e-mail code sign in with a password next time. */
+  /** Lets someone who came in with Google or an e-mail code sign in with a password next time. */
   async function savePassword(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;

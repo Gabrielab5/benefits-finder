@@ -96,7 +96,7 @@ It's an installable **PWA**. Your last snapshot is stored on the device (Indexed
 <td valign="top">
 
 ### 🔐 Easy, safe sign-in
-Sign up or sign in with **email and password**, **Google**, **Facebook** or a **6-digit email code** (which doubles as "forgot password"; a password can be set later in Settings), next to a collage of real cards, club logos and ₪ coins (half the screen on a desktop, a header on a phone). The form works with a screen reader and a keyboard alone: labelled fields, a show-password toggle, errors announced as they appear. Postgres **row-level security** means users can never read each other's private data. Only admins can write to the shared catalog, and the database enforces that too.
+Sign up or sign in with **email and password**, **Google** or a **6-digit email code** (which doubles as "forgot password"; a password can be set later in Settings), next to a collage of real cards, club logos and ₪ coins (half the screen on a desktop, a header on a phone). The form works with a screen reader and a keyboard alone: labelled fields, a show-password toggle, errors announced as they appear. Postgres **row-level security** means users can never read each other's private data. Only admins can write to the shared catalog, and the database enforces that too.
 
 </td>
 </tr>
@@ -130,7 +130,7 @@ At a store, enter the amount and the app tells you **which gift card to use** an
 <tr>
 <td align="center"><img src="docs/screenshots/home.png" width="230" alt="Home with birthday banner" /><br/><sub><b>Home</b><br/>birthday month banner 🎂</sub></td>
 <td align="center"><img src="docs/screenshots/import.png" width="230" alt="Free chatbot import" /><br/><sub><b>Import</b><br/>free chatbot or manual</sub></td>
-<td align="center"><img src="docs/screenshots/login.png" width="230" alt="Login" /><br/><sub><b>Sign in</b><br/>password, Google, Facebook or email code</sub></td>
+<td align="center"><img src="docs/screenshots/login.png" width="230" alt="Login" /><br/><sub><b>Sign in</b><br/>password, Google or email code</sub></td>
 </tr>
 </table>
 <sub>Screenshots predate the focused home, the 4-tab nav and the login collage.</sub>
@@ -187,7 +187,7 @@ flowchart TB
         Cron["⏰ Cron 06:00<br/>/api/cron/birthday"]
     end
     subgraph Supabase["🟢 Supabase"]
-        Auth["Auth<br/>password · Google · Facebook · email OTP"]
+        Auth["Auth<br/>password · Google · email OTP"]
         DB[("Postgres + RLS<br/>shared rows: user_id = null")]
         Store["Storage<br/>imports bucket"]
     end
@@ -297,7 +297,7 @@ In the Supabase SQL editor, run every file in [`supabase/migrations`](supabase/m
 
 Then in **Authentication**:
 - **Sign In / Providers**: turn on **Allow new users to sign up** (turn it off to go back to invite-only; the login page follows on its own) and enable **Email**, keeping *Confirm email* on.
-- *(optional)* enable **Google** and **Facebook**. Facebook needs a [Meta app](https://developers.facebook.com/apps) with *Facebook Login*: paste its App ID and App secret into Supabase, and add the callback URL Supabase shows to the app's *Valid OAuth Redirect URIs*. The login page only shows the providers that are switched on.
+- *(optional)* enable **Google**. The login page only shows the Google button while it is switched on.
 - **Emails**: make sure both **Confirm signup** and **Magic link** include `{{ .Token }}`, so the email carries the 6-digit code the login page asks for.
 
 ### 4. Environment
@@ -435,7 +435,7 @@ Ideas collected from real use and from "wouldn't it be cool if…". ✅ = done, 
 
 ### 🌍 Reach & polish
 - ✅ **Instant feedback**: every button shows it was tapped, and longer waits (login, reading a gift card, importing) get a loading screen with a catch-the-shekels mini game 🪙
-- ✅ **Open sign-up**: email and password, Facebook, Google or an email code, and a password can be added later in Settings
+- ✅ **Open sign-up**: email and password, Google or an email code, and a password can be added later in Settings
 - ✅ **A sign-in page that shows what the app is about**: a collage of real cards, club logos and ₪ coins beside the form, which settles in once on load
 - 🔜 **English and Arabic UI** (the search already understands English)
 - 🔜 **Light theme** next to the current dark one
@@ -490,7 +490,7 @@ Yes. In <b>Wallet → Add → "משהו אחר (פרטי)"</b> ("something else,
 <details>
 <summary><b>How do I get access?</b></summary>
 <br/>
-Open the app and create an account with your email and a password, or continue with Google or Facebook.
+Open the app and create an account with your email and a password, or continue with Google.
 </details>
 
 ---
