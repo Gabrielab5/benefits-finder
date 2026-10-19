@@ -109,6 +109,7 @@ export interface CardProduct {
   name: string;
   type: 'card' | 'membership';
   program_ids: string[];
+  image_url?: string | null; // the card face (credit cards) or club card / logo (clubs), in the public "catalog" bucket
 }
 
 export interface GiftCard {

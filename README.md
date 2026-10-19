@@ -54,7 +54,7 @@ Type a store in **Hebrew or English**, even with typos: `mango`, `Mango`, `מנ�
 <td width="50%" valign="top">
 
 ### 💳 My wallet
-Pick your cards and clubs from a shared catalog and they appear as **brand-style cards** (Max pink, Shufersal red, Rebar green…). Each card unlocks its benefits immediately. No typing and no setup per user. A new user picks cards first, before being asked for anything personal, and only then the birth month.
+Pick your cards and clubs from a shared catalog and they appear as **real cards**: each credit card shows its own card face and each club its club card or logo. A club with no picture gets a card drawn from its name (brand colours for the big ones: Max pink, Shufersal red, Rebar green…), which is also what shows offline. Each card unlocks its benefits immediately. No typing and no setup per user. A new user picks cards first, before being asked for anything personal, and only then the birth month.
 
 </td>
 </tr>
@@ -230,6 +230,7 @@ erDiagram
         text name
         text type
         uuid_array program_ids
+        text image_url
     }
     WALLET_ITEMS {
         text name
@@ -294,6 +295,7 @@ In the Supabase SQL editor, run every file in [`supabase/migrations`](supabase/m
 2. `20261007000000_shared_catalog.sql` adds the shared catalog, special dates and admin role
 3. `20261011000000_push.sql` adds push notification devices and settings
 4. `20261013000000_gift_cards.sql` and `20261013000001_gift_card_image.sql` add gift cards and their photos
+5. `20261019000000_card_images.sql` adds a picture to each catalog card and club, in a public `catalog` bucket
 
 Then in **Authentication**:
 - **Sign In / Providers**: turn on **Allow new users to sign up** (turn it off to go back to invite-only; the login page follows on its own) and enable **Email**, keeping *Confirm email* on.
@@ -358,7 +360,7 @@ Add the same environment variables in **Vercel → Settings → Environment Vari
 ### Keeping benefits fresh
 Benefits change all the time. [`scripts/monthly-refresh.md`](scripts/monthly-refresh.md) describes the monthly refresh: re-research each program, load the results as **pending imports** with [`scripts/load-researched-benefits.mjs`](scripts/load-researched-benefits.mjs), review them in the app and approve. Nothing reaches users without a human review.
 
-The store list itself comes from [`docs/research/israel-chains-loyalty-clubs.md`](docs/research/israel-chains-loyalty-clubs.md): about 300 Israeli store and restaurant chains by category, whether each has its own club, and the club benefits with their sources. New chains go into [`src/lib/seedStores.ts`](src/lib/seedStores.ts) and reach the shared catalog with `npx tsx scripts/add-seed-stores.mts` (safe to re-run, skips any spelling that's already there). New store clubs go in with [`scripts/add-shared-clubs.mjs`](scripts/add-shared-clubs.mjs), and their benefits through the same pending-import review.
+The store list itself comes from [`docs/research/israel-chains-loyalty-clubs.md`](docs/research/israel-chains-loyalty-clubs.md): about 300 Israeli store and restaurant chains by category, whether each has its own club, and the club benefits with their sources. New chains go into [`src/lib/seedStores.ts`](src/lib/seedStores.ts) and reach the shared catalog with `npx tsx scripts/add-seed-stores.mts` (safe to re-run, skips any spelling that's already there). New store clubs go in with [`scripts/add-shared-clubs.mjs`](scripts/add-shared-clubs.mjs), and their benefits through the same pending-import review. Their pictures (the card face for credit cards, the club card or logo for clubs, from official sites only) go in with `node scripts/set-card-images.mjs <images.json>`, which shrinks each to a WebP and uploads it.
 
 ---
 

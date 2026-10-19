@@ -1,13 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { Check, ChevronDown, Copy, ExternalLink, Sparkles } from 'lucide-react';
-import { cardArtFor } from '@/lib/core/cardArt';
+import CardFace from './CardFace';
+import { faceArt } from '@/lib/core/cardArt';
 import { isOutdated, monthNameHe } from '@/lib/core/dates';
 import {
   CHANNEL_LABELS, REQUIRES_LABELS, TIMING_ICON, TIMING_LABELS, actionLine, formatDate, headlineText, savingsDerivation, shekel,
 } from '@/lib/core/labels';
 import type { Savings } from '@/lib/core/savings';
 import type { Benefit, Program, Store, WalletItem } from '@/lib/core/types';
+import { useSnap } from '@/lib/useSnapshot';
 
 interface Props {
   benefit: Benefit;
@@ -24,10 +26,10 @@ interface Props {
 export default function BenefitCard({ benefit, program, items, store, savings, amount, dateLocked, lockedMonths, best = false }: Props) {
   const [copied, setCopied] = useState(false);
   const line = actionLine(benefit.requires, program.name, items.map((i) => i.nickname || i.name), store?.name_he);
-  const art = cardArtFor([items[0]?.name ?? '', program.name]);
-  const swatch = items[0]?.color;
-  const swatchBg = art ? `linear-gradient(135deg, ${art.from}, ${art.to})`
-    : swatch ? `linear-gradient(135deg, ${swatch}, ${swatch}99)` : 'var(--color-panel-2)';
+  const { snapshot } = useSnap();
+  const holder = items[0];
+  const art = faceArt([holder?.name ?? program.name, program.name], holder?.color);
+  const image = holder?.product_id ? snapshot?.products?.find((p) => p.id === holder.product_id)?.image_url : null;
   const met = savings !== null && savings.spendMore === 0 && savings.saved > 0;
   const how = met && amount ? savingsDerivation(benefit, amount, savings) : null;
   const outdated = isOutdated(benefit.last_verified_at, new Date());
@@ -56,8 +58,8 @@ export default function BenefitCard({ benefit, program, items, store, savings, a
       )}
       <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
         {/* Locked: the swatch goes grey (with the pink "available in" pill below); the text keeps full contrast. */}
-        <span aria-hidden className={`mt-0.5 grid h-7 w-11 shrink-0 place-items-center overflow-hidden rounded-md px-0.5 text-[6px] font-black leading-none tracking-wider text-white/90 ${dateLocked ? 'opacity-40 grayscale' : ''}`}
-          style={{ background: swatchBg }}>{art?.mark}</span>
+        <CardFace art={art} image={image} type={holder?.type ?? 'membership'} small
+          className={`mt-0.5 h-7 w-11 shrink-0 ${dateLocked ? 'opacity-40 grayscale' : ''}`} />
         {best ? (
           <div className="min-w-0 flex-1">
             <p className="font-bold leading-snug text-fg">{line.verb} {line.who}</p>
