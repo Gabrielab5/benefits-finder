@@ -36,6 +36,15 @@ export function isPerItem(b: Pick<Benefit, 'type'> & Partial<Pick<Benefit, 'titl
   return PER_ITEM.some((re) => re.test(text));
 }
 
+/**
+ * A discount on the card's foreign-currency fee (עמלת מט"ח), not on the price: no ₪ saving from the purchase amount.
+ * ponytail: keyword heuristic over title/description, calibrated on the catalog's 8 FX-fee benefits (10/2026).
+ */
+export function isFxFee(b: Partial<Pick<Benefit, 'title' | 'description'>>): boolean {
+  const text = [b.title, b.description].filter(Boolean).join(' \n ');
+  return /עמל/.test(text) && /מט["״]ח|מטבע חוץ|המרה/.test(text);
+}
+
 /** Purchase amount as typed. Commas are thousands separators in Israel ("1,200" = 1200). */
 export function parseAmount(text: string): number | null {
   const n = Number(text.replace(/[,\s₪]/g, ''));

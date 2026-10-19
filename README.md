@@ -157,6 +157,7 @@ flowchart LR
 |---|---|
 | `percent_off`, `cashback_percent` | `A × value%`, capped by `max_discount` |
 | a % on **one item** ("30% on a drink or bowl") | shown as "30% על פריט אחד" (plus "עד ₪X" when capped) but not ranked by ₪ and never "best", because a basket-wide number would be made up; spotted from the benefit's wording, and flagged in import review |
+| a discount on the **FX fee** ("50% הנחה בעמלת מט"ח") | not a discount on the price: shown only at travel and online stores, never ranked by ₪ or "best"; spotted from the wording |
 | `fixed_off` | `value`, only if `A ≥ min_spend` |
 | `points`, `bogo`, `gift`, `installments`, `other` | shown but not ranked by ₪, because no honest number exists |
 
