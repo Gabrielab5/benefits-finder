@@ -298,7 +298,7 @@ In the Supabase SQL editor, run every file in [`supabase/migrations`](supabase/m
 Then in **Authentication**:
 - **Sign In / Providers**: turn on **Allow new users to sign up** (turn it off to go back to invite-only; the login page follows on its own) and enable **Email**, keeping *Confirm email* on.
 - *(optional)* enable **Google**. The login page only shows the Google button while it is switched on.
-- **Emails**: make sure both **Confirm signup** and **Magic link** include `{{ .Token }}`, so the email carries the 6-digit code the login page asks for.
+- **Emails**: add `{{ .Token }}` to both **Confirm signup** (what a new account gets) and **Magic link** (what an existing one gets), e.g. `<p>הקוד שלכם: <b>{{ .Token }}</b></p>`, so the email carries the 6-digit code the login page asks for. Supabase's default Confirm signup email has only a link, which works too, but only when opened in the browser where the sign-up started.
 
 ### 4. Environment
 Copy [`.env.example`](.env.example) to `.env.local` and fill it in:

@@ -53,7 +53,10 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ fa
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState<'password' | 'code' | 'verify' | null>(null);
-  const [error, setError] = useState<string | null>(failed ? 'הכניסה לא הושלמה. נסו שוב, או היכנסו בדרך אחרת.' : null);
+  const [error, setError] = useState<string | null>(failed
+    // An e-mail link opened in another browser (e.g. the mail app's) still confirms the address before failing here.
+    ? 'הכניסה לא הושלמה בדפדפן הזה. אם לחצתם על קישור במייל, האימייל כבר אושר: היכנסו כאן עם הסיסמה או עם קוד למייל.'
+    : null);
   const [leaving, setLeaving] = useState<string | null>(null); // full-screen wait while the browser moves on
   const [auth, setAuth] = useState<AuthSettings | null>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -195,7 +198,10 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ fa
             ) : (
               <form onSubmit={verify} className="space-y-4">
                 <p className="text-center text-sm text-muted">
-                  שלחנו קוד ל-<span className="text-fg" dir="ltr">{email}</span>
+                  שלחנו מייל ל-<span className="text-fg" dir="ltr">{email}</span>
+                  <br />
+                  {/* Which one the e-mail carries depends on its Supabase template, so the page offers both. */}
+                  הקלידו את הקוד שבו, או לחצו על הקישור שבמייל.
                 </p>
                 <CodeBoxes value={code} onChange={setCode} label={`הקוד ששלחנו ל-${email}`} />
                 <Button loading={busy === 'verify'} disabled={code.length < 6} className="w-full py-3">{busy ? 'בודקים…' : 'כניסה'}</Button>
