@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, X } from 'lucide-react';
+import CardFace from '@/components/CardFace';
 import DatesForm, { datesValid, type DatesValue } from '@/components/DatesForm';
 import { Button, Notice, field } from '@/components/ui';
 import { productGroup, walletItemFromProduct, type ProductGroup } from '@/lib/core/catalog';
-import { cardArtFor, cardMatches } from '@/lib/core/cardArt';
+import { cardMatches, faceArt } from '@/lib/core/cardArt';
 import { TRUST_LINES, retryHint } from '@/lib/core/labels';
 import type { CardProduct, ProgramKind } from '@/lib/core/types';
 import { supabaseBrowser } from '@/lib/supabase/browser';
@@ -146,13 +147,11 @@ export default function OnboardingPage() {
                 <fieldset key={group} className="space-y-2">
                   <legend className="mb-2 text-xs font-semibold text-dim">{title}</legend>
                   {list.map((p) => {
-                    const art = cardArtFor([p.name]);
                     const on = picked.has(p.id);
                     return (
                       <label key={p.id} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${on ? 'border-mint bg-mint/10' : 'border-line bg-panel'}`}>
                         <input type="checkbox" className="h-4 w-4 accent-mint" checked={on} onChange={() => toggle(p.id)} />
-                        <span aria-hidden className="h-6 w-10 shrink-0 rounded"
-                          style={{ background: art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : 'var(--color-panel-2)' }} />
+                        <CardFace art={faceArt([p.name])} image={p.image_url} type={p.type} small className="h-7 w-11 shrink-0" />
                         <span className="flex-1">{p.name}</span>
                       </label>
                     );

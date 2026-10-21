@@ -1,5 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { cardArtFor, cardMatches } from './cardArt';
+import { cardArtFor, cardMatches, faceArt } from './cardArt';
+
+describe('faceArt', () => {
+  it('uses the brand art when the name is a known brand', () => {
+    expect(faceArt(['מקס', 'ביחד בשבילך']).mark).toBe('max');
+  });
+  it('uses the colour the user picked, with the name as the wordmark', () => {
+    expect(faceArt(['הכרטיס שלי'], '#ff0000')).toEqual({ from: '#ff0000', to: '#0e1424', mark: 'הכרטיס שלי' });
+  });
+  it('draws an unknown club from its name: same name, same colours', () => {
+    const a = faceArt(['קום איל פו']);
+    expect(a.mark).toBe('קום איל פו');
+    expect(faceArt(['קום איל פו'])).toEqual(a);
+    expect(a.from).toMatch(/^#[0-9a-f]{6}$/);
+    const colours = new Set(['קסטרו', 'גולף', 'ארומה אספרסו בר', 'למטייל', 'זסט', 'אניפט'].map((n) => faceArt([n]).from));
+    expect(colours.size).toBeGreaterThan(1);
+  });
+});
 
 describe('cardArtFor', () => {
   it('recognises card companies and clubs by Hebrew or English name', () => {

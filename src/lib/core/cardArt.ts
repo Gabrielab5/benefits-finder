@@ -41,3 +41,24 @@ export function cardArtFor(names: string[]): CardArt | null {
   }
   return null;
 }
+
+// Dark → bright pairs for cards drawn from their name; every one keeps white text readable under the scrim.
+const DRAWN: [string, string][] = [
+  ['#1e3a8a', '#3b82f6'], ['#4c1d95', '#8b5cf6'], ['#831843', '#ec4899'], ['#7c2d12', '#f97316'], ['#064e3b', '#10b981'],
+  ['#134e4a', '#14b8a6'], ['#713f12', '#ca8a04'], ['#1f2937', '#6b7280'], ['#7f1d1d', '#ef4444'], ['#0c4a6e', '#0ea5e9'],
+];
+
+/**
+ * The look of a card with no picture: its brand's art, else the colour the user picked, else colours drawn from its name
+ * (the same name always gets the same colours), with the name itself as the wordmark.
+ */
+export function faceArt(names: string[], color?: string | null): CardArt {
+  const brand = cardArtFor(names);
+  if (brand) return brand;
+  const mark = names[0] ?? '';
+  if (color) return { from: color, to: '#0e1424', mark };
+  let h = 0;
+  for (const ch of normalize(mark)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const [from, to] = DRAWN[h % DRAWN.length];
+  return { from, to, mark };
+}

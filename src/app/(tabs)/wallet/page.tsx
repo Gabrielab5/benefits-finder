@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, CreditCard, Gift, Pencil, Plus, RefreshCw, Search, Trash2, Wallet } from 'lucide-react';
+import { ChevronLeft, Gift, Pencil, Plus, RefreshCw, Search, Trash2, Wallet } from 'lucide-react';
+import CardFace from '@/components/CardFace';
 import { MONTHS } from '@/components/DatesForm';
 import { Button, Card, Loading, Notice, PageHeader, SectionTitle, field, reveal } from '@/components/ui';
 import { needsCatalogUpdate, walletItemFromProduct } from '@/lib/core/catalog';
-import { cardArtFor, cardMatches } from '@/lib/core/cardArt';
+import { cardMatches, faceArt } from '@/lib/core/cardArt';
 import { monthNameHe } from '@/lib/core/dates';
 import { KIND_LABELS, retryHint, shekel } from '@/lib/core/labels';
 import type { CardProduct, WalletItem } from '@/lib/core/types';
@@ -109,37 +110,29 @@ export default function WalletPage() {
             <SectionTitle>{type === 'card' ? 'כרטיסי אשראי' : 'חברויות ומועדונים'}</SectionTitle>
             <ul className="grid grid-cols-2 gap-3">
               {list.map((w) => {
-                const color = w.color ?? '#3b5bdb';
-                const art = cardArtFor([w.name, ...w.program_ids.map((id) => programs.get(id)?.name ?? '')]);
-                // A black scrim deepens toward the light end of the gradient so white text stays ≥4.5:1 on every issuer.
-                const background = `linear-gradient(140deg, transparent, rgb(0 0 0 / 0.4)), ${art
-                  ? `linear-gradient(140deg, ${art.from}, ${art.to})`
-                  : `linear-gradient(140deg, ${color}, ${color}88 60%, #0e1424)`}`;
                 const product = w.product_id ? productById.get(w.product_id) : undefined;
+                const art = faceArt([w.name, ...w.program_ids.map((id) => programs.get(id)?.name ?? '')], w.color);
                 return (
                   <li key={w.id} className="space-y-1.5">
-                    <div className="aspect-[1.6] overflow-hidden rounded-2xl p-3 text-white shadow-lg shadow-black/30" style={{ background }}>
-                      <div className="flex h-full flex-col">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            {art && <p className="whitespace-nowrap text-[11px] font-black tracking-[0.08em] text-white/90" dir="auto">{art.mark}</p>}
-                            <p className="line-clamp-2 text-sm font-bold drop-shadow">{w.nickname || w.name}</p>
-                          </div>
-                          <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
-                            className="tap grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-black/25 backdrop-blur disabled:opacity-40">
-                            <Pencil size={13} aria-hidden />
-                          </button>
-                        </div>
-                        {/* Programs and digits share the last row, so a two-line name can't push the programs out of the card. */}
-                        <div className="mt-auto flex items-center gap-2">
-                          <p className="min-w-0 flex-1 truncate text-[11px] text-white/90">
-                            {w.birthday_month ? `🎂 ${monthNameHe(w.birthday_month)} · ` : ''}
-                            {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
-                          </p>
-                          {type === 'card' && <CreditCard size={16} className="shrink-0 opacity-70" aria-hidden />}
-                          {w.last4 && <p className="shrink-0 font-mono text-xs tracking-widest text-white/90" dir="ltr">•••• {w.last4}</p>}
-                        </div>
-                      </div>
+                    {/* The face is the card's picture (or a drawn card); name and programs sit under it, never over a photo. */}
+                    <div className="relative">
+                      <CardFace art={art} image={product?.image_url} type={w.type} className="aspect-[1.6] shadow-lg shadow-black/30" />
+                      <button disabled={!online} onClick={() => edit(w)} aria-label={`עריכת ${w.name}`}
+                        className="tap absolute end-2 top-2 grid h-7 w-7 place-items-center rounded-lg bg-black/45 text-white backdrop-blur disabled:opacity-40">
+                        <Pencil size={13} aria-hidden />
+                      </button>
+                      {w.last4 && (
+                        <p className="absolute bottom-2 end-2 rounded-md bg-black/55 px-1.5 py-0.5 font-mono text-xs tracking-widest text-white" dir="ltr">
+                          •••• {w.last4}
+                        </p>
+                      )}
+                    </div>
+                    <div className="px-0.5">
+                      <p className="truncate text-sm font-bold">{w.nickname || w.name}</p>
+                      <p className="truncate text-[11px] text-muted">
+                        {w.birthday_month ? `🎂 ${monthNameHe(w.birthday_month)} · ` : ''}
+                        {w.program_ids.map((id) => programs.get(id)?.name).filter(Boolean).join(' · ') || 'לא משויך לתוכנית'}
+                      </p>
                     </div>
                     {product && needsCatalogUpdate(w, product) && (
                       <button disabled={!online} onClick={() => syncFromCatalog(w, product)}
@@ -174,11 +167,10 @@ export default function WalletPage() {
           </div>
           <ul className="max-h-80 space-y-1.5 overflow-y-auto">
             {products.filter((p) => cardMatches(p.name, query)).map((p) => {
-              const art = cardArtFor([p.name]);
               return (
                 <li key={p.id}>
                   <button onClick={() => addProduct(p)} className="flex w-full items-center gap-3 rounded-xl border border-line bg-panel-2 p-2.5 text-start hover:border-mint">
-                    <span aria-hidden className="h-6 w-10 shrink-0 rounded" style={{ background: art ? `linear-gradient(135deg, ${art.from}, ${art.to})` : 'var(--color-panel-2)' }} />
+                    <CardFace art={faceArt([p.name])} image={p.image_url} type={p.type} small className="h-7 w-11 shrink-0" />
                     <span className="flex-1">{p.name}</span>
                     <span className="text-xs text-dim">{p.type === 'card' ? 'כרטיס' : 'מועדון'}</span>
                   </button>
