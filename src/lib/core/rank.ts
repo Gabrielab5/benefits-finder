@@ -1,5 +1,5 @@
 import { availability, datesOf, openMonths, type Availability, type IsraelDay, type PersonalDates } from './dates';
-import { computeSavings, isPerItem, type Savings } from './savings';
+import { computeSavings, isFxFee, isPerItem, type Savings } from './savings';
 import { COMPUTABLE_TYPES, type Benefit, type Program, type Snapshot, type Store, type WalletItem } from './types';
 
 export interface Row {
@@ -18,6 +18,8 @@ export interface RankResult {
 }
 
 export function appliesToStore(b: Benefit, store: Store): boolean {
+  // an FX fee is only charged abroad and on foreign sites, never at a local store
+  if (isFxFee(b) && store.category !== 'travel' && store.category !== 'online') return false;
   if (b.store_id) return b.store_id === store.id;
   if (b.category) return b.category === store.category;
   return true; // general benefit
@@ -87,7 +89,8 @@ export function rankForStore(
     const { state, lockedMonths } = itemAvailability(benefit, items, dates, today);
     if (state === 'unavailable') continue;
 
-    const computable = COMPUTABLE_TYPES.includes(benefit.type) && !isPerItem(benefit); // no basket-wide ₪ for one item
+    // no basket-wide ₪ for one item or for a fee
+    const computable = COMPUTABLE_TYPES.includes(benefit.type) && !isPerItem(benefit) && !isFxFee(benefit);
     const row: Row = {
       benefit,
       program,

@@ -157,3 +157,19 @@ describe('single-item percent benefits', () => {
     expect(bestRowId(r)).toBeNull();
   });
 });
+
+describe('foreign-currency fee benefits', () => {
+  const fx = benefit({ id: 'fxFee', store_id: null, title: '50% הנחה בעמלת עסקאות מט"ח', value: 50 });
+  const elAl: Store = { id: 'elal', name_he: 'אל על', name_en: 'El Al', aliases: [], category: 'travel', channel: 'both' };
+
+  it('do not apply at a local store (Mango, ₪600, 50% off the FX fee)', () => {
+    const r = rankForStore({ ...snapshot, benefits: [fx, b1] }, mango, 600, OCT);
+    expect(Object.values(r).flat().map((x) => x.benefit.id)).not.toContain('fxFee');
+    expect(bestRowId(r)).toBe('hever10');
+  });
+  it('show at travel stores without a ₪ figure', () => {
+    const r = rankForStore({ ...snapshot, benefits: [fx] }, elAl, 600, OCT);
+    expect(ids(r.other)).toEqual(['fxFee']);
+    expect(bestRowId(r)).toBeNull();
+  });
+});

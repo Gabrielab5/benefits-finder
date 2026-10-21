@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { computeSavings, isPerItem, parseAmount } from './savings';
+import { computeSavings, isFxFee, isPerItem, parseAmount } from './savings';
+
+describe('isFxFee', () => {
+  it('catches the catalog FX-fee benefits (10/2026)', () => {
+    for (const t of ['50% הנחה בעמלת עסקאות מט"ח', 'פטור מלא מעמלת מט״ח', '25% הנחה בעמלת המרת מטבע חוץ', 'עמלת מט"ח מוזלת 1% במקום 3%']) {
+      expect(isFxFee({ title: t }), t).toBe(true);
+    }
+  });
+  it('leaves other fees and purchases abroad alone', () => {
+    expect(isFxFee({ title: 'ללא עמלת הזמנה' })).toBe(false);
+    expect(isFxFee({ title: '3% החזר על קניות במט"ח' })).toBe(false);
+  });
+});
 
 describe('parseAmount', () => {
   it('treats commas as thousands separators (Israeli format)', () => {
