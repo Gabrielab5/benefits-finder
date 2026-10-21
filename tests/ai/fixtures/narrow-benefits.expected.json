@@ -1,0 +1,18 @@
+{
+  "program": "כרטיס הדוגמה",
+  "today": "2026-10-19",
+  "stores": [
+    { "id": "22222222-2222-2222-2222-222222222221", "name_he": "הראל ביטוח", "name_en": "Harel Insurance", "aliases": ["הראל"], "category": "travel", "channel": "both" },
+    { "id": "22222222-2222-2222-2222-222222222222", "name_he": "יס", "name_en": "yes", "aliases": [], "category": "other", "channel": "both" },
+    { "id": "22222222-2222-2222-2222-222222222223", "name_he": "הוט", "name_en": "HOT", "aliases": [], "category": "other", "channel": "both" },
+    { "id": "22222222-2222-2222-2222-222222222224", "name_he": "אל על", "name_en": "El Al", "aliases": [], "category": "travel", "channel": "both" }
+  ],
+  "benefits": [
+    { "store": null, "category": null, "type": "cashback_percent", "value": 1 },
+    { "store": "Harel Insurance", "type": "cashback_percent", "value": 10 },
+    { "store": "yes", "type": "cashback_percent", "value": 5 },
+    { "store": "HOT", "type": "cashback_percent", "value": 5 },
+    { "store": "El Al", "type": "other" },
+    { "store": null, "type": "other" }
+  ]
+}

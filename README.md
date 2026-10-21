@@ -161,6 +161,8 @@ flowchart LR
 | `fixed_off` | `value`, only if `A ≥ min_spend` |
 | `points`, `bogo`, `gift`, `installments`, `other` | shown but not ranked by ₪, because no honest number exists |
 
+A **general benefit** (no store, no category) is shown, with a ₪ figure, at every store, so it is kept for benefits that work on any purchase ("1% קאשבק על כל קנייה"). Import files a benefit on one product or service (car insurance, a TV or electricity bill, an eSIM, a festival ticket, the club's own site) under the company that sells it, and imports a discount on points, on a fee, or on vouchers for chains the page doesn't name as `other`.
+
 Every ₪ figure carries a one-line "how we got this" under it, for the amount entered: `30% × ₪300`, `10% × ₪300, עד ₪50`, `₪20 בקנייה מעל ₪100`. The best card also says why it won ("החיסכון הגדול ביותר עבור ₪300").
 
 **With gift cards** the app compares two ways to pay and shows the cheaper one:
